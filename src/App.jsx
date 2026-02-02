@@ -1,7 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from "react";
+import { auth } from "./config/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
@@ -9,26 +30,28 @@ function App() {
         <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
           React + Vite + Tailwind v4
         </h1>
-        
+
         <div className="text-center">
-          <button 
+          <button
             onClick={() => setCount((count) => count + 1)}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200"
           >
             Count is {count}
           </button>
-          
+
           <p className="mt-4 text-gray-600">
-            Edit <code className="bg-gray-200 px-2 py-1 rounded">src/App.jsx</code> and save to test HMR
+            Edit{" "}
+            <code className="bg-gray-200 px-2 py-1 rounded">src/App.jsx</code>{" "}
+            and save to test HMR
           </p>
-          
+
           <div className="mt-6 text-sm text-green-600">
             ✅ Tailwind CSS v4 is working!
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
