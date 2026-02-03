@@ -8,8 +8,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserDashboard from "./pages/user/UserDashboard";
-import SignupPage from "./pages/auth/SignupPage";
-import LoginPage from "./pages/auth/LoginPage";
+import AuthPage from "./pages/auth/AuthPage";
 import LandingPage from "./pages/LandingPage";
 
 const DashboardRouter = () => {
@@ -30,8 +29,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/landing" element={<LandingPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth" element={<AuthPage />} />
           <Route path="/" element={<DashboardRouter />} />
           <Route
             path="/admin/dashboard"

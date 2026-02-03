@@ -8,7 +8,7 @@ const LandingLayout = ({ children }) => {
 
   const handleLogout = async () => {
     await signOut();
-    navigate('/login');
+    navigate('/auth');
   };
 
   return (
@@ -41,13 +41,13 @@ const LandingLayout = ({ children }) => {
             ) : (
               <div className="flex items-center space-x-4">
                 <Link 
-                  to="/login"
+                  to="/auth"
                   className="text-slate-300 hover:text-white transition-colors"
                 >
                   Login
                 </Link>
                 <Link 
-                  to="/signup"
+                  to="/auth"
                   className="bg-linear-to-r from-emerald-500 to-teal-500 text-white px-4 py-2 rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-200"
                 >
                   Get Started

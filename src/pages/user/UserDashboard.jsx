@@ -8,7 +8,7 @@ const UserDashboard = () => {
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/login");
+    navigate("/auth");
   };
 
   return (
