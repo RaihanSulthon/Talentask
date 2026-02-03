@@ -13,6 +13,15 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const superAdminAuth = localStorage.getItem('superAdminAuth');
+    if (superAdminAuth) {
+      const superAdmin = JSON.parse(superAdminAuth);
+      setUser(superAdmin);
+      setUserRole('super_admin');
+      setLoading(false);
+      return;
+    }
+    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // Get user role from Firestore

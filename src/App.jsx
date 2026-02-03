@@ -10,21 +10,26 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserDashboard from "./pages/user/UserDashboard";
 import SignupPage from "./pages/auth/SignupPage";
 import LoginPage from "./pages/auth/LoginPage";
+import LandingPage from "./pages/LandingPage";
 
 const DashboardRouter = () => {
-  const { userRole } = useAuth();
+  const { user, userRole, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+
+  if (!user) return <Navigate to="/landing" />;
 
   if (userRole === "super_admin" || userRole === "admin") {
     return <Navigate to="/admin/dashboard" />;
   }
   return <Navigate to="/user/dashboard" />;
 };
-
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/landing" element={<LandingPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<DashboardRouter />} />
