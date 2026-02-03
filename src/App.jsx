@@ -1,56 +1,52 @@
-import { useState, useEffect } from "react";
-import { auth } from "./config/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import UserDashboard from "./pages/user/UserDashboard";
+import SignupPage from "./pages/auth/SignupPage";
+import LoginPage from "./pages/auth/LoginPage";
+
+const DashboardRouter = () => {
+  const { userRole } = useAuth();
+
+  if (userRole === "super_admin" || userRole === "admin") {
+    return <Navigate to="/admin/dashboard" />;
+  }
+  return <Navigate to="/user/dashboard" />;
+};
 
 function App() {
-  const [count, setCount] = useState(0);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md">
-        <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
-          React + Vite + Tailwind v4
-        </h1>
-
-        <div className="text-center">
-          <button
-            onClick={() => setCount((count) => count + 1)}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200"
-          >
-            Count is {count}
-          </button>
-
-          <p className="mt-4 text-gray-600">
-            Edit{" "}
-            <code className="bg-gray-200 px-2 py-1 rounded">src/App.jsx</code>{" "}
-            and save to test HMR
-          </p>
-
-          <div className="mt-6 text-sm text-green-600">
-            ✅ Tailwind CSS v4 is working!
-          </div>
-        </div>
-      </div>
-    </div>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<DashboardRouter />} />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
