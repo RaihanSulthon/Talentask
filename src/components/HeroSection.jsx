@@ -51,14 +51,14 @@ const HeroSection = () => {
           ) : (
             <>
               <Link
-                to="/auth"
+                to="/auth?mode=signup"
                 className="px-8 py-4 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transform hover:scale-105 transition-all duration-200 shadow-lg shadow-emerald-500/25"
               >
                 Start Free Today
               </Link>
 
               <Link
-                to="/auth"
+                to="/auth?mode=login"
                 className="px-8 py-4 border border-slate-600 text-slate-300 rounded-xl font-semibold hover:border-slate-500 hover:text-white transition-all duration-200"
               >
                 Sign In

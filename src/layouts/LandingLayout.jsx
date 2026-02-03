@@ -1,19 +1,19 @@
-import { useAuth } from '../contexts/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
-import { signOut } from '../services/authService';
+import { useAuth } from "../contexts/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import { signOut } from "../services/authService";
 
 const LandingLayout = ({ children }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-const handleLogout = async () => {
-  try {
-    await signOut();
-    navigate('/');
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
-};
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -24,11 +24,11 @@ const handleLogout = async () => {
             <div className="w-8 h-8 bg-linear-to-r from-emerald-500 to-teal-500 rounded-lg"></div>
             <span className="text-xl font-bold text-white">TalenTask</span>
           </div>
-          
+
           <div className="flex items-center space-x-6">
             {user ? (
               <div className="flex items-center space-x-4">
-                <Link 
+                <Link
                   to="/"
                   className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
                 >
@@ -44,14 +44,14 @@ const handleLogout = async () => {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <Link 
-                  to="/auth"
+                <Link
+                  to="/auth?mode=login"
                   className="text-slate-300 hover:text-white transition-colors"
                 >
                   Login
                 </Link>
-                <Link 
-                  to="/auth"
+                <Link
+                  to="/auth?mode=signup"
                   className="bg-linear-to-r from-emerald-500 to-teal-500 text-white px-4 py-2 rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-200"
                 >
                   Get Started
@@ -61,7 +61,7 @@ const handleLogout = async () => {
           </div>
         </div>
       </nav>
-      
+
       {children}
     </div>
   );
