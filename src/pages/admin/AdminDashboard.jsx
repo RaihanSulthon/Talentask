@@ -6,10 +6,14 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
+const handleLogout = async () => {
+  try {
     await signOut();
-    navigate("/auth");
-  };
+    navigate('/');
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+};
 
   return (
     <div className="p-8">

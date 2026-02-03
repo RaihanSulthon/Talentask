@@ -29,6 +29,8 @@ function App() {
       <Router>
         <Routes>
           <Route path="/landing" element={<LandingPage />} />
+          <Route path="/login" element={<Navigate to="/auth" />} />
+          <Route path="/signup" element={<Navigate to="/auth" />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/" element={<DashboardRouter />} />
           <Route

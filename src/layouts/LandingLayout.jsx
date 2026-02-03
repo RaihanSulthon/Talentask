@@ -6,10 +6,14 @@ const LandingLayout = ({ children }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
+const handleLogout = async () => {
+  try {
     await signOut();
-    navigate('/auth');
-  };
+    navigate('/');
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+};
 
   return (
     <div className="min-h-screen bg-slate-900">
