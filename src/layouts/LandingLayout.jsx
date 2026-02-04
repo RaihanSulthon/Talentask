@@ -3,8 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "../services/authService";
 
 const LandingLayout = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
+
+  if (loading){
+    return <div className="min-h-screen bg-slate-900"/>;
+  }
 
   const handleLogout = async () => {
     try {

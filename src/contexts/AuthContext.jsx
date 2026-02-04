@@ -13,16 +13,40 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const superAdminAuth = localStorage.getItem("superAdminAuth");
-    if (superAdminAuth) {
-      const superAdmin = JSON.parse(superAdminAuth);
-      setUser(superAdmin);
-      setUserRole("super_admin");
-      setLoading(false);
-      return;
-    }
+    // Check for super admin on mount
+    const checkSuperAdmin = () => {
+      const superAdminAuth = localStorage.getItem("superAdminAuth");
+      if (superAdminAuth) {
+        const superAdmin = JSON.parse(superAdminAuth);
+        setUser(superAdmin);
+        setUserRole("super_admin");
+        setLoading(false);
+        return true;
+      }
+      return false;
+    };
 
+    // Initial check
+    if (checkSuperAdmin()) return;
+
+    // Listen for super admin login/logout
+    const handleSuperAdminLogin = () => {
+      checkSuperAdmin();
+    };
+
+    const handleSuperAdminLogout = () => {
+      setUser(null);
+      setUserRole(null);
+    };
+
+    window.addEventListener("superAdminLogin", handleSuperAdminLogin);
+    window.addEventListener("superAdminLogout", handleSuperAdminLogout);
+
+    // Firebase auth listener
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Skip if super admin is logged in
+      if (localStorage.getItem("superAdminAuth")) return;
+
       if (firebaseUser) {
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
         const userData = userDoc.data();
@@ -36,7 +60,11 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      window.removeEventListener("superAdminLogin", handleSuperAdminLogin);
+      window.removeEventListener("superAdminLogout", handleSuperAdminLogout);
+    };
   }, []);
 
   return (

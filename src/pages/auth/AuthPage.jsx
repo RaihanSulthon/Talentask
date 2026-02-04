@@ -15,13 +15,14 @@ const AuthPage = () => {
   const onSubmit = async (data) => {
     if (isLogin) {
       await signIn(data.email, data.password);
+      navigate("/landing");
     } else {
       if (data.password !== data.confirmPassword) {
         throw new Error("Passwords don't match");
       }
       await signUp(data.email, data.password, data.displayName);
+      navigate("/");
     }
-    navigate("/");
   };
 
   return (
@@ -31,14 +32,12 @@ const AuthPage = () => {
         isLogin
           ? "Log In to continue to TalenTask"
           : "Create your account to get started"
-      }
-    >
+      }>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit(onSubmit);
-        }}
-      >
+        }}>
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 text-red-200 p-3 rounded-lg mb-4">
             {error}
@@ -98,8 +97,7 @@ const AuthPage = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full mt-6 bg-linear-to-r from-purple-500 to-pink-500 text-white py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200"
-        >
+          className="w-full mt-6 bg-linear-to-r from-purple-500 to-pink-500 text-white py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200">
           {loading
             ? isLogin
               ? "Signing In..."
@@ -113,8 +111,7 @@ const AuthPage = () => {
           <button
             type="button"
             onClick={() => setIsLogin(!isLogin)}
-            className="text-white/70 hover:text-white transition-colors duration-200"
-          >
+            className="text-white/70 hover:text-white transition-colors duration-200">
             {isLogin ? (
               <>
                 Don't have an account?{" "}
