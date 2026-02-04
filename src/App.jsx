@@ -12,6 +12,7 @@ import AuthPage from "./pages/auth/AuthPage";
 import LandingPage from "./pages/LandingPage";
 import UserManagement from "./pages/admin/UserManagement";
 import Sidebar from "./components/Sidebar";
+import TeamPage from "./pages/TeamPage";
 
 const DashboardRouter = () => {
   const { user, userRole, loading } = useAuth();
@@ -63,6 +64,14 @@ function App() {
                     </h1>
                   </div>
                 </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/team"
+            element={
+              <ProtectedRoute allowedRoles={["super_admin", "admin", "user"]}>
+                <TeamPage />
               </ProtectedRoute>
             }
           />

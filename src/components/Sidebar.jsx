@@ -10,7 +10,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Board', path: '/admin/board' },
-    { icon: Users, label: 'Team', path: '/admin/team' },
+    { icon: Users, label: 'Team', path: '/team' },
     { icon: CheckSquare, label: 'Tasks', path: '/admin/tasks' },
     { icon: FileCheck, label: 'Approvals', path: '/admin/approvals' },
   ];
