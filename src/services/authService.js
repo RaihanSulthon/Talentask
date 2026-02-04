@@ -60,13 +60,18 @@ export const signIn = async (email, password) => {
 };
 
 export const signOut = async () => {
-  // Clear super admin auth
-  localStorage.removeItem("superAdminAuth");
+  // Check if super admin is logged in
+  const isSuperAdmin = localStorage.getItem("superAdminAuth");
 
-  // Trigger event for UI update
-  window.dispatchEvent(new Event("superAdminLogout"));
+  if (isSuperAdmin) {
+    // Clear super admin auth
+    localStorage.removeItem("superAdminAuth");
+    // Trigger event for UI update
+    window.dispatchEvent(new Event("superAdminLogout"));
+    return;
+  }
 
-  // Only sign out from Firebase if not super admin
+  // Sign out Firebase user
   if (auth.currentUser) {
     return await firebaseSignOut(auth);
   }
@@ -74,16 +79,16 @@ export const signOut = async () => {
 
 export const updateUserRole = async (userId, newRole) => {
   const userRef = doc(db, "users", userId);
-  await updateDoc(userRef, { 
+  await updateDoc(userRef, {
     role: newRole,
-    updatedAt: new Date(), 
+    updatedAt: new Date(),
   });
 };
 
 export const getAllUsers = async () => {
   const usersSnapshot = await getDocs(collection(db, "users"));
-  return usersSnapshot.docs.map(doc => ({
+  return usersSnapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   }));
-}
+};

@@ -10,7 +10,7 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      navigate("/landing");
+      window.location.href = "/landing"; // Force reload
     } catch (error) {
       console.error("Logout error:", error);
     }

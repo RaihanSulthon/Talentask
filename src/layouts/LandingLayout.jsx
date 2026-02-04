@@ -6,14 +6,14 @@ const LandingLayout = ({ children }) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  if (loading){
-    return <div className="min-h-screen bg-slate-900"/>;
+  if (loading) {
+    return <div className="min-h-screen bg-slate-900" />;
   }
 
   const handleLogout = async () => {
     try {
       await signOut();
-      navigate("/");
+      window.location.href = "/landing"; // Force reload
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -34,15 +34,13 @@ const LandingLayout = ({ children }) => {
               <div className="flex items-center space-x-4">
                 <Link
                   to="/"
-                  className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
-                >
+                  className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
                   Dashboard
                 </Link>
                 <span className="text-slate-400">Hi, {user.displayName}</span>
                 <button
                   onClick={handleLogout}
-                  className="text-slate-400 hover:text-white transition-colors"
-                >
+                  className="text-slate-400 hover:text-white transition-colors">
                   Logout
                 </button>
               </div>
@@ -50,14 +48,12 @@ const LandingLayout = ({ children }) => {
               <div className="flex items-center space-x-4">
                 <Link
                   to="/auth?mode=login"
-                  className="text-slate-300 hover:text-white transition-colors"
-                >
+                  className="text-slate-300 hover:text-white transition-colors">
                   Login
                 </Link>
                 <Link
                   to="/auth?mode=signup"
-                  className="bg-linear-to-r from-emerald-500 to-teal-500 text-white px-4 py-2 rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-200"
-                >
+                  className="bg-linear-to-r from-emerald-500 to-teal-500 text-white px-4 py-2 rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-200">
                   Get Started
                 </Link>
               </div>
