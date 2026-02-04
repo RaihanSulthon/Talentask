@@ -83,6 +83,51 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/user/kanban"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <div className="flex min-h-screen bg-slate-900">
+                  <Sidebar />
+                  <div className="flex-1 ml-20 p-8">
+                    <h1 className="text-2xl font-bold text-white">
+                      Kanban (Coming Soon)
+                    </h1>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user/tasks"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <div className="flex min-h-screen bg-slate-900">
+                  <Sidebar />
+                  <div className="flex-1 ml-20 p-8">
+                    <h1 className="text-2xl font-bold text-white">
+                      Tasks (Coming Soon)
+                    </h1>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user/approvals"
+            element={
+              <ProtectedRoute allowedRoles={["user"]}>
+                <div className="flex min-h-screen bg-slate-900">
+                  <Sidebar />
+                  <div className="flex-1 ml-20 p-8">
+                    <h1 className="text-2xl font-bold text-white">
+                      Approvals (Coming Soon)
+                    </h1>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
     </AuthProvider>

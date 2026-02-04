@@ -1,32 +1,54 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CheckSquare, FileCheck, UserCog } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Users,
+  CheckSquare,
+  FileCheck,
+  UserCog,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const location = useLocation();
   const { userRole } = useAuth();
 
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Board', path: '/admin/board' },
-    { icon: Users, label: 'Team', path: '/team' },
-    { icon: CheckSquare, label: 'Tasks', path: '/admin/tasks' },
-    { icon: FileCheck, label: 'Approvals', path: '/admin/approvals' },
-  ];
+  const getMenuItems = () => {
+    if (userRole === "super_admin" || userRole === "admin") {
+      const items = [
+        { icon: LayoutDashboard, label: "Board", path: "/admin/board" },
+        { icon: Users, label: "Team", path: "/team" },
+        { icon: CheckSquare, label: "Tasks", path: "/admin/tasks" },
+        { icon: FileCheck, label: "Approvals", path: "/admin/approvals" },
+      ];
 
-  if (userRole === 'super_admin') {
-    menuItems.push({ 
-      icon: UserCog, 
-      label: 'User Management', 
-      path: '/admin/user-management' 
-    });
-  }
+      if (userRole === "super_admin") {
+        items.push({
+          icon: UserCog,
+          label: "User Management",
+          path: "/admin/user-management",
+        });
+      }
+
+      return items;
+    }
+
+    // User menu items
+    return [
+      { icon: LayoutDashboard, label: "Kanban", path: "/user/kanban" },
+      { icon: Users, label: "Team", path: "/team" },
+      { icon: CheckSquare, label: "Tasks", path: "/user/tasks" },
+      { icon: FileCheck, label: "Approvals", path: "/user/approvals" },
+    ];
+  };
+
+  const menuItems = getMenuItems();
 
   return (
     <div
       className={`fixed left-0 top-0 h-full bg-slate-800 border-r border-slate-700 transition-all duration-300 z-40 ${
-        isExpanded ? 'w-64' : 'w-20'
+        isExpanded ? "w-64" : "w-20"
       }`}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
@@ -45,15 +67,15 @@ const Sidebar = () => {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
-            
+
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`flex items-center px-6 py-3 mb-1 transition-colors ${
                   isActive
-                    ? 'bg-emerald-500/20 text-emerald-400 border-r-2 border-emerald-500'
-                    : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                    ? "bg-emerald-500/20 text-emerald-400 border-r-2 border-emerald-500"
+                    : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
                 }`}
               >
                 <Icon size={20} />
