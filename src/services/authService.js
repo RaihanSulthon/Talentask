@@ -5,10 +5,11 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
+import { updateDoc } from "firebase/firestore";
 
 export const signUp = async (email, password, displayName) => {
   // Auto-detect role based on email
-  const role = email.includes("@admintalentask") ? "admin" : "user";
+  const role = "user";
 
   const userCredential = await createUserWithEmailAndPassword(
     auth,
@@ -50,7 +51,7 @@ export const signIn = async (email, password) => {
     localStorage.setItem("superAdminAuth", JSON.stringify(mockUser));
 
     // Trigger storage event for other tabs/windows and manual check
-    window.dispatchEvent(new Event('superAdminLogin'));
+    window.dispatchEvent(new Event("superAdminLogin"));
 
     return { user: mockUser };
   }
@@ -61,12 +62,28 @@ export const signIn = async (email, password) => {
 export const signOut = async () => {
   // Clear super admin auth
   localStorage.removeItem("superAdminAuth");
-  
+
   // Trigger event for UI update
-  window.dispatchEvent(new Event('superAdminLogout'));
+  window.dispatchEvent(new Event("superAdminLogout"));
 
   // Only sign out from Firebase if not super admin
   if (auth.currentUser) {
     return await firebaseSignOut(auth);
   }
 };
+
+export const updateUserRole = async (userId, newRole) => {
+  const userRef = doc(db, "users", userId);
+  await updateDoc(userRef, { 
+    role: newRole,
+    updatedAt: new Date(), 
+  });
+};
+
+export const getAllUsers = async () => {
+  const usersSnapshot = await getDocs(collection(db, "users"));
+  return usersSnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+}

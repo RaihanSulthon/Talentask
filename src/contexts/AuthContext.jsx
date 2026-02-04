@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
 
 const AuthContext = createContext();
@@ -48,12 +48,15 @@ export const AuthProvider = ({ children }) => {
       if (localStorage.getItem("superAdminAuth")) return;
 
       if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        const userData = userDoc.data();
-
-        setUser(firebaseUser);
-        setUserRole(userData?.role || "user");
-      } else {
+        const userDocRef = doc(db, "users", firebaseUser.uid);
+        const unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
+          if(docSnap.exists()) {
+            const userData = docSnap.data();
+            setUser(firebaseUser);
+            setUserRole(userData?.role || "user")
+          }
+        });
+    } else {
         setUser(null);
         setUserRole(null);
       }

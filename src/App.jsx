@@ -10,6 +10,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserDashboard from "./pages/user/UserDashboard";
 import AuthPage from "./pages/auth/AuthPage";
 import LandingPage from "./pages/LandingPage";
+import UserManagement from "./pages/admin/UserManagement";
+import Sidebar from "./components/Sidebar";
 
 const DashboardRouter = () => {
   const { user, userRole, loading } = useAuth();
@@ -38,6 +40,29 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/user-management"
+            element={
+              <ProtectedRoute allowedRoles={["super_admin"]}>
+                <UserManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/board"
+            element={
+              <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
+                <div className="flex">
+                  <Sidebar />
+                  <div className="flex-1 ml-20 p-8">
+                    <h1 className="text-2xl font-bold text-white">
+                      Board (Coming Soon)
+                    </h1>
+                  </div>
+                </div>
               </ProtectedRoute>
             }
           />
