@@ -20,6 +20,8 @@ const TaskDetailModal = ({
     assignedTo: task.assignedTo || [],
   });
 
+  const [showAssignDropdown, setShowAssignDropdown] = useState(false);
+
   const isAdmin = userRole === "super_admin" || userRole === "admin";
   const currentTeam = teams.find((t) => t.id === task.teamId);
 
@@ -61,7 +63,7 @@ const TaskDetailModal = ({
           </button>
         </div>
 
-        {isEditing ? (
+        {isEditing && isAdmin ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -115,25 +117,77 @@ const TaskDetailModal = ({
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Assigned To
                 </label>
-                <div className="space-y-2 max-h-48 overflow-y-auto bg-slate-700 rounded-lg p-3">
-                  {currentTeam.members
-                    .filter(
-                      (m) => m.role !== "admin" && m.role !== "super_admin",
-                    )
-                    .map((member) => (
-                      <label
-                        key={member.id}
-                        className="flex items-center gap-3 p-2 hover:bg-slate-600 rounded cursor-pointer"
+
+                {/* Assigned Members Chips */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {formData.assignedTo.map((memberId) => {
+                    const member = currentTeam.members.find(
+                      (m) => m.uid === memberId || m.id === memberId,
+                    );
+                    return member ? (
+                      <div
+                        key={memberId}
+                        className="flex items-center gap-2 px-3 py-2 bg-emerald-500/20 text-emerald-300 rounded-lg border border-emerald-500/30"
                       >
-                        <input
-                          type="checkbox"
-                          checked={formData.assignedTo.includes(member.id)}
-                          onChange={() => toggleAssignee(member.id)}
-                          className="w-4 h-4 text-emerald-500 bg-slate-800 border-slate-500 rounded focus:ring-emerald-500"
-                        />
-                        <span className="text-white">{member.name}</span>
-                      </label>
-                    ))}
+                        <span className="text-sm font-medium">
+                          {member.displayName}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleAssignee(memberId)}
+                          className="text-emerald-300 hover:text-emerald-100 transition-colors"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+
+                {/* Add Member Dropdown */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowAssignDropdown(!showAssignDropdown)}
+                    className="w-full px-4 py-3 bg-slate-700 text-slate-400 rounded-lg border border-slate-600 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left transition-colors"
+                  >
+                    Add team member...
+                  </button>
+
+                  {showAssignDropdown && (
+                    <div className="absolute z-10 w-full mt-2 bg-slate-700 rounded-lg border border-slate-600 shadow-xl max-h-60 overflow-y-auto">
+                      {currentTeam.members
+                        .filter(
+                          (m) => m.role !== "admin" && m.role !== "super_admin",
+                        )
+                        .filter(
+                          (m) => !formData.assignedTo.includes(m.uid || m.id),
+                        )
+                        .map((member) => {
+                          const isAssigned = formData.assignedTo.includes(
+                            member.uid || member.id,
+                          );
+                          return (
+                            <button
+                              key={member.uid || member.id}
+                              type="button"
+                              onClick={() => {
+                                toggleAssignee(member.uid || member.id);
+                                setShowAssignDropdown(false);
+                              }}
+                              className="w-full px-4 py-3 text-left transition-colors hover:bg-slate-600 text-white"
+                            >
+                              <div className="font-medium">
+                                {member.displayName}
+                              </div>
+                              <div className="text-sm text-slate-400">
+                                {member.email}
+                              </div>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -163,9 +217,9 @@ const TaskDetailModal = ({
               </label>
               <div className="flex items-center justify-between">
                 <p className="text-lg font-semibold text-white">{task.title}</p>
-                {canEdit && (
+                {isAdmin && canEdit && (
                   <button
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => isAdmin && setIsEditing(true)}
                     className="text-slate-400 hover:text-emerald-400"
                   >
                     <Edit2 size={18} />
@@ -208,14 +262,14 @@ const TaskDetailModal = ({
                 <div className="flex flex-wrap gap-2">
                   {task.assignedTo?.map((memberId) => {
                     const member = currentTeam.members?.find(
-                      (m) => m.id === memberId,
+                      (m) => m.uid === memberId || m.id === memberId,
                     );
                     return member ? (
                       <span
                         key={memberId}
                         className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-sm"
                       >
-                        {member.name}
+                        {member.displayName}
                       </span>
                     ) : null;
                   })}

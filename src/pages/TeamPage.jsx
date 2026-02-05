@@ -280,23 +280,28 @@ const TeamPage = () => {
           {/* Members List */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedMembers.length > 0 ? (
-              displayedMembers.map((member) => {
-                const memberTeam = selectedTeamId
-                  ? selectedTeamData
-                  : teams.find((t) =>
-                      t.members?.some((m) => m.uid === member.uid),
-                    );
+              displayedMembers
+                .filter(
+                  (member, index, self) =>
+                    index === self.findIndex((m) => m.uid === member.uid),
+                )
+                .map((member) => {
+                  const memberTeam = selectedTeamId
+                    ? selectedTeamData
+                    : teams.find((t) =>
+                        t.members?.some((m) => m.uid === member.uid),
+                      );
 
-                return (
-                  <TeamMemberCard
-                    key={`${memberTeam?.id}-${member.uid}`}
-                    member={member}
-                    team={memberTeam}
-                    onRemove={onRemoveMember}
-                    showTeamName={!selectedTeamId}
-                  />
-                );
-              })
+                  return (
+                    <TeamMemberCard
+                      key={`${memberTeam?.id}-${member.uid}`}
+                      member={member}
+                      team={memberTeam}
+                      onRemove={onRemoveMember}
+                      showTeamName={!selectedTeamId}
+                    />
+                  );
+                })
             ) : (
               <div className="col-span-full text-center text-slate-400 py-8">
                 No members found

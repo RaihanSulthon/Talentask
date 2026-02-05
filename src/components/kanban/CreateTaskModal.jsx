@@ -108,16 +108,25 @@ const CreateTaskModal = ({ teams, onClose, onCreate, loading }) => {
                   .filter((m) => m.role !== "admin" && m.role !== "super_admin")
                   .map((member) => (
                     <label
-                      key={member.id}
+                      key={member.uid || member.id}
                       className="flex items-center gap-3 p-2 hover:bg-slate-600 rounded cursor-pointer"
                     >
                       <input
                         type="checkbox"
-                        checked={formData.assignedTo.includes(member.id)}
-                        onChange={() => toggleAssignee(member.id)}
+                        checked={formData.assignedTo.includes(
+                          member.uid || member.id,
+                        )}
+                        onChange={() => toggleAssignee(member.uid || member.id)}
                         className="w-4 h-4 text-emerald-500 bg-slate-800 border-slate-500 rounded focus:ring-emerald-500"
                       />
-                      <span className="text-white">{member.name}</span>
+                      <div className="flex-1">
+                        <div className="text-white font-medium">
+                          {member.displayName}
+                        </div>
+                        <div className="text-slate-400 text-sm">
+                          {member.email}
+                        </div>
+                      </div>
                     </label>
                   ))}
               </div>
