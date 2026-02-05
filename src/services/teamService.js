@@ -45,15 +45,28 @@ export const deleteTeam = async (teamId) => {
   return await deleteDoc(doc(db, "teams", teamId));
 };
 
+export const getAllUsers = async () => {
+  const usersSnapshot = await getDocs(collection(db, "users"));
+  return usersSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+};
+
 export const subscribeToUserTeams = (userId, userRole, callback) => {
   let teamsQuery;
 
-  if (userRole === "super_admin" || userRole === "admin") {
+  if (userRole === "super_admin") {
+    // Super admin sees ALL teams
+    teamsQuery = query(collection(db, "teams"));
+  } else if (userRole === "admin") {
+    // Admin only sees teams they own
     teamsQuery = query(collection(db, "teams"), where("ownerId", "==", userId));
   } else {
+    // Regular users see teams they're members of
     teamsQuery = query(
       collection(db, "teams"),
-      where("memberIds", "array-contains", userId)
+      where("memberIds", "array-contains", userId),
     );
   }
 
@@ -65,7 +78,7 @@ export const fetchTeamMembers = async (memberIds) => {
     (memberIds || []).map(async (memberId) => {
       const memberQuery = query(
         collection(db, "users"),
-        where("uid", "==", memberId)
+        where("uid", "==", memberId),
       );
       const memberSnapshot = await getDocs(memberQuery);
       if (!memberSnapshot.empty) {
@@ -75,7 +88,7 @@ export const fetchTeamMembers = async (memberIds) => {
         };
       }
       return null;
-    })
+    }),
   );
 
   return memberDetails.filter((m) => m !== null);
@@ -84,7 +97,7 @@ export const fetchTeamMembers = async (memberIds) => {
 export const getAllRegularUsers = async () => {
   const usersQuery = query(
     collection(db, "users"),
-    where("role", "==", "user")
+    where("role", "in", ["user", "admin"]), // Include admin users
   );
   const usersSnapshot = await getDocs(usersQuery);
   return usersSnapshot.docs.map((doc) => ({

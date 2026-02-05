@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 
-const TeamMemberCard = ({ member, team, onRemove }) => {
+// Add showTeamName prop
+const TeamMemberCard = ({ member, team, onRemove, showTeamName = false }) => {
   const isOwner = member.uid === team.ownerId;
   const canRemove = team.isOwner && !isOwner;
 
@@ -19,9 +20,16 @@ const TeamMemberCard = ({ member, team, onRemove }) => {
                   Owner
                 </span>
               )}
+              {member.role === "admin" && !isOwner && (
+                <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full font-medium">
+                  Admin
+                </span>
+              )}
             </div>
             <p className="text-slate-400 text-sm">{member.email}</p>
-            <p className="text-slate-500 text-xs mt-1">{team.name}</p>
+            {showTeamName && (
+              <p className="text-slate-500 text-xs mt-1">{team?.name}</p>
+            )}
           </div>
         </div>
         {canRemove && (

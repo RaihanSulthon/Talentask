@@ -31,7 +31,7 @@ export const signUp = async (email, password, displayName) => {
 
 const SUPER_ADMIN = {
   email: "superadmin@talentask.com",
-  password: "SuperAdmin123!",
+  password: "123123",
   uid: "hardcoded_super_admin_uid",
   displayName: "Super Admin",
   role: "super_admin",

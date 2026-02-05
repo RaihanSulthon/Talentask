@@ -28,7 +28,9 @@ const AddMemberModal = ({
         <div className="mb-6">
           <p className="text-slate-400 mb-4">
             Select members to add to{" "}
-            <span className="text-white font-semibold">{selectedTeam.name}</span>
+            <span className="text-white font-semibold">
+              {selectedTeam.name}
+            </span>
           </p>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {availableUsers.length > 0 ? (
@@ -47,8 +49,15 @@ const AddMemberModal = ({
                       {user.displayName?.substring(0, 2).toUpperCase() || "U"}
                     </div>
                     <div className="flex-1">
-                      <div className="text-white font-medium">
-                        {user.displayName}
+                      <div className="flex items-center gap-2">
+                        <div className="text-white font-medium">
+                          {user.displayName}
+                        </div>
+                        {user.role === "admin" && (
+                          <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">
+                            Admin
+                          </span>
+                        )}
                       </div>
                       <div className="text-slate-400 text-sm">{user.email}</div>
                     </div>

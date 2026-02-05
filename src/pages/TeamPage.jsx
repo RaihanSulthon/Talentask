@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Users, CheckCircle, Clock, TrendingUp } from "lucide-react";
+import {
+  Users,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  UserPlus,
+  Trash2,
+  Crown,
+} from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import TeamCard from "../components/TeamCard";
 import TeamStatCard from "../components/TeamStatCard";
@@ -28,6 +36,7 @@ const TeamPage = () => {
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("Members");
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
 
   const stats = getTeamStats();
 
@@ -91,7 +100,7 @@ const TeamPage = () => {
     setSelectedMembers((prev) =>
       prev.includes(userId)
         ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
+        : [...prev, userId],
     );
   };
 
@@ -100,6 +109,33 @@ const TeamPage = () => {
     setSelectedMembers([]);
     setSelectedTeam(null);
   };
+
+  const selectedTeamData = selectedTeamId
+    ? teams.find((t) => t.id === selectedTeamId)
+    : null;
+
+  const displayedMembers = selectedTeamId
+    ? selectedTeamData?.members || []
+    : teams.flatMap(
+        (team) =>
+          team.members?.map((member) => ({ ...member, teamName: team.name })) ||
+          [],
+      );
+
+  const getFilteredStats = () => {
+    if (!selectedTeamId) return stats;
+
+    const team = teams.find((t) => t.id === selectedTeamId);
+    return {
+      totalMembers: team?.members?.length || 0,
+      totalTeams: 1,
+      completedTasks: stats.completedTasks,
+      activeTasks: stats.activeTasks,
+      totalTasks: stats.totalTasks,
+    };
+  };
+
+  const displayedStats = getFilteredStats();
 
   if (loading) {
     return (
@@ -126,31 +162,72 @@ const TeamPage = () => {
       }
     >
       {/* Teams Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+      <div className="flex gap-4 mb-12 overflow-x-auto pb-4">
         {teams.map((team) => (
-          <TeamCard
+          <button
             key={team.id}
-            team={team}
-            onAddMember={openAddMemberModal}
-            onDelete={onDeleteTeam}
-          />
+            onClick={() =>
+              setSelectedTeamId(selectedTeamId === team.id ? null : team.id)
+            }
+            className={`shrink-0 p-6 rounded-2xl border-2 transition-all duration-300 min-w-62.5 ${
+              selectedTeamId === team.id
+                ? "bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/25 scale-100"
+                : team.isOwner
+                  ? "bg-slate-800/80 border-slate-700 hover:border-emerald-500/40 hover:bg-slate-800"
+                  : "bg-slate-800/50 border-slate-700/50 hover:border-slate-600"
+            }`}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">{team.name}</h3>
+              <div className="flex gap-2">
+                {team.isOwner && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openAddMemberModal(team);
+                      }}
+                      className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                      title="Add Members"
+                    >
+                      <UserPlus size={18} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteTeam(team.id);
+                      }}
+                      className="text-red-400 hover:text-red-300 transition-colors"
+                      title="Delete Team"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </>
+                )}
+                {team.isOwner && (
+                  <Crown size={18} className="text-yellow-400" />
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-slate-400 text-sm">
+              <Users size={16} />
+              <span>{team.members?.length || 0} members</span>
+            </div>
+          </button>
         ))}
-        {teams.length === 0 && (
-          <div className="col-span-full text-center py-12 text-slate-400">
-            {canCreateTeam
-              ? "No teams yet. Create your first team!"
-              : "You're not part of any team yet."}
-          </div>
-        )}
       </div>
 
       {/* Team Statistics */}
       <div className="mb-12">
-        <h2 className="text-2xl font-bold text-white mb-6">Team Statistics</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">
+          {selectedTeamId
+            ? `${selectedTeamData?.name} Statistics`
+            : "Team Statistics"}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <TeamStatCard
             icon={Users}
-            value={stats.totalMembers}
+            value={displayedStats.totalMembers}
             label="Team Members"
             gradient="bg-emerald-500"
           />
@@ -179,7 +256,11 @@ const TeamPage = () => {
       {teams.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Team Members</h2>
+            <h2 className="text-2xl font-bold text-white">
+              {selectedTeamId
+                ? `${selectedTeamData?.name} Members`
+                : "Team Members"}
+            </h2>
           </div>
 
           {/* Tabs */}
@@ -198,15 +279,28 @@ const TeamPage = () => {
 
           {/* Members List */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teams.map((team) =>
-              team.members?.map((member) => (
-                <TeamMemberCard
-                  key={`${team.id}-${member.uid}`}
-                  member={member}
-                  team={team}
-                  onRemove={onRemoveMember}
-                />
-              ))
+            {displayedMembers.length > 0 ? (
+              displayedMembers.map((member) => {
+                const memberTeam = selectedTeamId
+                  ? selectedTeamData
+                  : teams.find((t) =>
+                      t.members?.some((m) => m.uid === member.uid),
+                    );
+
+                return (
+                  <TeamMemberCard
+                    key={`${memberTeam?.id}-${member.uid}`}
+                    member={member}
+                    team={memberTeam}
+                    onRemove={onRemoveMember}
+                    showTeamName={!selectedTeamId}
+                  />
+                );
+              })
+            ) : (
+              <div className="col-span-full text-center text-slate-400 py-8">
+                No members found
+              </div>
             )}
           </div>
         </div>

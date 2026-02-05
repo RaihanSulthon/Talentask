@@ -49,12 +49,12 @@ export const useTeamManagement = () => {
               members,
               isOwner: teamData.ownerId === user.uid,
             };
-          })
+          }),
         );
 
         setTeams(teamsData);
         setLoading(false);
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -67,7 +67,7 @@ export const useTeamManagement = () => {
       user.uid,
       user.displayName || user.email,
       user.email,
-      teamName
+      teamName,
     );
   };
 
@@ -85,13 +85,20 @@ export const useTeamManagement = () => {
   };
 
   const getAvailableUsers = (teamMemberIds) => {
-    return allUsers.filter((user) => !teamMemberIds.includes(user.uid));
+    if (userRole === "super_admin") {
+      // Super admin can add both admin and regular users
+      return allUsers.filter((user) => !teamMemberIds.includes(user.uid));
+    } else {
+      // Regular admin can only add regular users
+      return allUsers.filter(
+        (user) => !teamMemberIds.includes(user.uid) && user.role === "user",
+      );
+    }
   };
-
   const getTeamStats = () => {
     const totalMembers = teams.reduce(
       (sum, team) => sum + (team.members?.length || 0),
-      0
+      0,
     );
     return {
       totalMembers,

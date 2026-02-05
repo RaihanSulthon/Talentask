@@ -17,7 +17,7 @@ const Sidebar = () => {
   const getMenuItems = () => {
     if (userRole === "super_admin" || userRole === "admin") {
       const items = [
-        { icon: LayoutDashboard, label: "Board", path: "/admin/board" },
+        { icon: LayoutDashboard, label: "Kanban", path: "/admin/board" },
         { icon: Users, label: "Team", path: "/team" },
         { icon: CheckSquare, label: "Tasks", path: "/admin/tasks" },
         { icon: FileCheck, label: "Approvals", path: "/admin/approvals" },
