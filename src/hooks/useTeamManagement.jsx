@@ -88,17 +88,42 @@ export const useTeamManagement = () => {
     return allUsers.filter((user) => !teamMemberIds.includes(user.uid));
   };
 
-  const getTeamStats = () => {
-    const totalMembers = teams.reduce(
-      (sum, team) => sum + (team.members?.length || 0),
-      0,
-    );
+  const getTeamStats = (teamId = null, allTasks = []) => {
+    // Calculate members based on selected team
+    let totalMembers;
+    if (teamId) {
+      const selectedTeam = teams.find((t) => t.id === teamId);
+      totalMembers = selectedTeam?.members?.length || 0;
+    } else {
+      totalMembers = teams.reduce(
+        (sum, team) => sum + (team.members?.length || 0),
+        0,
+      );
+    }
+
+    // Filter tasks by team if teamId is provided
+    const relevantTasks = teamId
+      ? allTasks.filter((task) => task.teamId === teamId)
+      : allTasks;
+
+    const completedTasks = relevantTasks.filter(
+      (task) => task.status === "done",
+    ).length;
+    const activeTasks = relevantTasks.filter(
+      (task) => task.status === "inprogress",
+    ).length;
+    const needsReview = relevantTasks.filter(
+      (task) => task.status === "inreview",
+    ).length;
+    const totalTasks = relevantTasks.length;
+
     return {
       totalMembers,
       totalTeams: teams.length,
-      completedTasks: 1, // Placeholder
-      activeTasks: 1, // Placeholder
-      totalTasks: 2, // Placeholder
+      completedTasks,
+      activeTasks,
+      needsReview,
+      totalTasks,
     };
   };
 
