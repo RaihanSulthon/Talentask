@@ -4,6 +4,7 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
+  AlertCircle,
   UserPlus,
   Trash2,
   Crown,
@@ -15,6 +16,7 @@ import TeamMemberCard from "../components/TeamMemberCard";
 import CreateTeamModal from "../components/CreateTeamModal";
 import AddMemberModal from "../components/AddMemberModal";
 import { useTeamManagement } from "../hooks/useTeamManagement";
+import { useTaskManagement } from "../hooks/useTaskManagement";
 
 const TeamPage = () => {
   const {
@@ -29,6 +31,8 @@ const TeamPage = () => {
     getTeamStats,
   } = useTeamManagement();
 
+  const { tasks, loading: tasksLoading } = useTaskManagement(teams);
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -38,7 +42,7 @@ const TeamPage = () => {
   const [activeTab, setActiveTab] = useState("Members");
   const [selectedTeamId, setSelectedTeamId] = useState(null);
 
-  const stats = getTeamStats();
+  const displayedStats = getTeamStats(selectedTeamId, tasks);
 
   const onCreateTeam = async () => {
     try {
@@ -122,22 +126,7 @@ const TeamPage = () => {
           [],
       );
 
-  const getFilteredStats = () => {
-    if (!selectedTeamId) return stats;
-
-    const team = teams.find((t) => t.id === selectedTeamId);
-    return {
-      totalMembers: team?.members?.length || 0,
-      totalTeams: 1,
-      completedTasks: stats.completedTasks,
-      activeTasks: stats.activeTasks,
-      totalTasks: stats.totalTasks,
-    };
-  };
-
-  const displayedStats = getFilteredStats();
-
-  if (loading) {
+  if (loading || tasksLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">
         Loading...
@@ -222,9 +211,9 @@ const TeamPage = () => {
         <h2 className="text-2xl font-bold text-white mb-6">
           {selectedTeamId
             ? `${selectedTeamData?.name} Statistics`
-            : "Team Statistics"}
+            : "Statistics"}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <TeamStatCard
             icon={Users}
             value={displayedStats.totalMembers}
@@ -233,19 +222,25 @@ const TeamPage = () => {
           />
           <TeamStatCard
             icon={CheckCircle}
-            value={stats.completedTasks}
+            value={displayedStats.completedTasks}
             label="Completed Tasks"
             gradient="bg-blue-500"
           />
           <TeamStatCard
             icon={Clock}
-            value={stats.activeTasks}
+            value={displayedStats.activeTasks}
             label="Active Tasks"
             gradient="bg-orange-500"
           />
           <TeamStatCard
+            icon={AlertCircle}
+            value={displayedStats.needsReview}
+            label="Needs Review"
+            gradient="bg-yellow-500"
+          />
+          <TeamStatCard
             icon={TrendingUp}
-            value={stats.totalTasks}
+            value={displayedStats.totalTasks}
             label="Total Tasks"
             gradient="bg-purple-500"
           />
@@ -259,7 +254,7 @@ const TeamPage = () => {
             <h2 className="text-2xl font-bold text-white">
               {selectedTeamId
                 ? `${selectedTeamData?.name} Members`
-                : "Team Members"}
+                : " Members"}
             </h2>
           </div>
 
@@ -280,23 +275,28 @@ const TeamPage = () => {
           {/* Members List */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedMembers.length > 0 ? (
-              displayedMembers.map((member) => {
-                const memberTeam = selectedTeamId
-                  ? selectedTeamData
-                  : teams.find((t) =>
-                      t.members?.some((m) => m.uid === member.uid),
-                    );
+              displayedMembers
+                .filter(
+                  (member, index, self) =>
+                    index === self.findIndex((m) => m.uid === member.uid),
+                )
+                .map((member) => {
+                  const memberTeam = selectedTeamId
+                    ? selectedTeamData
+                    : teams.find((t) =>
+                        t.members?.some((m) => m.uid === member.uid),
+                      );
 
-                return (
-                  <TeamMemberCard
-                    key={`${memberTeam?.id}-${member.uid}`}
-                    member={member}
-                    team={memberTeam}
-                    onRemove={onRemoveMember}
-                    showTeamName={!selectedTeamId}
-                  />
-                );
-              })
+                  return (
+                    <TeamMemberCard
+                      key={`${memberTeam?.id}-${member.uid}`}
+                      member={member}
+                      team={memberTeam}
+                      onRemove={onRemoveMember}
+                      showTeamName={!selectedTeamId}
+                    />
+                  );
+                })
             ) : (
               <div className="col-span-full text-center text-slate-400 py-8">
                 No members found
