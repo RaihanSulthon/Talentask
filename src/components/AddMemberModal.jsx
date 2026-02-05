@@ -53,11 +53,6 @@ const AddMemberModal = ({
                         <div className="text-white font-medium">
                           {user.displayName}
                         </div>
-                        {user.role === "admin" && (
-                          <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">
-                            Admin
-                          </span>
-                        )}
                       </div>
                       <div className="text-slate-400 text-sm">{user.email}</div>
                     </div>

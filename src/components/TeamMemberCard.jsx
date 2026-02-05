@@ -20,11 +20,6 @@ const TeamMemberCard = ({ member, team, onRemove, showTeamName = false }) => {
                   Owner
                 </span>
               )}
-              {member.role === "admin" && !isOwner && (
-                <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full font-medium">
-                  Admin
-                </span>
-              )}
             </div>
             <p className="text-slate-400 text-sm">{member.email}</p>
             {showTeamName && (

@@ -97,11 +97,15 @@ export const fetchTeamMembers = async (memberIds) => {
 export const getAllRegularUsers = async () => {
   const usersQuery = query(
     collection(db, "users"),
-    where("role", "in", ["user", "admin"]), // Include admin users
+    where("role", "==", "user") // Only regular users
   );
   const usersSnapshot = await getDocs(usersQuery);
-  return usersSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  return usersSnapshot.docs.map((doc) => {
+    const userData = doc.data();
+    return {
+      id: doc.id,
+      uid: userData.uid || doc.id,
+      ...userData,
+    };
+  });
 };

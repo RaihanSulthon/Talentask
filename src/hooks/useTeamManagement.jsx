@@ -85,16 +85,9 @@ export const useTeamManagement = () => {
   };
 
   const getAvailableUsers = (teamMemberIds) => {
-    if (userRole === "super_admin") {
-      // Super admin can add both admin and regular users
-      return allUsers.filter((user) => !teamMemberIds.includes(user.uid));
-    } else {
-      // Regular admin can only add regular users
-      return allUsers.filter(
-        (user) => !teamMemberIds.includes(user.uid) && user.role === "user",
-      );
-    }
+    return allUsers.filter((user) => !teamMemberIds.includes(user.uid));
   };
+
   const getTeamStats = () => {
     const totalMembers = teams.reduce(
       (sum, team) => sum + (team.members?.length || 0),
