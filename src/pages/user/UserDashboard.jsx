@@ -22,9 +22,9 @@ const UserDashboard = () => {
       <div className="flex-1 ml-20 p-8">
         <div className="p-8">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Ini halaman dashboard user</h1>
+            <h1 className="text-2xl font-bold text-white">Ini halaman dashboard user</h1>
             <div className="flex items-center gap-4">
-              <span className="text-gray-600">
+              <span className="text-white">
                 Welcome, {user?.displayName}
               </span>
               <button
