@@ -10,7 +10,7 @@ const KanbanColumn = ({
   isDragging,
 }) => {
   return (
-    <div className="shrink-0 w-80">
+    <div className="w-full">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-slate-400 uppercase">
           {column.title}

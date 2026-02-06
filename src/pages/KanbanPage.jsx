@@ -140,7 +140,7 @@ const KanbanPage = () => {
       </div>
 
       {/* Kanban Board */}
-      <div className="flex gap-6 overflow-x-auto pb-4">
+      <div className="grid grid-cols-4 gap-6">
         {columns.map((column) => {
           const columnTasks = filteredTasks.filter(
             (task) => task.status === column.status,

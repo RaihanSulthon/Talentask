@@ -11,9 +11,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { signOut } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
   const location = useLocation();
   const { userRole } = useAuth();
 
@@ -64,8 +66,10 @@ const Sidebar = () => {
       className={`fixed left-0 top-0 h-full bg-slate-800 border-r border-slate-700 transition-all duration-300 z-40 ${
         isExpanded ? "w-64" : "w-20"
       }`}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
+      {...(!isPinned && {
+        onMouseEnter: () => setIsExpanded(true),
+        onMouseLeave: () => setIsExpanded(false),
+      })}
     >
       <div className="flex flex-col h-full">
         {/* Logo */}
@@ -89,10 +93,10 @@ const Sidebar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center px-6 py-3 mb-1 transition-colors ${
+                className={`flex items-center px-6 py-3 mb-1 transition-all duration-200 rounded-lg mx-2 ${
                   isActive
-                    ? "bg-emerald-500/20 text-emerald-400 border-r-2 border-emerald-500"
-                    : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
+                    ? "bg-emerald-500/20 text-emerald-400 border-l-2 border-emerald-500"
+                    : "text-slate-400 hover:bg-green-500/10 hover:text-white"
                 }`}
               >
                 <Icon size={20} />
@@ -103,6 +107,23 @@ const Sidebar = () => {
             );
           })}
         </nav>
+
+        {/* Toggle Pin Button */}
+        <div className="relative">
+          <button
+            onClick={() => {
+              setIsPinned(!isPinned);
+              setIsExpanded(!isPinned);
+            }}
+            className="absolute -right-5 bottom-10 w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-lg flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200 border border-slate-600 z-50 shadow-lg pointer-events-auto"
+          >
+            {isExpanded ? (
+              <ChevronLeft size={18} />
+            ) : (
+              <ChevronRight size={18} />
+            )}
+          </button>
+        </div>
 
         {/* Logout Button */}
         <div className="p-4 border-t border-slate-700">
