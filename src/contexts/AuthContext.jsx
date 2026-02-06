@@ -50,13 +50,13 @@ export const AuthProvider = ({ children }) => {
       if (firebaseUser) {
         const userDocRef = doc(db, "users", firebaseUser.uid);
         const unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
-          if(docSnap.exists()) {
+          if (docSnap.exists()) {
             const userData = docSnap.data();
-            setUser(firebaseUser);
-            setUserRole(userData?.role || "user")
+            setUser({ ...firebaseUser, displayName: userData.displayName });
+            setUserRole(userData?.role || "user");
           }
         });
-    } else {
+      } else {
         setUser(null);
         setUserRole(null);
       }

@@ -8,6 +8,9 @@ import {
   UserCog,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { signOut } from "../services/authService";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -45,6 +48,17 @@ const Sidebar = () => {
 
   const menuItems = getMenuItems();
 
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   return (
     <div
       className={`fixed left-0 top-0 h-full bg-slate-800 border-r border-slate-700 transition-all duration-300 z-40 ${
@@ -55,12 +69,15 @@ const Sidebar = () => {
     >
       <div className="flex flex-col h-full">
         {/* Logo */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-700">
+        <Link
+          to="/landing"
+          className="h-16 flex items-center px-6 border-b border-slate-700 hover:bg-slate-700/50 transition-colors"
+        >
           <div className="w-8 h-8 bg-linear-to-r from-emerald-500 to-teal-500 rounded-lg" />
           {isExpanded && (
             <span className="ml-3 text-white font-bold text-lg">TalenTask</span>
           )}
-        </div>
+        </Link>
 
         {/* Menu Items */}
         <nav className="flex-1 py-6">
@@ -86,6 +103,20 @@ const Sidebar = () => {
             );
           })}
         </nav>
+
+        {/* Logout Button */}
+        <div className="p-4 border-t border-slate-700">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200 group"
+          >
+            <LogOut
+              size={20}
+              className="group-hover:scale-110 transition-transform"
+            />
+            {isExpanded && <span className="font-medium">Logout</span>}
+          </button>
+        </div>
       </div>
     </div>
   );

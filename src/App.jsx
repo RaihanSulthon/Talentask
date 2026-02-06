@@ -6,8 +6,6 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import UserDashboard from "./pages/user/UserDashboard";
 import AuthPage from "./pages/auth/AuthPage";
 import LandingPage from "./pages/LandingPage";
 import UserManagement from "./pages/admin/UserManagement";
@@ -19,14 +17,14 @@ const DashboardRouter = () => {
   const { user, userRole, loading } = useAuth();
 
   if (loading) return <div>Loading...</div>;
-
   if (!user) return <Navigate to="/landing" />;
 
   if (userRole === "super_admin" || userRole === "admin") {
-    return <Navigate to="/admin/dashboard" />;
+    return <Navigate to="/admin/board" />;
   }
-  return <Navigate to="/user/dashboard" />;
+  return <Navigate to="/user/kanban" />;
 };
+
 function App() {
   return (
     <AuthProvider>
@@ -37,14 +35,6 @@ function App() {
           <Route path="/signup" element={<Navigate to="/auth" />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/" element={<DashboardRouter />} />
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/admin/user-management"
             element={
@@ -66,14 +56,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["super_admin", "admin", "user"]}>
                 <TeamPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <UserDashboard />
               </ProtectedRoute>
             }
           />
