@@ -27,19 +27,27 @@ const KanbanColumn = ({
           isDragging ? "border-emerald-500 bg-slate-700/50" : "border-slate-700"
         }`}
       >
-        <div className="space-y-3">
-          {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={{
-                ...task,
-                teamName: task.teamName
-              }}
-              onDragStart={onDragStart}
-              onClick={() => onTaskClick(task)}
-            />
-          ))}
-        </div>
+        {tasks.length === 0 ? (
+          <div className="flex items-center justify-center min-h-96">
+            <p className="text-slate-500 text-lg font-medium">
+              No tasks available
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {tasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={{
+                  ...task,
+                  teamName: task.teamName,
+                }}
+                onDragStart={onDragStart}
+                onClick={() => onTaskClick(task)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
