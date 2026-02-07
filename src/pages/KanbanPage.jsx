@@ -35,7 +35,10 @@ const KanbanPage = () => {
   ];
 
   const isAdmin = userRole === "super_admin" || userRole === "admin";
-  const ownedTeams = teams.filter((t) => t.isOwner);
+  const ownedTeams =
+    userRole === "super_admin"
+      ? teams // Super admin bisa membuat task untuk semua team
+      : teams.filter((t) => t.isOwner); // Admin biasa hanya untuk team yang dimiliki
 
   const filteredTasks = selectedTeam
     ? tasks.filter((task) => task.teamId === selectedTeam)

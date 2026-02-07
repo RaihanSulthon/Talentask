@@ -16,7 +16,10 @@ export const useTaskManagement = (teams) => {
   const [loading, setLoading] = useState(true);
 
   const isAdmin = userRole === "super_admin" || userRole === "admin";
-  const ownedTeamIds = teams.filter((t) => t.isOwner).map((t) => t.id);
+  const ownedTeamIds =
+    userRole === "super_admin"
+      ? teams.map((t) => t.id) // Super admin: semua team
+      : teams.filter((t) => t.isOwner).map((t) => t.id); // Admin: hanya team miliknya
   const memberTeamIds = teams.map((t) => t.id);
 
   useEffect(() => {

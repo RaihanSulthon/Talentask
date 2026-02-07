@@ -60,12 +60,17 @@ export const deleteTask = async (taskId) => {
 export const subscribeToTeamTasks = (userId, userRole, teamIds, callback) => {
   let tasksQuery;
 
-  if (userRole === "super_admin" || userRole === "admin") {
+  if (userRole === "super_admin") {
+    // Super admin melihat SEMUA task dari semua team
+    tasksQuery = query(collection(db, "tasks"));
+  } else if (userRole === "admin") {
+    // Admin hanya melihat task dari team yang dimiliki
     tasksQuery = query(
       collection(db, "tasks"),
       where("teamId", "in", teamIds.length > 0 ? teamIds : ["dummy"]),
     );
   } else {
+    // User biasa hanya melihat task yang di-assign ke mereka
     tasksQuery = query(
       collection(db, "tasks"),
       where("assignedTo", "array-contains", userId),
