@@ -31,7 +31,10 @@ const KanbanColumn = ({
           {tasks.map((task) => (
             <TaskCard
               key={task.id}
-              task={task}
+              task={{
+                ...task,
+                teamName: task.teamName
+              }}
               onDragStart={onDragStart}
               onClick={() => onTaskClick(task)}
             />

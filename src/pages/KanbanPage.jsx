@@ -40,9 +40,12 @@ const KanbanPage = () => {
       ? teams // Super admin bisa membuat task untuk semua team
       : teams.filter((t) => t.isOwner); // Admin biasa hanya untuk team yang dimiliki
 
-  const filteredTasks = selectedTeam
-    ? tasks.filter((task) => task.teamId === selectedTeam)
-    : tasks;
+  const filteredTasks = (
+    selectedTeam ? tasks.filter((task) => task.teamId === selectedTeam) : tasks
+  ).map((task) => ({
+    ...task,
+    teamName: teams.find((t) => t.id === task.teamId)?.name || "Unknown Team",
+  }));
 
   const onCreateTask = async (taskData) => {
     try {
@@ -83,7 +86,12 @@ const KanbanPage = () => {
   };
 
   const onTaskClick = (task) => {
-    setSelectedTask(task);
+    // Tambahkan team info ke task
+    const taskWithTeam = {
+      ...task,
+      teamName: teams.find((t) => t.id === task.teamId)?.name || "Unknown Team",
+    };
+    setSelectedTask(taskWithTeam);
     setShowDetailModal(true);
   };
 

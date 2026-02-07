@@ -234,6 +234,17 @@ const TaskDetailModal = ({
               </label>
               <p className="text-white">{task.description}</p>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1">
+                TEAM
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                <p className="text-white font-medium">
+                  {task.teamName || currentTeam?.name || "Unknown Team"}
+                </p>
+              </div>
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">
