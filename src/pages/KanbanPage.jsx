@@ -35,11 +35,17 @@ const KanbanPage = () => {
   ];
 
   const isAdmin = userRole === "super_admin" || userRole === "admin";
-  const ownedTeams = teams.filter((t) => t.isOwner);
+  const ownedTeams =
+    userRole === "super_admin"
+      ? teams // Super admin bisa membuat task untuk semua team
+      : teams.filter((t) => t.isOwner); // Admin biasa hanya untuk team yang dimiliki
 
-  const filteredTasks = selectedTeam
-    ? tasks.filter((task) => task.teamId === selectedTeam)
-    : tasks;
+  const filteredTasks = (
+    selectedTeam ? tasks.filter((task) => task.teamId === selectedTeam) : tasks
+  ).map((task) => ({
+    ...task,
+    teamName: teams.find((t) => t.id === task.teamId)?.name || "Unknown Team",
+  }));
 
   const onCreateTask = async (taskData) => {
     try {
@@ -80,7 +86,12 @@ const KanbanPage = () => {
   };
 
   const onTaskClick = (task) => {
-    setSelectedTask(task);
+    // Tambahkan team info ke task
+    const taskWithTeam = {
+      ...task,
+      teamName: teams.find((t) => t.id === task.teamId)?.name || "Unknown Team",
+    };
+    setSelectedTask(taskWithTeam);
     setShowDetailModal(true);
   };
 
@@ -140,7 +151,7 @@ const KanbanPage = () => {
       </div>
 
       {/* Kanban Board */}
-      <div className="flex gap-6 overflow-x-auto pb-4">
+      <div className="grid grid-cols-4 gap-6">
         {columns.map((column) => {
           const columnTasks = filteredTasks.filter(
             (task) => task.status === column.status,

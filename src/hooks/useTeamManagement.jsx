@@ -95,10 +95,14 @@ export const useTeamManagement = () => {
       const selectedTeam = teams.find((t) => t.id === teamId);
       totalMembers = selectedTeam?.members?.length || 0;
     } else {
-      totalMembers = teams.reduce(
-        (sum, team) => sum + (team.members?.length || 0),
-        0,
-      );
+      // Menggunakan Set untuk menghindari duplikasi member yang ada di banyak team
+      const uniqueMemberIds = new Set();
+      teams.forEach((team) => {
+        team.members?.forEach((member) => {
+          uniqueMemberIds.add(member.uid || member.id);
+        });
+      });
+      totalMembers = uniqueMemberIds.size;
     }
 
     // Filter tasks by team if teamId is provided

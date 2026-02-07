@@ -14,7 +14,12 @@ const TaskCard = ({ task, onDragStart, onClick }) => {
       onClick={onClick}
       className="p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-emerald-500 cursor-move transition-all hover:shadow-lg"
     >
-      <h4 className="font-semibold text-white mb-2">{task.title}</h4>
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="font-semibold text-white">{task.title}</h4>
+        <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full font-medium">
+          {task.teamName || "Team"}
+        </span>
+      </div>
       <p className="text-sm text-slate-400 mb-3 line-clamp-2">
         {task.description}
       </p>
