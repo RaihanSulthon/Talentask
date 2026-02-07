@@ -11,6 +11,7 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import { getDocs } from "firebase/firestore";
 
 export const createTask = async (teamId, createdBy, taskData) => {
   return await addDoc(collection(db, "tasks"), {
@@ -78,4 +79,20 @@ export const subscribeToTeamTasks = (userId, userRole, teamIds, callback) => {
   }
 
   return onSnapshot(tasksQuery, callback);
+};
+
+export const deleteTasksByTeamIds = async (teamIds) => {
+  if (teamIds.length === 0) return;
+  
+  const tasksQuery = query(
+    collection(db, "tasks"),
+    where("teamId", "in", teamIds)
+  );
+  const tasksSnapshot = await getDocs(tasksQuery);
+  
+  const deletePromises = tasksSnapshot.docs.map((doc) => 
+    deleteDoc(doc.ref)
+  );
+  
+  return await Promise.all(deletePromises);
 };

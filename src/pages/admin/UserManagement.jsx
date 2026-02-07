@@ -1,12 +1,24 @@
 import { useState, useEffect } from "react";
 import { getAllUsers, updateUserRole } from "../../services/authService";
-import { collection, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "../../config/firebase";
 import Sidebar from "../../components/Sidebar";
+import DemoteAdminModal from "../../components/DemoteAdminModal";
+import { deleteTasksByTeamIds } from "../../services/taskService";
+import { deleteTeamsByOwnerId } from "../../services/teamService";
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDemoteModal, setShowDemoteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [demoteLoading, setDemoteLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
@@ -21,13 +33,65 @@ const UserManagement = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleRoleChange = async (userId, currentRole) => {
+  const getTeamCountByOwnerId = async (ownerId) => {
+    const teamsQuery = query(
+      collection(db, "teams"),
+      where("ownerId", "==", ownerId),
+    );
+    const teamsSnapshot = await getDocs(teamsQuery);
+    return {
+      count: teamsSnapshot.docs.length,
+      teamIds: teamsSnapshot.docs.map((doc) => doc.id),
+    };
+  };
+
+  const handleRoleChange = async (userId, currentRole, userName) => {
     const newRole = currentRole === "admin" ? "user" : "admin";
+
+    // Jika demote admin ke user, tampilkan modal konfirmasi
+    if (newRole === "user" && currentRole === "admin") {
+      const { count, teamIds } = await getTeamCountByOwnerId(userId);
+      setSelectedUser({
+        id: userId,
+        name: userName,
+        teamCount: count,
+        teamIds: teamIds,
+      });
+      setShowDemoteModal(true);
+      return;
+    }
+
+    // Jika promote user ke admin, langsung proses
     try {
       await updateUserRole(userId, newRole);
     } catch (error) {
       console.error("Error updating role:", error);
       alert("Failed to update user role");
+    }
+  };
+
+  const handleConfirmDemote = async () => {
+    try {
+      setDemoteLoading(true);
+
+      // 1. Hapus semua tasks dari teams yang dimiliki
+      if (selectedUser.teamIds.length > 0) {
+        await deleteTasksByTeamIds(selectedUser.teamIds);
+      }
+
+      // 2. Hapus semua teams yang dimiliki
+      await deleteTeamsByOwnerId(selectedUser.id);
+
+      // 3. Update role menjadi user
+      await updateUserRole(selectedUser.id, "user");
+
+      setShowDemoteModal(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error("Error demoting admin:", error);
+      alert("Failed to demote admin. Please try again.");
+    } finally {
+      setDemoteLoading(false);
     }
   };
 
@@ -91,7 +155,8 @@ const UserManagement = () => {
                             user.role === "admin"
                               ? "bg-emerald-500/20 text-emerald-400"
                               : "bg-slate-600 text-slate-300"
-                          }`}>
+                          }`}
+                        >
                           {user.role}
                         </span>
                       </td>
@@ -101,8 +166,15 @@ const UserManagement = () => {
                       <td className="px-6 py-4">
                         {user.role !== "super_admin" && (
                           <button
-                            onClick={() => handleRoleChange(user.id, user.role)}
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors">
+                            onClick={() =>
+                              handleRoleChange(
+                                user.id,
+                                user.role,
+                                user.displayName,
+                              )
+                            }
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+                          >
                             {user.role === "admin"
                               ? "Demote to User"
                               : "Promote to Admin"}
@@ -114,6 +186,17 @@ const UserManagement = () => {
                 })}
               </tbody>
             </table>
+            <DemoteAdminModal
+              isOpen={showDemoteModal}
+              onClose={() => {
+                setShowDemoteModal(false);
+                setSelectedUser(null);
+              }}
+              onConfirm={handleConfirmDemote}
+              userName={selectedUser?.name}
+              teamCount={selectedUser?.teamCount}
+              loading={demoteLoading}
+            />
           </div>
         </div>
       </div>

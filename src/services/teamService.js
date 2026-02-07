@@ -109,3 +109,17 @@ export const getAllRegularUsers = async () => {
     };
   });
 };
+
+export const deleteTeamsByOwnerId = async (ownerId) => {
+  const teamsQuery = query(
+    collection(db, "teams"),
+    where("ownerId", "==", ownerId)
+  );
+  const teamsSnapshot = await getDocs(teamsQuery);
+  
+  const deletePromises = teamsSnapshot.docs.map((doc) => 
+    deleteDoc(doc.ref)
+  );
+  
+  return await Promise.all(deletePromises);
+};

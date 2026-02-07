@@ -23,7 +23,10 @@ const TeamMemberCard = ({ member, team, onRemove, showTeamName = false }) => {
             </div>
             <p className="text-slate-400 text-sm">{member.email}</p>
             {showTeamName && (
-              <p className="text-slate-500 text-xs mt-1">{team?.name}</p>
+              <p className="text-slate-500 text-xs mt-1">
+                <span className="text-slate-600 font-medium">Team:</span>{" "}
+                {team?.name}
+              </p>
             )}
           </div>
         </div>
