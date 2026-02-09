@@ -65,6 +65,14 @@ const KanbanPage = () => {
       e.preventDefault();
       return;
     }
+
+    // Prevent dragging tasks that are in review (only admin can move them)
+    if (task.status === "inreview" && !isAdmin) {
+      e.preventDefault();
+      alert("This task is awaiting approval and cannot be moved.");
+      return;
+    }
+
     setDraggedTask(task);
   };
 
@@ -75,6 +83,27 @@ const KanbanPage = () => {
   const onDrop = async (e, newStatus) => {
     e.preventDefault();
     if (draggedTask && draggedTask.status !== newStatus) {
+      // Prevent users from directly moving to "done"
+      if (newStatus === "done" && !isAdmin) {
+        alert(
+          "You cannot directly mark a task as Done. Please move it to 'In Review' for approval.",
+        );
+        setDraggedTask(null);
+        return;
+      }
+
+      // For users moving to "inreview", show confirmation
+      if (newStatus === "inreview" && !isAdmin) {
+        if (
+          !window.confirm(
+            "Submit this task for approval? Your team owner will review it.",
+          )
+        ) {
+          setDraggedTask(null);
+          return;
+        }
+      }
+
       try {
         await handleUpdateTaskStatus(draggedTask.id, newStatus);
       } catch (error) {
@@ -112,8 +141,7 @@ const KanbanPage = () => {
           <select
             value={selectedTeam}
             onChange={(e) => setSelectedTeam(e.target.value)}
-            className="px-4 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
+            className="px-4 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             <option value="">All Teams</option>
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -125,14 +153,12 @@ const KanbanPage = () => {
           {isAdmin && ownedTeams.length > 0 && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors"
-            >
+              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors">
               Add Task
             </button>
           )}
         </div>
-      }
-    >
+      }>
       {/* Task Statistics */}
       <div className="grid grid-cols-4 gap-6 mb-8">
         {columns.map((col) => {

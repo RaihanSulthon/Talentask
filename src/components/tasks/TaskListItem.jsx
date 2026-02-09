@@ -52,7 +52,9 @@ const TaskListItem = ({
   const currentTeam = teams.find((t) => t.id === task.teamId);
   const assignedMembers = task.assignedTo
     ?.map((memberId) =>
-      currentTeam?.members?.find((m) => m.uid === memberId || m.id === memberId)
+      currentTeam?.members?.find(
+        (m) => m.uid === memberId || m.id === memberId,
+      ),
     )
     .filter(Boolean);
 
@@ -63,6 +65,32 @@ const TaskListItem = ({
     const statuses = ["todo", "inprogress", "inreview", "done"];
     const currentIndex = statuses.indexOf(task.status);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+
+    // Prevent users from directly changing to "done"
+    if (nextStatus === "done" && isUser && !canEdit) {
+      alert(
+        "You cannot directly mark a task as Done. Please move it to 'In Review' for approval.",
+      );
+      return;
+    }
+
+    // Show confirmation when submitting for review
+    if (nextStatus === "inreview" && isUser) {
+      if (
+        !window.confirm(
+          "Submit this task for approval? Your team owner will review it.",
+        )
+      ) {
+        return;
+      }
+    }
+
+    // Prevent changing status of tasks in review (only admin can)
+    if (task.status === "inreview" && isUser) {
+      alert("This task is awaiting approval and cannot be changed.");
+      return;
+    }
+
     onStatusChange(task.id, nextStatus);
   };
 
@@ -71,11 +99,11 @@ const TaskListItem = ({
       onClick={onClick}
       className={`p-4 bg-slate-800 rounded-lg border border-slate-700 hover:border-emerald-500 cursor-pointer transition-all hover:shadow-lg ${
         compact ? "p-3" : ""
-      }`}
-    >
+      }`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h4 className={`font-semibold text-white mb-1 ${compact ? "text-sm" : ""}`}>
+          <h4
+            className={`font-semibold text-white mb-1 ${compact ? "text-sm" : ""}`}>
             {task.title}
           </h4>
           {!compact && (
@@ -88,18 +116,16 @@ const TaskListItem = ({
           <button
             onClick={handleStatusClick}
             className={`ml-3 px-3 py-1 rounded-full text-xs font-medium transition-all hover:scale-105 ${getStatusColor(
-              task.status
-            )}`}
-          >
+              task.status,
+            )}`}>
             {getStatusLabel(task.status)}
           </button>
         )}
         {!onStatusChange && (
           <span
             className={`ml-3 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-              task.status
-            )}`}
-          >
+              task.status,
+            )}`}>
             {getStatusLabel(task.status)}
           </span>
         )}

@@ -13,6 +13,7 @@ import Sidebar from "./components/Sidebar";
 import TeamPage from "./pages/TeamPage";
 import KanbanPage from "./pages/KanbanPage";
 import TasksPage from "./pages/TasksPage";
+import ApprovalsPage from "./pages/ApprovalsPage";
 
 const DashboardRouter = () => {
   const { user, userRole, loading } = useAuth();
@@ -85,17 +86,18 @@ function App() {
             }
           />
           <Route
+            path="/admin/approvals"
+            element={
+              <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
+                <ApprovalsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/user/approvals"
             element={
               <ProtectedRoute allowedRoles={["user"]}>
-                <div className="flex min-h-screen bg-slate-900">
-                  <Sidebar />
-                  <div className="flex-1 ml-20 p-8">
-                    <h1 className="text-2xl font-bold text-white">
-                      Approvals (Coming Soon)
-                    </h1>
-                  </div>
-                </div>
+                <ApprovalsPage />
               </ProtectedRoute>
             }
           />
