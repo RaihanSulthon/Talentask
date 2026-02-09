@@ -12,6 +12,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import Sidebar from "./components/Sidebar";
 import TeamPage from "./pages/TeamPage";
 import KanbanPage from "./pages/KanbanPage";
+import TasksPage from "./pages/TasksPage";
 
 const DashboardRouter = () => {
   const { user, userRole, loading } = useAuth();
@@ -68,17 +69,18 @@ function App() {
             }
           />
           <Route
+            path="/admin/tasks"
+            element={
+              <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
+                <TasksPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/user/tasks"
             element={
               <ProtectedRoute allowedRoles={["user"]}>
-                <div className="flex min-h-screen bg-slate-900">
-                  <Sidebar />
-                  <div className="flex-1 ml-20 p-8">
-                    <h1 className="text-2xl font-bold text-white">
-                      Tasks (Coming Soon)
-                    </h1>
-                  </div>
-                </div>
+                <TasksPage />
               </ProtectedRoute>
             }
           />
