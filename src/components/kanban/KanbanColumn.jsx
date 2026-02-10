@@ -9,6 +9,38 @@ const KanbanColumn = ({
   onTaskClick,
   isDragging,
 }) => {
+  const getColumnBgColor = (status) => {
+    switch (status) {
+      case "todo":
+        return "bg-slate-800/50";
+      case "inprogress":
+        return "bg-yellow-900/20";
+      case "inreview":
+        return "bg-blue-900/20";
+      case "done":
+        return "bg-emerald-900/20";
+      default:
+        return "bg-slate-800/50";
+    }
+  };
+
+  const getColumnBorderColor = (status, isDragging) => {
+    if (isDragging) return "border-emerald-500";
+    
+    switch (status) {
+      case "todo":
+        return "border-slate-700";
+      case "inprogress":
+        return "border-yellow-700/30";
+      case "inreview":
+        return "border-blue-700/30";
+      case "done":
+        return "border-emerald-700/30";
+      default:
+        return "border-slate-700";
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
@@ -23,9 +55,7 @@ const KanbanColumn = ({
       <div
         onDragOver={onDragOver}
         onDrop={(e) => onDrop(e, column.status)}
-        className={`min-h-125 p-4 bg-slate-800/50 rounded-xl border-2 border-dashed transition-colors ${
-          isDragging ? "border-emerald-500 bg-slate-700/50" : "border-slate-700"
-        }`}
+        className={`min-h-125 p-4 ${getColumnBgColor(column.status)} rounded-xl border-2 border-dashed transition-colors ${getColumnBorderColor(column.status, isDragging)}`}
       >
         {tasks.length === 0 ? (
           <div className="flex items-center justify-center min-h-96">
