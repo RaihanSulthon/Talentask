@@ -29,13 +29,29 @@ const KanbanColumn = ({
     return "border-slate-700";
   };
 
+  const getCountBadgeColor = (status) => {
+    switch (status) {
+      case "todo":
+        return "bg-slate-700 text-slate-300";
+      case "inprogress":
+        return "bg-yellow-600 text-yellow-100 border border-yellow-500";
+      case "inreview":
+        return "bg-blue-600 text-blue-100 border border-blue-500";
+      case "done":
+        return "bg-emerald-600 text-emerald-100 border border-emerald-500";
+      default:
+        return "bg-slate-700 text-slate-300";
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-slate-400 uppercase">
           {column.title}
         </h3>
-        <span className="px-2 py-1 bg-slate-700 text-slate-300 text-xs rounded-full">
+        <span
+          className={`px-2 py-1 text-xs font-bold rounded-full ${getCountBadgeColor(column.status)}`}>
           {tasks.length}
         </span>
       </div>

@@ -9,7 +9,7 @@ import TaskStatCard from "../components/tasks/TaskStatCard";
 import TaskListItem from "../components/tasks/TaskListItem";
 import TaskFilters from "../components/tasks/TaskFilters";
 import TaskViewToggle from "../components/tasks/TaskViewToggle";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Users } from "lucide-react";
 import CustomSelect from "../components/CustomSelect";
 
 const TasksPage = () => {
@@ -208,7 +208,7 @@ const TasksPage = () => {
   };
 
   const teamFilterOptions = [
-    { value: "", label: "All Teams", icon: <Users size={16} /> },
+    { value: "", label: "All Teams", icon: "👥" },
     ...availableTeams.map((team) => ({
       value: team.id,
       label: team.name,
@@ -309,17 +309,6 @@ const TasksPage = () => {
             onChange={setSelectedTeamFilter}
             searchable={availableTeams.length > 5}
           />
-          {/* <select
-            value={selectedTeamFilter}
-            onChange={(e) => setSelectedTeamFilter(e.target.value)}
-            className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-            <option value="">All Teams</option>
-            {availableTeams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select> */}
         </div>
 
         <TaskFilters

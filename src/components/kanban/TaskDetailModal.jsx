@@ -15,6 +15,8 @@ const TaskDetailModal = ({
 }) => {
   const { userRole } = useAuth();
   const [isEditing, setIsEditing] = useState(initialEditMode);
+  const isAdmin = userRole === "super_admin" || userRole === "admin";
+  const isUser = userRole === "user";
   const [formData, setFormData] = useState({
     title: task.title,
     description: task.description,
@@ -23,8 +25,6 @@ const TaskDetailModal = ({
   });
 
   const [showAssignDropdown, setShowAssignDropdown] = useState(false);
-
-  const isAdmin = userRole === "super_admin" || userRole === "admin";
   const currentTeam = teams.find((t) => t.id === task.teamId);
 
   const statusOptions = [
@@ -272,21 +272,43 @@ const TaskDetailModal = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">
+              <label className="block text-sm font-medium text-slate-400 mb-2">
                 STATUS
               </label>
-              <span
-                className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  task.status === "todo"
-                    ? "bg-slate-700 text-slate-300"
-                    : task.status === "inprogress"
-                      ? "bg-blue-500/20 text-blue-300"
-                      : task.status === "inreview"
-                        ? "bg-yellow-500/20 text-yellow-300"
-                        : "bg-emerald-500/20 text-emerald-300"
-                }`}>
-                {statusOptions.find((s) => s.value === task.status)?.label}
-              </span>
+              {isUser ? (
+                <CustomSelect
+                  options={statusSelectOptions.filter(
+                    (opt) => opt.value !== "done", // User tidak bisa langsung set ke Done
+                  )}
+                  value={formData.status}
+                  onChange={(value) => {
+                    if (value === "inreview") {
+                      if (
+                        !window.confirm(
+                          "Submit this task for approval? Your team owner will review it.",
+                        )
+                      ) {
+                        return;
+                      }
+                    }
+                    setFormData({ ...formData, status: value });
+                    onUpdate(task.id, { status: value });
+                  }}
+                />
+              ) : (
+                <span
+                  className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                    task.status === "todo"
+                      ? "bg-slate-700 text-slate-300"
+                      : task.status === "inprogress"
+                        ? "bg-blue-500/20 text-blue-300"
+                        : task.status === "inreview"
+                          ? "bg-yellow-500/20 text-yellow-300"
+                          : "bg-emerald-500/20 text-emerald-300"
+                  }`}>
+                  {statusOptions.find((s) => s.value === task.status)?.label}
+                </span>
+              )}
             </div>
 
             {currentTeam && (
@@ -325,6 +347,15 @@ const TaskDetailModal = ({
                 <p className="text-white">{formatDate(task.updatedAt)}</p>
               </div>
             </div>
+
+            {isUser && (
+              <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <p className="text-blue-300 text-sm">
+                  ℹ️ You can only change the status of this task. Contact your
+                  team admin to edit title or description.
+                </p>
+              </div>
+            )}
 
             {isAdmin && (
               <button

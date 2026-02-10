@@ -1,8 +1,11 @@
 import { Clock, User, MoreVertical, Edit2, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const { userRole } = useAuth();
+  const isAdmin = userRole === "super_admin" || userRole === "admin";
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -65,13 +68,12 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
       {/* Header with three dots */}
       <div className="flex items-start justify-between mb-3">
         <h4 className="font-semibold text-white flex-1 pr-2">{task.title}</h4>
-        
+
         {/* Three dots menu */}
         <div className="relative" ref={menuRef}>
           <button
             onClick={handleMenuClick}
-            className="p-1 hover:bg-slate-600 rounded transition-colors"
-          >
+            className="p-1 hover:bg-slate-600 rounded transition-colors">
             <MoreVertical size={16} className="text-slate-400" />
           </button>
 
@@ -80,18 +82,18 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
             <div className="absolute right-0 top-8 w-40 bg-slate-700 border border-slate-600 rounded-lg shadow-xl z-50 overflow-hidden">
               <button
                 onClick={handleEdit}
-                className="w-full px-4 py-2 text-left text-white hover:bg-slate-600 transition-colors flex items-center gap-2"
-              >
+                className="w-full px-4 py-2 text-left text-white hover:bg-slate-600 transition-colors flex items-center gap-2">
                 <Edit2 size={14} />
                 <span>Edit</span>
               </button>
-              <button
-                onClick={handleDelete}
-                className="w-full px-4 py-2 text-left text-red-400 hover:bg-slate-600 transition-colors flex items-center gap-2"
-              >
-                <Trash2 size={14} />
-                <span>Delete</span>
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={handleDelete}
+                  className="w-full px-4 py-2 text-left text-red-400 hover:bg-slate-600 transition-colors flex items-center gap-2">
+                  <Trash2 size={14} />
+                  <span>Delete</span>
+                </button>
+              )}
             </div>
           )}
         </div>
