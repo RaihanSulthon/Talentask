@@ -155,7 +155,6 @@ const KanbanPage = () => {
         </div>
       }>
       {/* Task Statistics */}
-      {/* Task Statistics */}
       <div className="grid grid-cols-4 gap-6 mb-8">
         {columns.map((col) => {
           const count = filteredTasks.filter(
@@ -167,11 +166,11 @@ const KanbanPage = () => {
               case "todo":
                 return "bg-slate-800";
               case "inprogress":
-                return "bg-yellow-900 border border-yellow-700";
+                return "bg-yellow-600 border border-yellow-500";
               case "inreview":
-                return "bg-blue-900 border border-blue-700";
+                return "bg-blue-600 border border-blue-500";
               case "done":
-                return "bg-emerald-900 border border-emerald-700";
+                return "bg-emerald-600 border border-emerald-500";
               default:
                 return "bg-slate-800";
             }
@@ -183,7 +182,9 @@ const KanbanPage = () => {
               className={`p-6 rounded-xl ${getStatBgColor(col.status)}`}>
               <div className="flex items-center gap-4">
                 <div className="text-3xl font-bold text-white">{count}</div>
-                <div className="text-white font-semibold text-md">{col.title}</div>
+                <div className="text-white font-semibold text-md">
+                  {col.title}
+                </div>
               </div>
             </div>
           );

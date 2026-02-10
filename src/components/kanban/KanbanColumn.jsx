@@ -10,13 +10,22 @@ const KanbanColumn = ({
   isDragging,
 }) => {
   const getColumnBgColor = (status) => {
-  return "bg-slate-800/50"; // Semua kolom pakai warna To Do
-};
+    switch (status) {
+      case "inprogress":
+        return "bg-yellow-900/5";
+      case "inreview":
+        return "bg-blue-900/5";
+      case "done":
+        return "bg-emerald-900/5";
+      default:
+        return "bg-slate-800/50";
+    }
+  };
 
-const getColumnBorderColor = (status, isDragging) => {
-  if (isDragging) return "border-emerald-500";
-  return "border-slate-700"; // Semua kolom pakai border To Do
-};
+  const getColumnBorderColor = (status, isDragging) => {
+    if (isDragging) return "border-emerald-500";
+    return "border-slate-700";
+  };
 
   return (
     <div className="w-full">
