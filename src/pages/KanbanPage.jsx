@@ -6,6 +6,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import CreateTaskModal from "../components/kanban/CreateTaskModal";
 import KanbanColumn from "../components/kanban/KanbanColumn";
 import TaskDetailModal from "../components/kanban/TaskDetailModal";
+import TeamFilterDropdown from "../components/kanban/TeamFilterDropdown";
 
 const KanbanPage = () => {
   const { user, userRole } = useAuth();
@@ -138,17 +139,11 @@ const KanbanPage = () => {
       subtitle="Visualize and manage your tasks"
       actions={
         <div className="flex gap-4">
-          <select
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(e.target.value)}
-            className="px-4 py-2 bg-slate-800 text-white rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-            <option value="">All Teams</option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
+          <TeamFilterDropdown
+            teams={teams}
+            selectedTeam={selectedTeam}
+            onSelectTeam={setSelectedTeam}
+          />
 
           {isAdmin && ownedTeams.length > 0 && (
             <button
