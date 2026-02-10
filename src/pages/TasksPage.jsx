@@ -10,6 +10,7 @@ import TaskListItem from "../components/tasks/TaskListItem";
 import TaskFilters from "../components/tasks/TaskFilters";
 import TaskViewToggle from "../components/tasks/TaskViewToggle";
 import { Plus, Search } from "lucide-react";
+import CustomSelect from "../components/CustomSelect";
 
 const TasksPage = () => {
   const { user, userRole } = useAuth();
@@ -63,7 +64,7 @@ const TasksPage = () => {
     // Search by name
     if (searchQuery) {
       filtered = filtered.filter((task) =>
-        task.title.toLowerCase().includes(searchQuery.toLowerCase())
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -74,23 +75,25 @@ const TasksPage = () => {
 
     // Filter by status
     if (selectedStatusFilter) {
-      filtered = filtered.filter((task) => task.status === selectedStatusFilter);
+      filtered = filtered.filter(
+        (task) => task.status === selectedStatusFilter,
+      );
     }
 
     // Filter by assigned member
     if (selectedMemberFilter) {
       if (selectedMemberFilter === "unassigned") {
         filtered = filtered.filter(
-          (task) => !task.assignedTo || task.assignedTo.length === 0
+          (task) => !task.assignedTo || task.assignedTo.length === 0,
         );
       } else if (selectedMemberFilter === "my-tasks" && user) {
         filtered = filtered.filter(
-          (task) => task.assignedTo && task.assignedTo.includes(user.uid)
+          (task) => task.assignedTo && task.assignedTo.includes(user.uid),
         );
       } else {
         filtered = filtered.filter(
           (task) =>
-            task.assignedTo && task.assignedTo.includes(selectedMemberFilter)
+            task.assignedTo && task.assignedTo.includes(selectedMemberFilter),
         );
       }
     }
@@ -145,7 +148,7 @@ const TasksPage = () => {
         .length,
       done: relevantTasks.filter((task) => task.status === "done").length,
       myTasks: relevantTasks.filter(
-        (task) => task.assignedTo && task.assignedTo.includes(user?.uid)
+        (task) => task.assignedTo && task.assignedTo.includes(user?.uid),
       ).length,
     };
   }, [filteredTasks, selectedTeamFilter, user]);
@@ -204,6 +207,16 @@ const TasksPage = () => {
     setSelectedSortBy("recent");
   };
 
+  const teamFilterOptions = [
+    { value: "", label: "All Teams", icon: <Users size={16} /> },
+    ...availableTeams.map((team) => ({
+      value: team.id,
+      label: team.name,
+      icon: team.name.substring(0, 2).toUpperCase(),
+      description: `${team.members?.length || 0} members`,
+    })),
+  ];
+
   if (teamsLoading || tasksLoading) {
     return (
       <DashboardLayout title="Tasks">
@@ -217,17 +230,16 @@ const TasksPage = () => {
       title="Current Tasks"
       subtitle="View and manage all your tasks"
       actions={
-        isAdmin && ownedTeams.length > 0 && (
+        isAdmin &&
+        ownedTeams.length > 0 && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-          >
+            className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
             <Plus size={20} />
             Create Task
           </button>
         )
-      }
-    >
+      }>
       {/* Statistics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         <TaskStatCard
@@ -291,18 +303,23 @@ const TasksPage = () => {
           </div>
 
           {/* Team Filter */}
-          <select
+          <CustomSelect
+            options={teamFilterOptions}
+            value={selectedTeamFilter}
+            onChange={setSelectedTeamFilter}
+            searchable={availableTeams.length > 5}
+          />
+          {/* <select
             value={selectedTeamFilter}
             onChange={(e) => setSelectedTeamFilter(e.target.value)}
-            className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
+            className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
             <option value="">All Teams</option>
             {availableTeams.map((team) => (
               <option key={team.id} value={team.id}>
                 {team.name}
               </option>
             ))}
-          </select>
+          </select> */}
         </div>
 
         <TaskFilters
@@ -358,10 +375,10 @@ const TasksPage = () => {
                   {status === "todo"
                     ? "To Do"
                     : status === "inprogress"
-                    ? "In Progress"
-                    : status === "inreview"
-                    ? "In Review"
-                    : "Done"}
+                      ? "In Progress"
+                      : status === "inreview"
+                        ? "In Review"
+                        : "Done"}
                   <span className="ml-2 px-2 py-1 bg-slate-700 text-slate-300 text-xs rounded-full">
                     {filteredTasks.filter((t) => t.status === status).length}
                   </span>
@@ -400,9 +417,14 @@ const TasksPage = () => {
             {filteredTasks.length > 0 ? (
               filteredTasks.map((task, index) => {
                 const prevTask = filteredTasks[index - 1];
-                const currentDate = task.createdAt?.toDate?.() || new Date(task.createdAt);
-                const prevDate = prevTask?.createdAt?.toDate?.() || new Date(prevTask?.createdAt);
-                const showDateHeader = !prevTask || currentDate.toDateString() !== prevDate.toDateString();
+                const currentDate =
+                  task.createdAt?.toDate?.() || new Date(task.createdAt);
+                const prevDate =
+                  prevTask?.createdAt?.toDate?.() ||
+                  new Date(prevTask?.createdAt);
+                const showDateHeader =
+                  !prevTask ||
+                  currentDate.toDateString() !== prevDate.toDateString();
 
                 return (
                   <div key={task.id}>

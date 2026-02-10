@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import CustomSelect from "../CustomSelect";
 
 const CreateTaskModal = ({ teams, onClose, onCreate, loading }) => {
   const [formData, setFormData] = useState({
@@ -36,6 +37,13 @@ const CreateTaskModal = ({ teams, onClose, onCreate, loading }) => {
         : [...prev.assignedTo, memberId],
     }));
   };
+
+  const teamOptions = teams.map((team) => ({
+    value: team.id,
+    label: team.name,
+    icon: team.name.substring(0, 2).toUpperCase(),
+    description: `${team.members?.length || 0} members`,
+  }));
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -78,7 +86,7 @@ const CreateTaskModal = ({ teams, onClose, onCreate, loading }) => {
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
               Team *
             </label>
@@ -87,8 +95,7 @@ const CreateTaskModal = ({ teams, onClose, onCreate, loading }) => {
               onChange={(e) =>
                 setFormData({ ...formData, teamId: e.target.value })
               }
-              className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
+              className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500">
               <option value="">Select a team</option>
               {teams.map((team) => (
                 <option key={team.id} value={team.id}>
@@ -96,7 +103,17 @@ const CreateTaskModal = ({ teams, onClose, onCreate, loading }) => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
+
+          <CustomSelect
+            options={teamOptions}
+            value={formData.teamId}
+            onChange={(value) => setFormData({ ...formData, teamId: value })}
+            placeholder="Select a team"
+            label="Team"
+            required
+            searchable
+          />
 
           {selectedTeam && selectedTeam.members && (
             <div>
@@ -109,8 +126,7 @@ const CreateTaskModal = ({ teams, onClose, onCreate, loading }) => {
                   .map((member) => (
                     <label
                       key={member.uid || member.id}
-                      className="flex items-center gap-3 p-2 hover:bg-slate-600 rounded cursor-pointer"
-                    >
+                      className="flex items-center gap-3 p-2 hover:bg-slate-600 rounded cursor-pointer">
                       <input
                         type="checkbox"
                         checked={formData.assignedTo.includes(
@@ -136,8 +152,7 @@ const CreateTaskModal = ({ teams, onClose, onCreate, loading }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors"
-          >
+            className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors">
             {loading ? "Creating..." : "Create Task"}
           </button>
         </form>

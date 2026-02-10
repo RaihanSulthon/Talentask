@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Edit2, Trash2 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import CustomSelect from "../CustomSelect";
 
 const TaskDetailModal = ({
   task,
@@ -53,6 +54,19 @@ const TaskDetailModal = ({
     return date.toLocaleString("en-GB");
   };
 
+  const statusSelectOptions = statusOptions.map((opt) => ({
+    value: opt.value,
+    label: opt.label,
+    icon:
+      opt.value === "todo"
+        ? "⏸"
+        : opt.value === "inprogress"
+          ? "⏱"
+          : opt.value === "inreview"
+            ? "👁"
+            : "✅",
+  }));
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-slate-800 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -93,7 +107,7 @@ const TaskDetailModal = ({
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Status
               </label>
@@ -109,7 +123,13 @@ const TaskDetailModal = ({
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
+            <CustomSelect
+              options={statusSelectOptions}
+              value={formData.status}
+              onChange={(value) => setFormData({ ...formData, status: value })}
+              label="Status"
+            />
 
             {/* Approval Status - untuk task yang in review */}
             {task.status === "inreview" && (
