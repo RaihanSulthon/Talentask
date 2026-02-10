@@ -29,10 +29,10 @@ const KanbanPage = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   const columns = [
-    { id: "todo", title: "TO DO", status: "todo" },
-    { id: "inprogress", title: "IN PROGRESS", status: "inprogress" },
-    { id: "inreview", title: "IN REVIEW", status: "inreview" },
-    { id: "done", title: "DONE", status: "done" },
+    { id: "todo", title: "To Do", status: "todo" },
+    { id: "inprogress", title: "In Progress", status: "inprogress" },
+    { id: "inreview", title: "In Review", status: "inreview" },
+    { id: "done", title: "Done", status: "done" },
   ];
 
   const isAdmin = userRole === "super_admin" || userRole === "admin";
@@ -155,16 +155,35 @@ const KanbanPage = () => {
         </div>
       }>
       {/* Task Statistics */}
+      {/* Task Statistics */}
       <div className="grid grid-cols-4 gap-6 mb-8">
         {columns.map((col) => {
           const count = filteredTasks.filter(
             (task) => task.status === col.status,
           ).length;
+
+          const getStatBgColor = (status) => {
+            switch (status) {
+              case "todo":
+                return "bg-slate-800";
+              case "inprogress":
+                return "bg-yellow-900 border border-yellow-700";
+              case "inreview":
+                return "bg-blue-900 border border-blue-700";
+              case "done":
+                return "bg-emerald-900 border border-emerald-700";
+              default:
+                return "bg-slate-800";
+            }
+          };
+
           return (
-            <div key={col.id} className="p-6 bg-slate-800 rounded-xl">
+            <div
+              key={col.id}
+              className={`p-6 rounded-xl ${getStatBgColor(col.status)}`}>
               <div className="flex items-center gap-4">
                 <div className="text-3xl font-bold text-white">{count}</div>
-                <div className="text-slate-400 text-sm">{col.title}</div>
+                <div className="text-white font-semibold text-md">{col.title}</div>
               </div>
             </div>
           );
