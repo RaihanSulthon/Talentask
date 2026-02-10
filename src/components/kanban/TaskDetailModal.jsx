@@ -11,9 +11,10 @@ const TaskDetailModal = ({
   onDelete,
   canEdit,
   loading,
+  initialEditMode = false,
 }) => {
   const { userRole } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(initialEditMode);
   const [formData, setFormData] = useState({
     title: task.title,
     description: task.description,

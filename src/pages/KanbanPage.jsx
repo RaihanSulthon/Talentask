@@ -6,6 +6,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import CreateTaskModal from "../components/kanban/CreateTaskModal";
 import KanbanColumn from "../components/kanban/KanbanColumn";
 import TaskDetailModal from "../components/kanban/TaskDetailModal";
+import DeleteTaskModal from "../components/kanban/DeleteTaskModal";
 import TeamFilterDropdown from "../components/kanban/TeamFilterDropdown";
 
 const KanbanPage = () => {
@@ -23,10 +24,12 @@ const KanbanPage = () => {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState("");
   const [draggedTask, setDraggedTask] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const columns = [
     { id: "todo", title: "To Do", status: "todo" },
@@ -38,8 +41,8 @@ const KanbanPage = () => {
   const isAdmin = userRole === "super_admin" || userRole === "admin";
   const ownedTeams =
     userRole === "super_admin"
-      ? teams // Super admin bisa membuat task untuk semua team
-      : teams.filter((t) => t.isOwner); // Admin biasa hanya untuk team yang dimiliki
+      ? teams
+      : teams.filter((t) => t.isOwner);
 
   const filteredTasks = (
     selectedTeam ? tasks.filter((task) => task.teamId === selectedTeam) : tasks
@@ -67,7 +70,6 @@ const KanbanPage = () => {
       return;
     }
 
-    // Prevent dragging tasks that are in review (only admin can move them)
     if (task.status === "inreview" && !isAdmin) {
       e.preventDefault();
       alert("This task is awaiting approval and cannot be moved.");
@@ -84,7 +86,6 @@ const KanbanPage = () => {
   const onDrop = async (e, newStatus) => {
     e.preventDefault();
     if (draggedTask && draggedTask.status !== newStatus) {
-      // Prevent users from directly moving to "done"
       if (newStatus === "done" && !isAdmin) {
         alert(
           "You cannot directly mark a task as Done. Please move it to 'In Review' for approval.",
@@ -93,7 +94,6 @@ const KanbanPage = () => {
         return;
       }
 
-      // For users moving to "inreview", show confirmation
       if (newStatus === "inreview" && !isAdmin) {
         if (
           !window.confirm(
@@ -116,13 +116,42 @@ const KanbanPage = () => {
   };
 
   const onTaskClick = (task) => {
-    // Tambahkan team info ke task
     const taskWithTeam = {
       ...task,
       teamName: teams.find((t) => t.id === task.teamId)?.name || "Unknown Team",
     };
     setSelectedTask(taskWithTeam);
+    setIsEditMode(false);
     setShowDetailModal(true);
+  };
+
+  const handleEditTask = (task) => {
+    const taskWithTeam = {
+      ...task,
+      teamName: teams.find((t) => t.id === task.teamId)?.name || "Unknown Team",
+    };
+    setSelectedTask(taskWithTeam);
+    setIsEditMode(true);
+    setShowDetailModal(true);
+  };
+
+  const handleDeleteTaskClick = (task) => {
+    setSelectedTask(task);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setActionLoading(true);
+      await handleDeleteTask(selectedTask.id);
+      setShowDeleteModal(false);
+      setSelectedTask(null);
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      alert("Failed to delete task");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   if (teamsLoading || tasksLoading) {
@@ -206,6 +235,8 @@ const KanbanPage = () => {
               onDragOver={onDragOver}
               onDrop={onDrop}
               onTaskClick={onTaskClick}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTaskClick}
               isDragging={draggedTask !== null}
             />
           );
@@ -229,10 +260,25 @@ const KanbanPage = () => {
           onClose={() => {
             setShowDetailModal(false);
             setSelectedTask(null);
+            setIsEditMode(false);
           }}
           onUpdate={handleUpdateTask}
           onDelete={handleDeleteTask}
           canEdit={canEditTask(selectedTask)}
+          loading={actionLoading}
+          initialEditMode={isEditMode}
+        />
+      )}
+
+      {showDeleteModal && selectedTask && (
+        <DeleteTaskModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setSelectedTask(null);
+          }}
+          onConfirm={confirmDelete}
+          taskTitle={selectedTask.title}
           loading={actionLoading}
         />
       )}

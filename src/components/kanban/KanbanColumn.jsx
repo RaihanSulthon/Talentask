@@ -7,6 +7,8 @@ const KanbanColumn = ({
   onDragOver,
   onDrop,
   onTaskClick,
+  onEditTask,
+  onDeleteTask,
   isDragging,
 }) => {
   const getColumnBgColor = (status) => {
@@ -41,8 +43,7 @@ const KanbanColumn = ({
       <div
         onDragOver={onDragOver}
         onDrop={(e) => onDrop(e, column.status)}
-        className={`min-h-125 p-4 ${getColumnBgColor(column.status)} rounded-xl border-2 border-dashed transition-colors ${getColumnBorderColor(column.status, isDragging)}`}
-      >
+        className={`min-h-125 p-4 ${getColumnBgColor(column.status)} rounded-xl border-2 border-dashed transition-colors ${getColumnBorderColor(column.status, isDragging)}`}>
         {tasks.length === 0 ? (
           <div className="flex items-center justify-center min-h-96">
             <p className="text-slate-500 text-lg font-medium">
@@ -60,6 +61,8 @@ const KanbanColumn = ({
                 }}
                 onDragStart={onDragStart}
                 onClick={() => onTaskClick(task)}
+                onEdit={onEditTask}
+                onDelete={onDeleteTask}
               />
             ))}
           </div>
