@@ -43,15 +43,23 @@ const KanbanColumn = ({
       <div
         onDragOver={onDragOver}
         onDrop={(e) => onDrop(e, column.status)}
-        className={`min-h-125 p-4 ${getColumnBgColor(column.status)} rounded-xl border-2 border-dashed transition-colors ${getColumnBorderColor(column.status, isDragging)}`}>
+        className={`h-[calc(100vh-420px)] min-h-125 max-h- p-4 ${getColumnBgColor(column.status)} rounded-xl border-2 border-dashed transition-colors ${getColumnBorderColor(column.status, isDragging)} flex flex-col`}>
         {tasks.length === 0 ? (
-          <div className="flex items-center justify-center min-h-96">
+          <div className="flex items-center justify-center flex-1">
             <p className="text-slate-500 text-lg font-medium">
               No tasks available
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div
+            className="space-y-3 overflow-y-auto flex-1 pr-2 
+                    [&::-webkit-scrollbar]:w-2
+                    [&::-webkit-scrollbar-track]:bg-slate-800/50
+                    [&::-webkit-scrollbar-track]:rounded-lg
+                    [&::-webkit-scrollbar-thumb]:bg-slate-600
+                    [&::-webkit-scrollbar-thumb]:rounded-lg
+                    [&::-webkit-scrollbar-thumb]:hover:bg-slate-500
+                    scrollbar-thin">
             {tasks.map((task) => (
               <TaskCard
                 key={task.id}

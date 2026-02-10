@@ -60,7 +60,7 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
       onDragStart={(e) => onDragStart(e, task)}
       onClick={onClick}
       className={`p-4 bg-slate-800 rounded-lg border-2 border-slate-700 cursor-move transition-all 
-    hover:bg-slate-700 hover:shadow-2xl hover:-translate-y-1 hover:scale-[1.02]
+    hover:bg-slate-700 hover:shadow-2xl hover:-translate-y-1 hover:scale-90
     ${getBorderColor(task.status)}`}>
       {/* Header with three dots */}
       <div className="flex items-start justify-between mb-3">
