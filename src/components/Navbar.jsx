@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { signOut } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 
-const Navbar = ({ onToggleSidebar }) => {
+const Navbar = ({ onToggleSidebar, isPinned }) => {
   const { user, userRole } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
   const profileRef = useRef(null);
@@ -57,10 +57,14 @@ const Navbar = ({ onToggleSidebar }) => {
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-slate-900 border-b border-slate-700 z-50 flex items-center justify-between px-4">
-      {/* Left: Hamburger */}
+      {/* Left: Hamburger — berubah warna saat sidebar terpinned */}
       <button
         onClick={onToggleSidebar}
-        className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
+        className={`p-2 rounded-lg transition-colors ${
+          isPinned
+            ? "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
+            : "text-slate-400 hover:text-white hover:bg-slate-700"
+        }`}>
         <Menu size={22} />
       </button>
 
@@ -80,7 +84,6 @@ const Navbar = ({ onToggleSidebar }) => {
           {getRoleLabel()}
         </span>
 
-        {/* Avatar */}
         {/* Avatar + Chevron */}
         <div className="relative" ref={profileRef}>
           <button
@@ -100,12 +103,12 @@ const Navbar = ({ onToggleSidebar }) => {
           {/* Profile Dropdown */}
           <div
             className={`absolute right-0 top-12 w-80 bg-white rounded-xl shadow-2xl z-50 overflow-hidden
-      transition-all duration-300 origin-top-right
-      ${
-        showProfile
-          ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-          : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
-      }`}>
+              transition-all duration-300 origin-top-right
+              ${
+                showProfile
+                  ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+                  : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+              }`}>
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 bg-slate-800">
               <div className="flex items-center gap-3">

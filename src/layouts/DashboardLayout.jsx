@@ -7,18 +7,29 @@ const DashboardLayout = ({ children, title, subtitle, actions }) => {
   const [isHovered, setIsHovered] = useState(false);
   const isExpanded = isPinned || isHovered;
 
+  const handleNavigate = () => {
+    // Delay collapse agar animasi sidebar sempat terlihat
+    setTimeout(() => {
+      setIsHovered(false);
+    }, 150);
+  };
+
   return (
     <div className="flex min-h-screen bg-slate-900">
-      <Navbar onToggleSidebar={() => setIsPinned((prev) => !prev)} />
+      <Navbar
+        isPinned={isPinned}
+        onToggleSidebar={() => setIsPinned((prev) => !prev)}
+      />
       <Sidebar
         isExpanded={isExpanded}
+        isPinned={isPinned}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onNavigate={() => setIsHovered(false)}
+        onNavigate={handleNavigate}
       />
       <div
         className={`flex-1 p-8 pt-24 transition-all duration-300 ${
-          isExpanded ? "ml-64" : "ml-20"
+          isPinned ? "ml-64" : "ml-20"
         }`}>
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">{title}</h1>

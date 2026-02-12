@@ -8,10 +8,12 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { signOut } from "../services/authService";
 
-const Sidebar = ({ isExpanded, onMouseEnter, onMouseLeave, onNavigate }) => {
+const Sidebar = ({ isExpanded, isPinned, onMouseEnter, onMouseLeave, onNavigate }) => {
   const location = useLocation();
   const { userRole } = useAuth();
+  const navigate = useNavigate();
 
   const getMenuItems = () => {
     if (userRole === "super_admin" || userRole === "admin") {
@@ -33,7 +35,6 @@ const Sidebar = ({ isExpanded, onMouseEnter, onMouseLeave, onNavigate }) => {
       return items;
     }
 
-    // User menu items
     return [
       { icon: LayoutDashboard, label: "Kanban", path: "/user/kanban" },
       { icon: Users, label: "Team", path: "/team" },
@@ -43,8 +44,6 @@ const Sidebar = ({ isExpanded, onMouseEnter, onMouseLeave, onNavigate }) => {
   };
 
   const menuItems = getMenuItems();
-
-  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
@@ -59,11 +58,12 @@ const Sidebar = ({ isExpanded, onMouseEnter, onMouseLeave, onNavigate }) => {
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`fixed left-0 top-0 h-full bg-slate-800 border-r border-slate-700 transition-all duration-300 z-40 pt-16 ${
+      className={`fixed left-0 top-0 h-full bg-slate-800 border-r border-slate-700 transition-all duration-300 pt-16 ${
         isExpanded ? "w-64" : "w-20"
+      } ${
+        isPinned ? "z-30" : "z-40"
       }`}>
       <div className="flex flex-col h-full">
-        {/* Menu Items */}
         <nav className="flex-1 py-6">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -78,10 +78,15 @@ const Sidebar = ({ isExpanded, onMouseEnter, onMouseLeave, onNavigate }) => {
                     ? "bg-emerald-500/20 text-emerald-400 border-l-2 border-emerald-500"
                     : "text-slate-400 hover:bg-green-500/10 hover:text-white"
                 }`}>
-                <Icon size={20} />
-                {isExpanded && (
-                  <span className="ml-4 font-medium">{item.label}</span>
-                )}
+                <Icon size={20} className="shrink-0" />
+                <span
+                  className={`ml-4 font-medium whitespace-nowrap transition-all duration-300 ${
+                    isExpanded
+                      ? "opacity-100 w-auto"
+                      : "opacity-0 w-0 overflow-hidden"
+                  }`}>
+                  {item.label}
+                </span>
               </Link>
             );
           })}
