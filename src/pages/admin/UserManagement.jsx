@@ -8,10 +8,11 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
-import Sidebar from "../../components/Sidebar";
 import DemoteAdminModal from "../../components/DemoteAdminModal";
 import { deleteTasksByTeamIds } from "../../services/taskService";
 import { deleteTeamsByOwnerId } from "../../services/teamService";
+import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -19,6 +20,11 @@ const UserManagement = () => {
   const [showDemoteModal, setShowDemoteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [demoteLoading, setDemoteLoading] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [isPinned, setIsPinned] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const isExpanded = isPinned || isHovered;
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
@@ -99,8 +105,18 @@ const UserManagement = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-900">
-      <Sidebar />
-      <div className="flex-1 ml-20">
+      <Navbar onToggleSidebar={() => setIsPinned((prev) => !prev)} />
+      <Sidebar
+        isExpanded={isExpanded}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onNavigate={() => setIsHovered(false)}
+      />
+      <div
+        className={`flex-1 pt-16 transition-all duration-300 ${isExpanded ? "ml-64" : "ml-20"}`}
+      />
+      <div
+        className={`flex-1 pt-16 transition-all duration-300 ${isSidebarExpanded ? "ml-64" : "ml-20"}`}>
         <div className="p-8">
           <h1 className="text-3xl font-bold text-white mb-8">
             User Management
@@ -155,8 +171,7 @@ const UserManagement = () => {
                             user.role === "admin"
                               ? "bg-emerald-500/20 text-emerald-400"
                               : "bg-slate-600 text-slate-300"
-                          }`}
-                        >
+                          }`}>
                           {user.role}
                         </span>
                       </td>
@@ -173,8 +188,7 @@ const UserManagement = () => {
                                 user.displayName,
                               )
                             }
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
-                          >
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors">
                             {user.role === "admin"
                               ? "Demote to User"
                               : "Promote to Admin"}

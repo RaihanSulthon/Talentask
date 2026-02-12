@@ -153,7 +153,7 @@ const TeamPage = () => {
       {/* Teams Grid */}
       <div className="flex gap-4 mb-12 overflow-x-auto pb-4">
         {teams.map((team) => (
-          <button
+          <div
             key={team.id}
             onClick={() =>
               setSelectedTeamId(selectedTeamId === team.id ? null : team.id)
@@ -202,7 +202,7 @@ const TeamPage = () => {
               <Users size={16} />
               <span>{team.members?.length || 0} members</span>
             </div>
-          </button>
+          </div>
         ))}
       </div>
 
