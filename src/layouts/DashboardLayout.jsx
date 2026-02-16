@@ -1,18 +1,27 @@
 import Sidebar from "../components/Sidebar";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import Navbar from "../components/Navbar";
 
 const DashboardLayout = ({ children, title, subtitle, actions }) => {
   const [isPinned, setIsPinned] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const isExpanded = isPinned || isHovered;
+  const isMouseInsideRef = useRef(false);
 
-  const handleNavigate = () => {
-    // Delay collapse agar animasi sidebar sempat terlihat
-    setTimeout(() => {
+  const handleMouseEnter = useCallback(() => {
+    isMouseInsideRef.current = true;
+    setIsHovered(true);
+  } , []);
+
+  const handleMouseLeave = useCallback(() => {
+    isMouseInsideRef.current = false;
+    setIsHovered(false);
+  }, []);
+
+  const handleAfterNavigate = useCallback(() => {
+    if (!isMouseInsideRef.current) {
       setIsHovered(false);
-    }, 150);
-  };
+    }}, []);
 
   return (
     <div className="flex min-h-screen bg-slate-900">
@@ -23,9 +32,9 @@ const DashboardLayout = ({ children, title, subtitle, actions }) => {
       <Sidebar
         isExpanded={isExpanded}
         isPinned={isPinned}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onNavigate={handleNavigate}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onAfterNavigate={handleAfterNavigate}
       />
       <div
         className={`flex-1 p-8 pt-24 transition-all duration-300 ${

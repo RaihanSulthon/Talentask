@@ -10,8 +10,13 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "../services/authService";
 
-const Sidebar = ({ isExpanded, isPinned, onMouseEnter, onMouseLeave, onNavigate }) => {
-  const location = useLocation();
+const Sidebar = ({
+  isExpanded,
+  isPinned,
+  onMouseEnter,
+  onMouseLeave,
+  onAfterNavigate,
+}) => {
   const { userRole } = useAuth();
   const navigate = useNavigate();
 
@@ -60,9 +65,7 @@ const Sidebar = ({ isExpanded, isPinned, onMouseEnter, onMouseLeave, onNavigate 
       onMouseLeave={onMouseLeave}
       className={`fixed left-0 top-0 h-full bg-slate-800 border-r border-slate-700 transition-all duration-300 pt-16 ${
         isExpanded ? "w-64" : "w-20"
-      } ${
-        isPinned ? "z-30" : "z-40"
-      }`}>
+      } ${isPinned ? "z-30" : "z-40"}`}>
       <div className="flex flex-col h-full">
         <nav className="flex-1 py-6">
           {menuItems.map((item) => {
@@ -72,7 +75,7 @@ const Sidebar = ({ isExpanded, isPinned, onMouseEnter, onMouseLeave, onNavigate 
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={onNavigate}
+                onClick={onAfterNavigate}
                 className={`flex items-center px-6 py-3 mb-1 transition-all duration-200 rounded-lg mx-2 ${
                   isActive
                     ? "bg-emerald-500/20 text-emerald-400 border-l-2 border-emerald-500"

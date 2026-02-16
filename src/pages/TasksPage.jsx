@@ -9,8 +9,8 @@ import TaskStatCard from "../components/tasks/TaskStatCard";
 import TaskListItem from "../components/tasks/TaskListItem";
 import TaskFilters from "../components/tasks/TaskFilters";
 import TaskViewToggle from "../components/tasks/TaskViewToggle";
-import { Plus, Search, Users } from "lucide-react";
-import CustomSelect from "../components/CustomSelect";
+import { Plus, Search } from "lucide-react";
+import TeamFilterDropdown from "../components/kanban/TeamFilterDropdown";
 
 const TasksPage = () => {
   const { user, userRole } = useAuth();
@@ -207,16 +207,6 @@ const TasksPage = () => {
     setSelectedSortBy("recent");
   };
 
-  const teamFilterOptions = [
-    { value: "", label: "All Teams", icon: "👥" },
-    ...availableTeams.map((team) => ({
-      value: team.id,
-      label: team.name,
-      icon: team.name.substring(0, 2).toUpperCase(),
-      description: `${team.members?.length || 0} members`,
-    })),
-  ];
-
   if (teamsLoading || tasksLoading) {
     return (
       <DashboardLayout title="Tasks">
@@ -241,7 +231,7 @@ const TasksPage = () => {
         )
       }>
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         <TaskStatCard
           icon="✓"
           value={statistics.total}
@@ -286,7 +276,7 @@ const TasksPage = () => {
 
       {/* Filters and Search */}
       <div className="mb-6">
-        <div className="flex flex-col lg:flex-row gap-4 mb-4">
+        <div className="flex flex-col lg:flex-row gap-3 mb-4">
           {/* Search */}
           <div className="relative flex-1">
             <Search
@@ -302,12 +292,11 @@ const TasksPage = () => {
             />
           </div>
 
-          {/* Team Filter */}
-          <CustomSelect
-            options={teamFilterOptions}
-            value={selectedTeamFilter}
-            onChange={setSelectedTeamFilter}
-            searchable={availableTeams.length > 5}
+          {/* Team Filter Dropdown */}
+          <TeamFilterDropdown
+            teams={availableTeams}
+            selectedTeam={selectedTeamFilter}
+            onSelectTeam={setSelectedTeamFilter}
           />
         </div>
 
