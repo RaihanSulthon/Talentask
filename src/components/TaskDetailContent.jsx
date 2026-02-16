@@ -13,7 +13,7 @@ const TaskDetailContent = ({
   loading,
   initialEditMode = false,
 }) => {
-  const { userRole } = useAuth();
+  const { user, userRole } = useAuth();
   const [isEditing, setIsEditing] = useState(initialEditMode);
   const isAdmin = userRole === "super_admin" || userRole === "admin";
   const isUser = userRole === "user";
@@ -38,9 +38,9 @@ const TaskDetailContent = ({
     label: opt.label,
     icon:
       opt.value === "todo"
-        ? "⏸"
+        ? "⸸"
         : opt.value === "inprogress"
-          ? "⏱"
+          ? "ⱱ"
           : opt.value === "inreview"
             ? "👁"
             : "✅",
@@ -48,7 +48,14 @@ const TaskDetailContent = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onUpdate(task.id, formData);
+    onUpdate(task.id, formData, {
+      taskTitle: task.title,
+      teamId: task.teamId,
+      teamName: task.teamName || currentTeam?.name || "",
+      assignedTo: task.assignedTo || [],
+      actorId: user?.uid || "",
+      actorName: user?.displayName || "",
+    });
     setIsEditing(false);
   };
 

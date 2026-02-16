@@ -48,12 +48,12 @@ export const useTaskManagement = (teams) => {
     await createTask(teamId, user.uid, taskData);
   };
 
-  const handleUpdateTask = async (taskId, updates) => {
-    await updateTask(taskId, updates);
+  const handleUpdateTask = async (taskId, updates, context = {}) => {
+    await updateTask(taskId, updates, context);
   };
-
-  const handleUpdateTaskStatus = async (taskId, newStatus) => {
-    await updateTaskStatus(taskId, newStatus);
+  
+  const handleUpdateTaskStatus = async (taskId, newStatus, context = {}) => {
+    await updateTaskStatus(taskId, newStatus, context);
   };
 
   const handleDeleteTask = async (taskId) => {

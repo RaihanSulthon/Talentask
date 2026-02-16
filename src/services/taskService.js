@@ -12,9 +12,18 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { getDocs } from "firebase/firestore";
+import {
+  createNotification,
+  createNotificationForMany,
+} from "./notificationService";
 
-export const createTask = async (teamId, createdBy, taskData) => {
-  return await addDoc(collection(db, "tasks"), {
+export const createTask = async (
+  teamId,
+  createdBy,
+  taskData,
+  creatorName = "",
+) => {
+  const docRef = await addDoc(collection(db, "tasks"), {
     title: taskData.title,
     description: taskData.description,
     status: "todo",
@@ -24,18 +33,122 @@ export const createTask = async (teamId, createdBy, taskData) => {
     createdAt: new Date(),
     updatedAt: new Date(),
   });
+
+  // Notif ke semua assignee
+  if (taskData.assignedTo?.length > 0) {
+    await createNotificationForMany(taskData.assignedTo, {
+      type: "task_assigned",
+      title: "New Task Assigned",
+      message: `You have been assigned to "${taskData.title}"`,
+      taskId: docRef.id,
+      taskTitle: taskData.title,
+      teamId,
+      teamName: taskData.teamName || "",
+      createdBy,
+      createdByName: creatorName,
+    });
+  }
+
+  return docRef;
 };
 
-export const updateTask = async (taskId, updates) => {
+export const updateTask = async (taskId, updates, context = {}) => {
   const taskRef = doc(db, "tasks", taskId);
-  return await updateDoc(taskRef, {
+  await updateDoc(taskRef, {
     ...updates,
     updatedAt: new Date(),
   });
+
+  // Notif task_updated ke semua assignee (kecuali jika yg update adalah assignee itu sendiri)
+  const {
+    taskTitle = "",
+    teamId = "",
+    teamName = "",
+    assignedTo = [],
+    actorId = "",
+    actorName = "",
+    skipNotif = false,
+  } = context;
+
+  if (!skipNotif && assignedTo.length > 0 && taskTitle) {
+    const recipients = assignedTo.filter((id) => id !== actorId);
+    if (recipients.length > 0) {
+      await createNotificationForMany(recipients, {
+        type: "task_updated",
+        title: "Task Updated",
+        message: `"${taskTitle}" has been updated by ${actorName}`,
+        taskId,
+        taskTitle,
+        teamId,
+        teamName,
+        createdBy: actorId,
+        createdByName: actorName,
+      });
+    }
+  }
 };
 
-export const updateTaskStatus = async (taskId, newStatus) => {
-  return await updateTask(taskId, { status: newStatus });
+export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
+  await updateTask(taskId, { status: newStatus }, { skipNotif: true });
+
+  const {
+    taskTitle = "",
+    teamId = "",
+    teamName = "",
+    assignedTo = [],
+    adminIds = [],
+    actorId = "",
+    actorName = "",
+  } = context;
+
+  // User submit ke review → notif ke admin
+  if (newStatus === "inreview" && adminIds.length > 0) {
+    await createNotificationForMany(adminIds, {
+      type: "task_submitted_review",
+      title: "Task Needs Review",
+      message: `"${taskTitle}" has been submitted for approval`,
+      taskId,
+      taskTitle,
+      teamId,
+      teamName,
+      createdBy: actorId,
+      createdByName: actorName,
+    });
+  }
+
+  // Admin approve → notif ke assignee
+  if (newStatus === "done" && assignedTo.length > 0) {
+    await createNotificationForMany(assignedTo, {
+      type: "task_approved",
+      title: "Task Approved ✓",
+      message: `Your task "${taskTitle}" has been approved`,
+      taskId,
+      taskTitle,
+      teamId,
+      teamName,
+      createdBy: actorId,
+      createdByName: actorName,
+    });
+  }
+
+  // Admin decline → notif ke assignee
+  if (
+    newStatus === "inprogress" &&
+    assignedTo.length > 0 &&
+    context.isDecline
+  ) {
+    await createNotificationForMany(assignedTo, {
+      type: "task_declined",
+      title: "Task Declined",
+      message: `Your task "${taskTitle}" was declined and needs revision`,
+      taskId,
+      taskTitle,
+      teamId,
+      teamName,
+      createdBy: actorId,
+      createdByName: actorName,
+    });
+  }
 };
 
 export const addAssignee = async (taskId, memberId) => {
@@ -83,16 +196,14 @@ export const subscribeToTeamTasks = (userId, userRole, teamIds, callback) => {
 
 export const deleteTasksByTeamIds = async (teamIds) => {
   if (teamIds.length === 0) return;
-  
+
   const tasksQuery = query(
     collection(db, "tasks"),
-    where("teamId", "in", teamIds)
+    where("teamId", "in", teamIds),
   );
   const tasksSnapshot = await getDocs(tasksQuery);
-  
-  const deletePromises = tasksSnapshot.docs.map((doc) => 
-    deleteDoc(doc.ref)
-  );
-  
+
+  const deletePromises = tasksSnapshot.docs.map((doc) => deleteDoc(doc.ref));
+
   return await Promise.all(deletePromises);
 };

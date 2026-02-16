@@ -84,7 +84,14 @@ const ApprovalsPage = () => {
   const handleApprove = async (taskId) => {
     try {
       setActionLoading(true);
-      await handleUpdateTaskStatus(taskId, "done");
+      await handleUpdateTaskStatus(taskId, "done", {
+        taskTitle: selectedTask.title,
+        teamId: selectedTask.teamId,
+        teamName: selectedTask.teamName,
+        assignedTo: selectedTask.assignedTo || [],
+        actorId: user.uid,
+        actorName: user.displayName,
+      });
       setShowDetailModal(false);
       setSelectedTask(null);
     } catch (error) {
@@ -99,7 +106,15 @@ const ApprovalsPage = () => {
     try {
       setActionLoading(true);
       // Return task to "inprogress" status when declined
-      await handleUpdateTaskStatus(taskId, "inprogress");
+      await handleUpdateTaskStatus(taskId, "inprogress", {
+        taskTitle: selectedTask.title,
+        teamId: selectedTask.teamId,
+        teamName: selectedTask.teamName,
+        assignedTo: selectedTask.assignedTo || [],
+        actorId: user.uid,
+        actorName: user.displayName,
+        isDecline: true,
+      });
       setShowDetailModal(false);
       setSelectedTask(null);
     } catch (error) {

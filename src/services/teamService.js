@@ -12,6 +12,10 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
+import {
+  createNotification,
+  createNotificationForMany,
+} from "./notificationService";
 
 export const createTeam = async (userId, userName, userEmail, teamName) => {
   return await addDoc(collection(db, "teams"), {
@@ -25,20 +29,49 @@ export const createTeam = async (userId, userName, userEmail, teamName) => {
   });
 };
 
-export const addMembersToTeam = async (teamId, memberIds) => {
+export const addMembersToTeam = async (teamId, memberIds, context = {}) => {
   const teamRef = doc(db, "teams", teamId);
-  return await updateDoc(teamRef, {
+  await updateDoc(teamRef, {
     memberIds: arrayUnion(...memberIds),
     updatedAt: new Date(),
   });
+
+  // Notif ke setiap member yang baru ditambahkan
+  const { teamName = "", actorId = "", actorName = "" } = context;
+  if (memberIds.length > 0 && teamName) {
+    await createNotificationForMany(memberIds, {
+      type: "member_added",
+      title: "Added to Team",
+      message: `You have been added to "${teamName}"`,
+      teamId,
+      teamName,
+      createdBy: actorId,
+      createdByName: actorName,
+    });
+  }
 };
 
-export const removeMemberFromTeam = async (teamId, memberId) => {
+export const removeMemberFromTeam = async (teamId, memberId, context = {}) => {
   const teamRef = doc(db, "teams", teamId);
-  return await updateDoc(teamRef, {
+  await updateDoc(teamRef, {
     memberIds: arrayRemove(memberId),
     updatedAt: new Date(),
   });
+
+  // Notif ke member yang diremove
+  const { teamName = "", actorId = "", actorName = "" } = context;
+  if (teamName) {
+    await createNotification({
+      recipientId: memberId,
+      type: "member_removed",
+      title: "Removed from Team",
+      message: `You have been removed from "${teamName}"`,
+      teamId,
+      teamName,
+      createdBy: actorId,
+      createdByName: actorName,
+    });
+  }
 };
 
 export const deleteTeam = async (teamId) => {
@@ -97,7 +130,7 @@ export const fetchTeamMembers = async (memberIds) => {
 export const getAllRegularUsers = async () => {
   const usersQuery = query(
     collection(db, "users"),
-    where("role", "==", "user") // Only regular users
+    where("role", "==", "user"), // Only regular users
   );
   const usersSnapshot = await getDocs(usersQuery);
   return usersSnapshot.docs.map((doc) => {
@@ -113,13 +146,11 @@ export const getAllRegularUsers = async () => {
 export const deleteTeamsByOwnerId = async (ownerId) => {
   const teamsQuery = query(
     collection(db, "teams"),
-    where("ownerId", "==", ownerId)
+    where("ownerId", "==", ownerId),
   );
   const teamsSnapshot = await getDocs(teamsQuery);
-  
-  const deletePromises = teamsSnapshot.docs.map((doc) => 
-    deleteDoc(doc.ref)
-  );
-  
+
+  const deletePromises = teamsSnapshot.docs.map((doc) => deleteDoc(doc.ref));
+
   return await Promise.all(deletePromises);
 };

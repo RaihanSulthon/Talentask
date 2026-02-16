@@ -3,17 +3,31 @@ import { Menu, Bell, X, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { signOut } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import { useNotifications } from "../hooks/useNotifications";
+import NotificationDropdown from "./notifications/NotificationDropdown";
 
 const Navbar = ({ onToggleSidebar, isPinned }) => {
   const { user, userRole } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
+  const [showNotif, setShowNotif] = useState(false);
+  const notifRef = useRef(null);
   const profileRef = useRef(null);
   const navigate = useNavigate();
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    handleMarkAsRead,
+    handleMarkAllAsRead,
+  } = useNotifications();
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setShowProfile(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setShowNotif(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -76,9 +90,26 @@ const Navbar = ({ onToggleSidebar, isPinned }) => {
 
       {/* Right: Bell + Role Badge + Avatar */}
       <div className="flex items-center gap-3">
-        <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
-          <Bell size={20} />
-        </button>
+        <div className="relative" ref={notifRef}>
+          <button
+            onClick={() => setShowNotif((prev) => !prev)}
+            className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors">
+            <Bell size={20} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-emerald-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
+          <NotificationDropdown
+            isOpen={showNotif}
+            notifications={notifications}
+            unreadCount={unreadCount}
+            loading={loading}
+            onMarkAsRead={handleMarkAsRead}
+            onMarkAllAsRead={handleMarkAllAsRead}
+          />
+        </div>
 
         <span className="px-3 py-1 bg-slate-700 text-slate-300 text-sm rounded-full font-medium">
           {getRoleLabel()}
