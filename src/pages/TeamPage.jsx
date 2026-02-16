@@ -13,10 +13,10 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import TeamCard from "../components/TeamCard";
 import TeamStatCard from "../components/TeamStatCard";
 import TeamMemberCard from "../components/TeamMemberCard";
-import CreateTeamModal from "../components/CreateTeamModal";
-import AddMemberModal from "../components/AddMemberModal";
 import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
+import { Search } from "lucide-react";
+import Modal from "../components/Modal";
 
 const TeamPage = () => {
   const {
@@ -41,37 +41,19 @@ const TeamPage = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("Members");
   const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const availableUsers = selectedTeam
+    ? getAvailableUsers(selectedTeam.members?.map((m) => m.uid) ?? [])
+    : [];
+  const filteredUsers = availableUsers.filter((user) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      user.displayName?.toLowerCase().includes(q) ||
+      user.email?.toLowerCase().includes(q)
+    );
+  });
 
   const displayedStats = getTeamStats(selectedTeamId, tasks);
-
-  const onCreateTeam = async () => {
-    try {
-      setActionLoading(true);
-      await handleCreateTeam(teamName);
-      setTeamName("");
-      setShowCreateModal(false);
-    } catch (error) {
-      console.error("Error creating team:", error);
-      alert(error.message || "Failed to create team");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const onAddMembers = async () => {
-    try {
-      setActionLoading(true);
-      await handleAddMembers(selectedTeam.id, selectedMembers);
-      setSelectedMembers([]);
-      setShowAddMemberModal(false);
-      setSelectedTeam(null);
-    } catch (error) {
-      console.error("Error adding members:", error);
-      alert(error.message || "Failed to add members");
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const onRemoveMember = async (teamId, memberId) => {
     if (!confirm("Are you sure you want to remove this member?")) return;
@@ -142,14 +124,12 @@ const TeamPage = () => {
         canCreateTeam && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-          >
+            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
             <Users size={20} />
             Create Team
           </button>
         )
-      }
-    >
+      }>
       {/* Teams Grid */}
       <div className="flex gap-4 mb-12 overflow-x-auto pb-4">
         {teams.map((team) => (
@@ -164,8 +144,7 @@ const TeamPage = () => {
                 : team.isOwner
                   ? "bg-slate-800/80 border-slate-700 hover:border-emerald-500/40 hover:bg-slate-800"
                   : "bg-slate-800/50 border-slate-700/50 hover:border-slate-600"
-            }`}
-          >
+            }`}>
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-xl font-bold text-white">{team.name}</h3>
               <div className="flex gap-2">
@@ -177,8 +156,7 @@ const TeamPage = () => {
                         openAddMemberModal(team);
                       }}
                       className="text-emerald-400 hover:text-emerald-300 transition-colors"
-                      title="Add Members"
-                    >
+                      title="Add Members">
                       <UserPlus size={18} />
                     </button>
                     <button
@@ -187,8 +165,7 @@ const TeamPage = () => {
                         onDeleteTeam(team.id);
                       }}
                       className="text-red-400 hover:text-red-300 transition-colors"
-                      title="Delete Team"
-                    >
+                      title="Delete Team">
                       <Trash2 size={18} />
                     </button>
                   </>
@@ -266,8 +243,7 @@ const TeamPage = () => {
                 activeTab === "Members"
                   ? "text-white border-b-2 border-emerald-500"
                   : "text-slate-400 hover:text-white"
-              }`}
-            >
+              }`}>
               Members
             </button>
           </div>
@@ -306,28 +282,134 @@ const TeamPage = () => {
         </div>
       )}
 
-      {/* Modals */}
-      <CreateTeamModal
+      {/* Create Team Modal */}
+      <Modal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        teamName={teamName}
-        setTeamName={setTeamName}
-        onCreate={onCreateTeam}
-        loading={actionLoading}
-      />
+        title="Create New Team"
+        maxWidth="max-w-md">
+        <input
+          type="text"
+          placeholder="Team name"
+          value={teamName}
+          onChange={(e) => setTeamName(e.target.value)}
+          className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-6"
+          autoFocus
+        />
+        <button
+          onClick={async () => {
+            try {
+              setActionLoading(true);
+              await handleCreateTeam(teamName);
+              setTeamName("");
+              setShowCreateModal(false);
+            } catch (error) {
+              alert("Failed to create team");
+            } finally {
+              setActionLoading(false);
+            }
+          }}
+          disabled={!teamName.trim() || actionLoading}
+          className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          {actionLoading ? "Creating..." : "Create Team"}
+        </button>
+      </Modal>
 
-      <AddMemberModal
+      {/* Add Member Modal */}
+      <Modal
         isOpen={showAddMemberModal}
-        onClose={closeAddMemberModal}
-        selectedTeam={selectedTeam}
-        availableUsers={
-          selectedTeam ? getAvailableUsers(selectedTeam.memberIds) : []
-        }
-        selectedMembers={selectedMembers}
-        onToggleMember={toggleMemberSelection}
-        onAddMembers={onAddMembers}
-        loading={actionLoading}
-      />
+        onClose={() => {
+          setShowAddMemberModal(false);
+          setSelectedMembers([]);
+          setSearchQuery("");
+        }}
+        title={`Add Member to ${selectedTeam?.name}`}
+        maxWidth="max-w-2xl">
+        <div className="relative mb-4">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            size={20}
+          />
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all"
+          />
+        </div>
+        <div
+          className="space-y-2 mb-6 overflow-y-auto pr-2 max-h-60 min-h-60
+    [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/50
+    [&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-lg
+    [&::-webkit-scrollbar-thumb]:hover:bg-slate-500">
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => (
+              <div
+                key={user.uid}
+                onClick={() => toggleMemberSelection(user.uid)}
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  selectedMembers.includes(user.uid)
+                    ? "bg-emerald-500/20 border-emerald-500"
+                    : "bg-slate-700 border-slate-600 hover:border-slate-500"
+                }`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                    {user.displayName?.substring(0, 2).toUpperCase() || "U"}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-white font-medium">
+                      {user.displayName}
+                    </div>
+                    <div className="text-slate-400 text-sm">{user.email}</div>
+                  </div>
+                  {selectedMembers.includes(user.uid) && (
+                    <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-slate-400 py-8">
+              {searchQuery
+                ? "No users found matching your search"
+                : "No available users to add"}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={async () => {
+            try {
+              setActionLoading(true);
+              await handleAddMembers(selectedTeam.id, selectedMembers);
+              closeAddMemberModal();
+              setSearchQuery("");
+            } catch (error) {
+              alert("Failed to add members");
+            } finally {
+              setActionLoading(false);
+            }
+          }}
+          disabled={selectedMembers.length === 0 || actionLoading}
+          className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          {actionLoading
+            ? "Adding..."
+            : `Add ${selectedMembers.length} Member${selectedMembers.length !== 1 ? "s" : ""}`}
+        </button>
+      </Modal>
     </DashboardLayout>
   );
 };

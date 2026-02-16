@@ -3,14 +3,15 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import DashboardLayout from "../layouts/DashboardLayout";
-import CreateTaskModal from "../components/kanban/CreateTaskModal";
-import TaskDetailModal from "../components/kanban/TaskDetailModal";
 import TaskStatCard from "../components/tasks/TaskStatCard";
 import TaskListItem from "../components/tasks/TaskListItem";
 import TaskFilters from "../components/tasks/TaskFilters";
 import TaskViewToggle from "../components/tasks/TaskViewToggle";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, AlertTriangle } from "lucide-react";
 import TeamFilterDropdown from "../components/kanban/TeamFilterDropdown";
+import Modal from "../components/Modal";
+import CustomSelect from "../components/CustomSelect";
+import TaskDetailContent from "../components/TaskDetailContent";
 
 const TasksPage = () => {
   const { user, userRole } = useAuth();
@@ -27,6 +28,8 @@ const TasksPage = () => {
 
   // State
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -36,6 +39,15 @@ const TasksPage = () => {
   const [selectedMemberFilter, setSelectedMemberFilter] = useState("");
   const [selectedSortBy, setSelectedSortBy] = useState("recent");
   const [viewMode, setViewMode] = useState("list"); // list, grouped, timeline
+
+  const toggleAssignee = (memberId) => {
+    setFormData((prev) => ({
+      ...prev,
+      assignedTo: prev.assignedTo.includes(memberId)
+        ? prev.assignedTo.filter((id) => id !== memberId)
+        : [...prev.assignedTo, memberId],
+    }));
+  };
 
   const isAdmin = userRole === "super_admin" || userRole === "admin";
   const isSuperAdmin = userRole === "super_admin";
@@ -53,6 +65,20 @@ const TasksPage = () => {
     if (isSuperAdmin) return teams;
     return teams.filter((t) => t.isOwner);
   }, [teams, userRole]);
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    teamId: "",
+    assignedTo: [],
+  });
+  const selectedTeamForCreate = teams.find((t) => t.id === formData.teamId);
+  const teamOptions = ownedTeams.map((team) => ({
+    value: team.id,
+    label: team.name,
+    icon: team.name.substring(0, 2).toUpperCase(),
+    description: `${team.members?.length || 0} members`,
+  }));
 
   // Filter and sort tasks
   const filteredTasks = useMemo(() => {
@@ -170,20 +196,6 @@ const TasksPage = () => {
 
     return Array.from(memberMap.values());
   }, [teams, selectedTeamFilter, availableTeams]);
-
-  // Handlers
-  const onCreateTask = async (taskData) => {
-    try {
-      setActionLoading(true);
-      await handleCreateTask(taskData.teamId, taskData);
-      setShowCreateModal(false);
-    } catch (error) {
-      console.error("Error creating task:", error);
-      alert("Failed to create task");
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const onTaskClick = (task) => {
     setSelectedTask(task);
@@ -441,30 +453,197 @@ const TasksPage = () => {
         )}
       </div>
 
-      {/* Modals */}
-      {showCreateModal && (
-        <CreateTaskModal
-          teams={ownedTeams}
-          onClose={() => setShowCreateModal(false)}
-          onCreate={onCreateTask}
-          loading={actionLoading}
-        />
-      )}
+      {/* Create Task Modal */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+          setFormData({
+            title: "",
+            description: "",
+            teamId: "",
+            assignedTo: [],
+          });
+        }}
+        title="Create New Task"
+        maxWidth="max-w-lg">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Title *
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Enter task title"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Description
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              rows={3}
+              className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Enter task description"
+            />
+          </div>
+          <CustomSelect
+            options={teamOptions}
+            value={formData.teamId}
+            onChange={(value) =>
+              setFormData({ ...formData, teamId: value, assignedTo: [] })
+            }
+            placeholder="Select a team"
+            label="Team"
+            required
+            searchable
+          />
+          {selectedTeamForCreate?.members && (
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Assign To
+              </label>
+              <div className="space-y-2 max-h-48 overflow-y-auto bg-slate-700 rounded-lg p-3">
+                {selectedTeamForCreate.members
+                  .filter((m) => m.role !== "admin" && m.role !== "super_admin")
+                  .map((member) => (
+                    <label
+                      key={member.uid || member.id}
+                      className="flex items-center gap-3 p-2 hover:bg-slate-600 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.assignedTo.includes(
+                          member.uid || member.id,
+                        )}
+                        onChange={() => toggleAssignee(member.uid || member.id)}
+                        className="w-4 h-4 text-emerald-500 bg-slate-800 border-slate-500 rounded focus:ring-emerald-500"
+                      />
+                      <div className="flex-1">
+                        <div className="text-white font-medium">
+                          {member.displayName}
+                        </div>
+                        <div className="text-slate-400 text-sm">
+                          {member.email}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+              </div>
+            </div>
+          )}
+          <button
+            onClick={async () => {
+              if (!formData.title || !formData.teamId) {
+                alert("Please fill in all required fields");
+                return;
+              }
+              try {
+                setActionLoading(true);
+                await handleCreateTask(formData);
+                setShowCreateModal(false);
+                setFormData({
+                  title: "",
+                  description: "",
+                  teamId: "",
+                  assignedTo: [],
+                });
+              } catch (error) {
+                alert("Failed to create task");
+              } finally {
+                setActionLoading(false);
+              }
+            }}
+            disabled={actionLoading}
+            className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors">
+            {actionLoading ? "Creating..." : "Create Task"}
+          </button>
+        </div>
+      </Modal>
 
-      {showDetailModal && selectedTask && (
-        <TaskDetailModal
-          task={selectedTask}
-          teams={teams}
-          onClose={() => {
-            setShowDetailModal(false);
-            setSelectedTask(null);
-          }}
-          onUpdate={handleUpdateTask}
-          onDelete={handleDeleteTask}
-          canEdit={canEditTask(selectedTask)}
-          loading={actionLoading}
-        />
-      )}
+      {/* Delete Task Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        maxWidth="max-w-md"
+        title={
+          <>
+            <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
+              <AlertTriangle className="text-red-400" size={24} />
+            </div>
+            <span className="text-2xl font-bold text-white">Delete Task</span>
+          </>
+        }>
+        <div className="mb-6">
+          <p className="text-slate-300">
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-white">
+              "{taskToDelete?.title}"
+            </span>
+            ?
+          </p>
+          <p className="text-slate-400 text-sm mt-2">
+            This action cannot be undone.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowDeleteModal(false)}
+            disabled={actionLoading}
+            className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                setActionLoading(true);
+                await handleDeleteTask(taskToDelete.id);
+                setShowDeleteModal(false);
+                setTaskToDelete(null);
+              } catch (error) {
+                alert("Failed to delete task");
+              } finally {
+                setActionLoading(false);
+              }
+            }}
+            disabled={actionLoading}
+            className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            {actionLoading ? "Deleting..." : "Delete Task"}
+          </button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showDetailModal && !!selectedTask}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedTask(null);
+        }}
+        title="Task Details"
+        maxWidth="max-w-2xl">
+        {selectedTask && (
+          <TaskDetailContent
+            task={selectedTask}
+            teams={teams}
+            onClose={() => {
+              setShowDetailModal(false);
+              setSelectedTask(null);
+            }}
+            onUpdate={handleUpdateTask}
+            onDelete={handleDeleteTask}
+            canEdit={canEditTask(selectedTask)}
+            loading={actionLoading}
+          />
+        )}
+      </Modal>
     </DashboardLayout>
   );
 };

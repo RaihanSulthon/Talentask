@@ -4,8 +4,9 @@ import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import DashboardLayout from "../layouts/DashboardLayout";
 import ApprovalCard from "../components/approvals/ApprovalCard";
-import ApprovalDetailModal from "../components/approvals/ApprovalDetailModal";
 import { CheckCircle, Clock, XCircle, Filter } from "lucide-react";
+import Modal from "../components/Modal";
+import ApprovalDetailContent from "../components/approvals/ApprovalDetailContent";
 
 const ApprovalsPage = () => {
   const { user, userRole } = useAuth();
@@ -18,7 +19,6 @@ const ApprovalsPage = () => {
   } = useTaskManagement(teams);
 
   const [selectedTask, setSelectedTask] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTeamFilter, setSelectedTeamFilter] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -51,7 +51,7 @@ const ApprovalsPage = () => {
     // For user, only show their own submitted tasks
     if (isUser) {
       filtered = filtered.filter(
-        (task) => task.assignedTo && task.assignedTo.includes(user.uid)
+        (task) => task.assignedTo && task.assignedTo.includes(user.uid),
       );
     }
 
@@ -61,7 +61,16 @@ const ApprovalsPage = () => {
     }
 
     return filtered;
-  }, [tasks, teams, isAdmin, isSuperAdmin, isUser, ownedTeams, selectedTeamFilter, user]);
+  }, [
+    tasks,
+    teams,
+    isAdmin,
+    isSuperAdmin,
+    isUser,
+    ownedTeams,
+    selectedTeamFilter,
+    user,
+  ]);
 
   // Statistics
   const statistics = useMemo(() => {
@@ -103,7 +112,6 @@ const ApprovalsPage = () => {
 
   const handleTaskClick = (task) => {
     setSelectedTask(task);
-    setShowDetailModal(true);
   };
 
   if (teamsLoading || tasksLoading) {
@@ -121,8 +129,7 @@ const ApprovalsPage = () => {
         isAdmin
           ? "Review and approve tasks submitted by team members"
           : "Track your tasks awaiting approval"
-      }
-    >
+      }>
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="p-6 bg-slate-800 rounded-xl border border-slate-700">
@@ -175,8 +182,7 @@ const ApprovalsPage = () => {
           <select
             value={selectedTeamFilter}
             onChange={(e) => setSelectedTeamFilter(e.target.value)}
-            className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
+            className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
             <option value="">All Teams</option>
             {ownedTeams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -215,20 +221,39 @@ const ApprovalsPage = () => {
       </div>
 
       {/* Detail Modal */}
-      {showDetailModal && selectedTask && (
-        <ApprovalDetailModal
-          task={selectedTask}
-          teams={teams}
-          onClose={() => {
-            setShowDetailModal(false);
-            setSelectedTask(null);
-          }}
-          onApprove={isAdmin ? handleApprove : null}
-          onDecline={isAdmin ? handleDecline : null}
-          loading={actionLoading}
-          isAdmin={isAdmin}
-        />
-      )}
+      <Modal
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        maxWidth="max-w-2xl"
+        title={
+          <>
+            <span className="text-2xl font-bold text-white">Task Review</span>
+            <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full text-xs font-medium">
+              Pending Approval
+            </span>
+          </>
+        }>
+        {selectedTask && (
+          <ApprovalDetailContent
+            task={selectedTask}
+            teams={teams}
+            isAdmin={isAdmin}
+            actionLoading={actionLoading}
+            onApprove={() => {
+              if (window.confirm("Approve this task?"))
+                handleApprove(selectedTask.id);
+            }}
+            onDecline={() => {
+              if (
+                window.confirm(
+                  "Decline this task? It will return to In Progress.",
+                )
+              )
+                handleDecline(selectedTask.id);
+            }}
+          />
+        )}
+      </Modal>
     </DashboardLayout>
   );
 };

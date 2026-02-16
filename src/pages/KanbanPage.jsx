@@ -3,11 +3,12 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import DashboardLayout from "../layouts/DashboardLayout";
-import CreateTaskModal from "../components/kanban/CreateTaskModal";
 import KanbanColumn from "../components/kanban/KanbanColumn";
-import TaskDetailModal from "../components/kanban/TaskDetailModal";
-import DeleteTaskModal from "../components/kanban/DeleteTaskModal";
 import TeamFilterDropdown from "../components/kanban/TeamFilterDropdown";
+import Modal from "../components/Modal";
+import { AlertTriangle } from "lucide-react";
+import CustomSelect from "../components/CustomSelect";
+import TaskDetailContent from "../components/TaskDetailContent";
 
 const KanbanPage = () => {
   const { user, userRole } = useAuth();
@@ -30,6 +31,7 @@ const KanbanPage = () => {
   const [draggedTask, setDraggedTask] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
 
   const columns = [
     { id: "todo", title: "To Do", status: "todo" },
@@ -40,9 +42,7 @@ const KanbanPage = () => {
 
   const isAdmin = userRole === "super_admin" || userRole === "admin";
   const ownedTeams =
-    userRole === "super_admin"
-      ? teams
-      : teams.filter((t) => t.isOwner);
+    userRole === "super_admin" ? teams : teams.filter((t) => t.isOwner);
 
   const filteredTasks = (
     selectedTeam ? tasks.filter((task) => task.teamId === selectedTeam) : tasks
@@ -62,6 +62,30 @@ const KanbanPage = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  // HARUS DITAMBAHKAN setelah deklarasi state yang ada
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    teamId: "",
+    assignedTo: [],
+  });
+  const selectedTeamForCreate =
+    ownedTeams.find((t) => t.id === formData.teamId) || null;
+  const teamOptions = ownedTeams.map((team) => ({
+    value: team.id,
+    label: team.name,
+    icon: team.name.substring(0, 2).toUpperCase(),
+    description: `${team.members?.length || 0} members`,
+  }));
+  const toggleAssignee = (memberId) => {
+    setFormData((prev) => ({
+      ...prev,
+      assignedTo: prev.assignedTo.includes(memberId)
+        ? prev.assignedTo.filter((id) => id !== memberId)
+        : [...prev.assignedTo, memberId],
+    }));
   };
 
   const onDragStart = (e, task) => {
@@ -137,6 +161,7 @@ const KanbanPage = () => {
 
   const handleDeleteTaskClick = (task) => {
     setSelectedTask(task);
+    setTaskToDelete(task); // tambahkan ini
     setShowDeleteModal(true);
   };
 
@@ -244,44 +269,182 @@ const KanbanPage = () => {
       </div>
 
       {/* Modals */}
-      {showCreateModal && (
-        <CreateTaskModal
-          teams={ownedTeams}
-          onClose={() => setShowCreateModal(false)}
-          onCreate={onCreateTask}
-          loading={actionLoading}
-        />
-      )}
+      {/* Create Task Modal */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+          setFormData({
+            title: "",
+            description: "",
+            teamId: "",
+            assignedTo: [],
+          });
+        }}
+        title="Create New Task"
+        maxWidth="max-w-lg">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Title *
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Enter task title"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Description
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              rows={3}
+              className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Enter task description"
+            />
+          </div>
+          <CustomSelect
+            options={teamOptions}
+            value={formData.teamId}
+            onChange={(value) =>
+              setFormData({ ...formData, teamId: value, assignedTo: [] })
+            }
+            placeholder="Select a team"
+            label="Team"
+            required
+            searchable
+          />
+          {selectedTeamForCreate?.members && (
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Assign To
+              </label>
+              <div className="space-y-2 max-h-48 overflow-y-auto bg-slate-700 rounded-lg p-3">
+                {selectedTeamForCreate.members
+                  .filter((m) => m.role !== "admin" && m.role !== "super_admin")
+                  .map((member) => (
+                    <label
+                      key={member.uid || member.id}
+                      className="flex items-center gap-3 p-2 hover:bg-slate-600 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.assignedTo.includes(
+                          member.uid || member.id,
+                        )}
+                        onChange={() => toggleAssignee(member.uid || member.id)}
+                        className="w-4 h-4 text-emerald-500 bg-slate-800 border-slate-500 rounded focus:ring-emerald-500"
+                      />
+                      <div className="flex-1">
+                        <div className="text-white font-medium">
+                          {member.displayName}
+                        </div>
+                        <div className="text-slate-400 text-sm">
+                          {member.email}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+              </div>
+            </div>
+          )}
+          <button
+            onClick={async () => {
+              if (!formData.title || !formData.teamId) {
+                alert("Please fill in all required fields");
+                return;
+              }
+              await onCreateTask(formData); // pakai wrapper yang sudah ada
+              setFormData({
+                title: "",
+                description: "",
+                teamId: "",
+                assignedTo: [],
+              });
+            }}
+            disabled={actionLoading}
+            className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors">
+            {actionLoading ? "Creating..." : "Create Task"}
+          </button>
+        </div>
+      </Modal>
 
-      {showDetailModal && selectedTask && (
-        <TaskDetailModal
-          task={selectedTask}
-          teams={teams}
-          onClose={() => {
-            setShowDetailModal(false);
-            setSelectedTask(null);
-            setIsEditMode(false);
-          }}
-          onUpdate={handleUpdateTask}
-          onDelete={handleDeleteTask}
-          canEdit={canEditTask(selectedTask)}
-          loading={actionLoading}
-          initialEditMode={isEditMode}
-        />
-      )}
+      {/* Delete Task Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        maxWidth="max-w-md"
+        title={
+          <>
+            <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
+              <AlertTriangle className="text-red-400" size={24} />
+            </div>
+            <span className="text-2xl font-bold text-white">Delete Task</span>
+          </>
+        }>
+        <div className="mb-6">
+          <p className="text-slate-300">
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-white">
+              "{selectedTask?.title}"
+            </span>
+            ?
+          </p>
+          <p className="text-slate-400 text-sm mt-2">
+            This action cannot be undone.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowDeleteModal(false)}
+            disabled={actionLoading}
+            className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            Cancel
+          </button>
+          <button
+            onClick={confirmDelete}
+            disabled={actionLoading}
+            className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            {actionLoading ? "Deleting..." : "Delete Task"}
+          </button>
+        </div>
+      </Modal>
 
-      {showDeleteModal && selectedTask && (
-        <DeleteTaskModal
-          isOpen={showDeleteModal}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setSelectedTask(null);
-          }}
-          onConfirm={confirmDelete}
-          taskTitle={selectedTask.title}
-          loading={actionLoading}
-        />
-      )}
+      {/* Task Detail Modal */}
+      <Modal
+        isOpen={showDetailModal && !!selectedTask}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedTask(null);
+          setIsEditMode(false);
+        }}
+        title="Task Details"
+        maxWidth="max-w-2xl">
+        {selectedTask && (
+          <TaskDetailContent
+            task={selectedTask}
+            teams={teams}
+            onClose={() => {
+              setShowDetailModal(false);
+              setSelectedTask(null);
+              setIsEditMode(false);
+            }}
+            onUpdate={handleUpdateTask}
+            onDelete={handleDeleteTask}
+            canEdit={canEditTask(selectedTask)}
+            loading={actionLoading}
+            initialEditMode={isEditMode}
+          />
+        )}
+      </Modal>
     </DashboardLayout>
   );
 };
