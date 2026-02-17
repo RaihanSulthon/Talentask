@@ -12,7 +12,6 @@ import { signOut } from "../services/authService";
 
 const Sidebar = ({
   isExpanded,
-  isPinned,
   onMouseEnter,
   onMouseLeave,
   onAfterNavigate,
@@ -63,9 +62,10 @@ const Sidebar = ({
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`fixed left-0 top-0 h-full bg-slate-800 border-r border-slate-700 transition-all duration-300 pt-16 ${
-        isExpanded ? "w-64" : "w-20"
-      } ${isPinned ? "z-30" : "z-40"}`}>
+      className={`fixed left-0 top-0 h-full bg-slate-800 border-r border-slate-700 transition-all duration-300 pt-16 z-40 ${
+        isExpanded ? "w-64 shadow-2xl shadow-black/50" : "w-20"
+      }`}
+    >
       <div className="flex flex-col h-full">
         <nav className="flex-1 py-6">
           {menuItems.map((item) => {
@@ -80,14 +80,16 @@ const Sidebar = ({
                   isActive
                     ? "bg-emerald-500/20 text-emerald-400 border-l-2 border-emerald-500"
                     : "text-slate-400 hover:bg-green-500/10 hover:text-white"
-                }`}>
+                }`}
+              >
                 <Icon size={20} className="shrink-0" />
                 <span
                   className={`ml-4 font-medium whitespace-nowrap transition-all duration-300 ${
                     isExpanded
                       ? "opacity-100 w-auto"
                       : "opacity-0 w-0 overflow-hidden"
-                  }`}>
+                  }`}
+                >
                   {item.label}
                 </span>
               </Link>

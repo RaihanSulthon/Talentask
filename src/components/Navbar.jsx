@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/useNotifications";
 import NotificationDropdown from "./notifications/NotificationDropdown";
 
-const Navbar = ({ onToggleSidebar, isPinned }) => {
+const Navbar = () => {
   const { user, userRole } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
@@ -72,7 +72,6 @@ const Navbar = ({ onToggleSidebar, isPinned }) => {
   return (
     // CHANGED: hapus "justify-between", ganti jadi "flex items-center px-4"
     <header className="fixed top-0 left-0 right-0 h-16 bg-slate-900 border-b border-slate-700 z-50 flex items-center px-4">
-      
       {/* ADDED: Spacer kiri agar logo tetap di tengah */}
       <div className="flex-1" />
 
@@ -158,13 +157,17 @@ const Navbar = ({ onToggleSidebar, isPinned }) => {
                 Informasi Akun
               </h3>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Email</label>
+                <label className="block text-xs text-slate-500 mb-1">
+                  Email
+                </label>
                 <div className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-700 text-sm bg-slate-50">
                   {user?.email || "-"}
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Registered On</label>
+                <label className="block text-xs text-slate-500 mb-1">
+                  Registered On
+                </label>
                 <div className="w-full px-3 py-2 border border-slate-200 rounded-lg text-slate-700 text-sm bg-slate-50">
                   {formatDate(new Date().toISOString())}
                 </div>

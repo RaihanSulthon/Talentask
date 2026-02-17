@@ -5,6 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { SidebarProvider } from "./contexts/SidebarContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthPage from "./pages/auth/AuthPage";
 import LandingPage from "./pages/LandingPage";
@@ -30,79 +31,81 @@ const DashboardRouter = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/landing" element={<LandingPage />} />
-          <Route path="/login" element={<Navigate to="/auth" />} />
-          <Route path="/signup" element={<Navigate to="/auth" />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/" element={<DashboardRouter />} />
-          <Route
-            path="/admin/user-management"
-            element={
-              <ProtectedRoute allowedRoles={["super_admin"]}>
-                <UserManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/board"
-            element={
-              <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
-                <KanbanPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/team"
-            element={
-              <ProtectedRoute allowedRoles={["super_admin", "admin", "user"]}>
-                <TeamPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user/kanban"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <KanbanPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/tasks"
-            element={
-              <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
-                <TasksPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user/tasks"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <TasksPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/approvals"
-            element={
-              <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
-                <ApprovalsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/user/approvals"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <ApprovalsPage />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </Router>
+      <SidebarProvider>
+        <Router>
+          <Routes>
+            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/login" element={<Navigate to="/auth" />} />
+            <Route path="/signup" element={<Navigate to="/auth" />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/" element={<DashboardRouter />} />
+            <Route
+              path="/admin/user-management"
+              element={
+                <ProtectedRoute allowedRoles={["super_admin"]}>
+                  <UserManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/board"
+              element={
+                <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
+                  <KanbanPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/team"
+              element={
+                <ProtectedRoute allowedRoles={["super_admin", "admin", "user"]}>
+                  <TeamPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user/kanban"
+              element={
+                <ProtectedRoute allowedRoles={["user"]}>
+                  <KanbanPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/tasks"
+              element={
+                <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
+                  <TasksPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user/tasks"
+              element={
+                <ProtectedRoute allowedRoles={["user"]}>
+                  <TasksPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/approvals"
+              element={
+                <ProtectedRoute allowedRoles={["super_admin", "admin"]}>
+                  <ApprovalsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user/approvals"
+              element={
+                <ProtectedRoute allowedRoles={["user"]}>
+                  <ApprovalsPage />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Router>
+      </SidebarProvider>
     </AuthProvider>
   );
 }
