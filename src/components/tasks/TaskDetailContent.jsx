@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X, Edit2, Trash2, Clock } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
-import CustomSelect from "./CustomSelect";
+import { useAuth } from "../../contexts/AuthContext";
+import CustomSelect from "../CustomSelect";
 
 const TaskDetailContent = ({
   task,
@@ -136,14 +136,16 @@ const TaskDetailContent = ({
                 return member ? (
                   <div
                     key={memberId}
-                    className="flex items-center gap-2 px-3 py-2 bg-emerald-500/20 text-emerald-300 rounded-lg border border-emerald-500/30">
+                    className="flex items-center gap-2 px-3 py-2 bg-emerald-500/20 text-emerald-300 rounded-lg border border-emerald-500/30"
+                  >
                     <span className="text-sm font-medium">
                       {member.displayName}
                     </span>
                     <button
                       type="button"
                       onClick={() => toggleAssignee(memberId)}
-                      className="text-emerald-300 hover:text-emerald-100 transition-colors">
+                      className="text-emerald-300 hover:text-emerald-100 transition-colors"
+                    >
                       <X size={16} />
                     </button>
                   </div>
@@ -154,7 +156,8 @@ const TaskDetailContent = ({
               <button
                 type="button"
                 onClick={() => setShowAssignDropdown(!showAssignDropdown)}
-                className="w-full px-4 py-3 bg-slate-700 text-slate-400 rounded-lg border border-slate-600 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left transition-colors">
+                className="w-full px-4 py-3 bg-slate-700 text-slate-400 rounded-lg border border-slate-600 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left transition-colors"
+              >
                 Add team member...
               </button>
               {showAssignDropdown && (
@@ -172,7 +175,8 @@ const TaskDetailContent = ({
                           toggleAssignee(member.uid || member.id);
                           setShowAssignDropdown(false);
                         }}
-                        className="w-full px-4 py-3 text-left transition-colors hover:bg-slate-600 text-white">
+                        className="w-full px-4 py-3 text-left transition-colors hover:bg-slate-600 text-white"
+                      >
                         <div className="font-medium">{member.displayName}</div>
                         <div className="text-sm text-slate-400">
                           {member.email}
@@ -189,13 +193,15 @@ const TaskDetailContent = ({
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors">
+            className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+          >
             {loading ? "Saving..." : "Save Details"}
           </button>
           <button
             type="button"
             onClick={() => setIsEditing(false)}
-            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors">
+            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+          >
             Cancel
           </button>
         </div>
@@ -214,7 +220,8 @@ const TaskDetailContent = ({
           {isAdmin && canEdit && (
             <button
               onClick={() => setIsEditing(true)}
-              className="text-slate-400 hover:text-emerald-400">
+              className="text-slate-400 hover:text-emerald-400"
+            >
               <Edit2 size={18} />
             </button>
           )}
@@ -272,7 +279,8 @@ const TaskDetailContent = ({
                   : task.status === "inreview"
                     ? "bg-yellow-500/20 text-yellow-300"
                     : "bg-emerald-500/20 text-emerald-300"
-            }`}>
+            }`}
+          >
             {statusOptions.find((s) => s.value === task.status)?.label}
           </span>
         )}
@@ -291,7 +299,8 @@ const TaskDetailContent = ({
               return member ? (
                 <span
                   key={memberId}
-                  className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-sm">
+                  className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-sm"
+                >
                   {member.displayName}
                 </span>
               ) : null;
@@ -332,7 +341,8 @@ const TaskDetailContent = ({
               onClose();
             }
           }}
-          className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+          className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+        >
           <Trash2 size={18} />
           Delete Task
         </button>

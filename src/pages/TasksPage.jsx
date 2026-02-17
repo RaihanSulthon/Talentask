@@ -11,7 +11,7 @@ import { Plus, Search, AlertTriangle } from "lucide-react";
 import TeamFilterDropdown from "../components/kanban/TeamFilterDropdown";
 import Modal from "../components/Modal";
 import CustomSelect from "../components/CustomSelect";
-import TaskDetailContent from "../components/TaskDetailContent";
+import TaskDetailContent from "../components/tasks/TaskDetailContent";
 
 const TasksPage = () => {
   const { user, userRole } = useAuth();
