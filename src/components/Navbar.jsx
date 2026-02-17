@@ -5,6 +5,8 @@ import { signOut } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/useNotifications";
 import NotificationDropdown from "./notifications/NotificationDropdown";
+import logoFull from "../assets/Talentask_full_logoremovebgpreview.png";
+import LogoIcon from "../assets/Talentask_Logoremovebgpreview.png";
 
 const Navbar = () => {
   const { user, userRole } = useAuth();
@@ -71,26 +73,24 @@ const Navbar = () => {
 
   return (
     // CHANGED: hapus "justify-between", ganti jadi "flex items-center px-4"
-    <header className="fixed top-0 left-0 right-0 h-16 bg-slate-900 border-b border-slate-700 z-50 flex items-center px-4">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 shadow-sm z-50 flex items-center px-4">
+      {" "}
       {/* ADDED: Spacer kiri agar logo tetap di tengah */}
       <div className="flex-1" />
-
       {/* Center: Logo — CHANGED: hapus "absolute left-1/2 -translate-x-1/2" */}
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-linear-to-r from-emerald-500 to-teal-500 rounded-lg" />
-        <span className="text-white font-bold text-lg">TalenTask</span>
+        <img src={LogoIcon} alt="Talentask" className="h-9 w-auto" />
       </div>
-
       {/* Right: Bell + Role Badge + Avatar — CHANGED: tambah "flex-1 justify-end" */}
       <div className="flex-1 flex items-center justify-end gap-3">
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setShowNotif((prev) => !prev)}
-            className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+            className="relative p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
           >
             <Bell size={20} />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-emerald-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-violet-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -105,7 +105,7 @@ const Navbar = () => {
           />
         </div>
 
-        <span className="px-3 py-1 bg-slate-700 text-slate-300 text-sm rounded-full font-medium">
+        <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm rounded-full font-medium">
           {getRoleLabel()}
         </span>
 
@@ -114,7 +114,7 @@ const Navbar = () => {
             onClick={() => setShowProfile(!showProfile)}
             className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
           >
-            <div className="w-9 h-9 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+            <div className="w-9 h-9 bg-linear-to-br from-blue-500 to-violet-600 rounded-full flex items-center justify-center text-white font-bold">
               {getInitials(user?.displayName)}
             </div>
             <ChevronDown
@@ -135,9 +135,9 @@ const Navbar = () => {
                   : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
               }`}
           >
-            <div className="flex items-center justify-between px-5 py-4 bg-slate-800">
+            <div className="flex items-center justify-between px-5 py-4 bg-linear-to-r from-blue-600 to-violet-600">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white font-bold">
                   {getInitials(user?.displayName)}
                 </div>
                 <span className="text-white font-semibold text-lg uppercase">
@@ -146,7 +146,7 @@ const Navbar = () => {
               </div>
               <button
                 onClick={() => setShowProfile(false)}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-white/60 hover:text-white transition-colors"
               >
                 <X size={20} />
               </button>

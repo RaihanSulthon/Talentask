@@ -18,7 +18,7 @@ const LandingPage = () => {
       title: "Document Repository",
       description:
         "Centralized hub for all your important documents and links. Keep resources organized and easily accessible for both mentors and interns.",
-      gradient: "bg-gradient-to-r from-emerald-500 to-teal-500",
+      gradient: "bg-gradient-to-r from-violet-500 to-blue-500",
     },
     {
       icon: "⚡",
@@ -43,13 +43,13 @@ const LandingPage = () => {
       <HeroSection />
 
       {/* Features Section */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-6 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Everything You Need in One Platform
             </h2>
-            <p className="text-xl text-slate-400 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-500 max-w-3xl mx-auto leading-relaxed">
               Built specifically for internship programs, TalenTask provides the
               tools that mentors and interns need to succeed together.
             </p>
@@ -59,7 +59,7 @@ const LandingPage = () => {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="group relative p-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:transform hover:scale-[1.02]"
+                className="group relative p-8 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-violet-200 hover:shadow-md transition-all duration-300 hover:transform hover:scale-[1.02]"
               >
                 <div
                   className={`absolute inset-0 ${feature.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
@@ -70,10 +70,10 @@ const LandingPage = () => {
                   >
                     <span className="text-2xl">{feature.icon}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3">
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-slate-400 leading-relaxed">
+                  <p className="text-gray-500 leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -84,19 +84,19 @@ const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-6 bg-white">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="p-12 bg-linear-to-r from-emerald-900/30 to-teal-900/30 rounded-3xl border border-emerald-500/20">
+          <div className="p-12 bg-linear-to-r from-blue-600 to-violet-600 rounded-3xl">
             <h2 className="text-4xl font-bold text-white mb-6">
               Ready to Transform Your Internship Program?
             </h2>
-            <p className="text-xl text-slate-300 mb-8">
+            <p className="text-xl text-white/80 mb-8 leading-relaxed">
               Join hundreds of companies already using TalenTask to create
               exceptional internship experiences.
             </p>
             <Link
               to={user ? "/" : "/auth"}
-              className="px-8 py-4 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transform hover:scale-105 transition-all duration-200 shadow-lg shadow-emerald-500/25"
+              className="inline-block px-8 py-4 bg-white text-violet-700 font-semibold rounded-xl hover:bg-gray-50 shadow-lg transform hover:scale-105 transition-all duration-200"
             >
               Get Started Today
             </Link>

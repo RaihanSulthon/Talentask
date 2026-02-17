@@ -10,7 +10,7 @@ const HeroSection = () => {
   return (
     <section className="relative pt-32 pb-20 px-6 overflow-hidden">
       {/* Gradient background */}
-      <div className="absolute inset-0 bg-linear-to-br from-emerald-900/20 via-teal-900/20 to-slate-900/20" />
+      <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-violet-50 to-white" />
 
       {/* Pattern background */}
       <div
@@ -22,19 +22,19 @@ const HeroSection = () => {
 
       {/* Content */}
       <div className="relative max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-sm font-medium mb-8">
-          <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></span>
+        <div className="inline-flex items-center px-4 py-2 bg-violet-100 border border-violet-200 rounded-full text-violet-700 text-sm font-medium mb-8">
+          <span className="w-2 h-2 bg-violet-500 rounded-full mr-2 animate-pulse"></span>
           Streamline Your Internship Management
         </div>
 
-        <h1 className="text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight">
+        <h1 className="text-6xl lg:text-7xl font-bold text-gray-900 mb-6 tracking-tight">
           Bridge the Gap Between
-          <span className="block bg-linear-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+          <span className="block bg-linear-to-r from-blue-500 to-violet-600 bg-clip-text text-transparent">
             Mentors & Interns
           </span>
         </h1>
 
-        <p className="text-xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
           TalenTask revolutionizes internship management with powerful Kanban
           boards, centralized document repositories, and seamless communication
           tools designed for the modern workplace.
@@ -44,7 +44,7 @@ const HeroSection = () => {
           {user ? (
             <Link
               to="/"
-              className="px-8 py-4 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transform hover:scale-105 transition-all duration-200 shadow-lg shadow-emerald-500/25"
+              className="px-8 py-4 bg-linear-to-r from-blue-500 to-violet-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-violet-700 transform hover:scale-105 transition-all duration-200 shadow-lg shadow-violet-500/25"
             >
               Go to Dashboard
             </Link>
@@ -52,14 +52,14 @@ const HeroSection = () => {
             <>
               <Link
                 to="/auth?mode=signup"
-                className="px-8 py-4 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transform hover:scale-105 transition-all duration-200 shadow-lg shadow-emerald-500/25"
+                className="px-8 py-4 bg-linear-to-r from-blue-500 to-violet-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-violet-700 transform hover:scale-105 transition-all duration-200 shadow-lg shadow-violet-500/25"
               >
                 Start Free Today
               </Link>
 
               <Link
                 to="/auth?mode=login"
-                className="px-8 py-4 border border-slate-600 text-slate-300 rounded-xl font-semibold hover:border-slate-500 hover:text-white transition-all duration-200"
+                className="px-8 py-4 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:border-violet-400 hover:text-violet-700 transition-all duration-200"
               >
                 Sign In
               </Link>

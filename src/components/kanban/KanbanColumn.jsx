@@ -14,44 +14,45 @@ const KanbanColumn = ({
   const getColumnBgColor = (status) => {
     switch (status) {
       case "inprogress":
-        return "bg-yellow-900/5";
+        return "bg-amber-50";
       case "inreview":
-        return "bg-blue-900/5";
+        return "bg-blue-50";
       case "done":
-        return "bg-emerald-900/5";
+        return "bg-green-50";
       default:
-        return "bg-slate-800/50";
+        return "bg-gray-50";
     }
   };
 
   const getColumnBorderColor = (status, isDragging) => {
-    if (isDragging) return "border-emerald-500";
-    return "border-slate-700";
+    if (isDragging) return "border-violet-500";
+    return "border-gray-300";
   };
 
   const getCountBadgeColor = (status) => {
     switch (status) {
       case "todo":
-        return "bg-slate-700 text-slate-300";
+        return "bg-gray-200 text-gray-700";
       case "inprogress":
-        return "bg-yellow-600 text-yellow-100 border border-yellow-500";
+        return "bg-amber-500 text-white border border-amber-400";
       case "inreview":
-        return "bg-blue-600 text-blue-100 border border-blue-500";
+        return "bg-blue-500 text-white border border-blue-400";
       case "done":
-        return "bg-emerald-600 text-emerald-100 border border-emerald-500";
+        return "bg-green-500 text-white border border-green-400";
       default:
-        return "bg-slate-700 text-slate-300";
+        return "bg-gray-700 text-gray-300";
     }
   };
 
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-slate-400 uppercase">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase">
           {column.title}
         </h3>
         <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${getCountBadgeColor(column.status)}`}>
+          className={`px-2 py-1 text-xs font-bold rounded-full ${getCountBadgeColor(column.status)}`}
+        >
           {tasks.length}
         </span>
       </div>
@@ -59,10 +60,11 @@ const KanbanColumn = ({
       <div
         onDragOver={onDragOver}
         onDrop={(e) => onDrop(e, column.status)}
-        className={`h-[calc(100vh-420px)] min-h-125 max-h- p-4 ${getColumnBgColor(column.status)} rounded-xl border-2 border-dashed transition-colors ${getColumnBorderColor(column.status, isDragging)} flex flex-col`}>
+        className={`h-[calc(100vh-420px)] min-h-125 max-h- p-4 ${getColumnBgColor(column.status)} rounded-xl border-2 border-dashed transition-colors ${getColumnBorderColor(column.status, isDragging)} flex flex-col`}
+      >
         {tasks.length === 0 ? (
           <div className="flex items-center justify-center flex-1">
-            <p className="text-slate-500 text-lg font-medium">
+            <p className="text-gray-400 text-lg font-medium">
               No tasks available
             </p>
           </div>
@@ -70,12 +72,13 @@ const KanbanColumn = ({
           <div
             className="space-y-3 overflow-y-auto flex-1 pr-2 
                     [&::-webkit-scrollbar]:w-2
-                    [&::-webkit-scrollbar-track]:bg-slate-800/50
+                    [&::-webkit-scrollbar-track]:bg-gray-100
                     [&::-webkit-scrollbar-track]:rounded-lg
-                    [&::-webkit-scrollbar-thumb]:bg-slate-600
+                    [&::-webkit-scrollbar-thumb]:bg-gray-300
                     [&::-webkit-scrollbar-thumb]:rounded-lg
-                    [&::-webkit-scrollbar-thumb]:hover:bg-slate-500
-                    scrollbar-thin">
+                    [&::-webkit-scrollbar-thumb]:hover:bg-gray-400
+                    scrollbar-thin"
+          >
             {tasks.map((task) => (
               <TaskCard
                 key={task.id}

@@ -11,7 +11,7 @@ const DashboardLayout = ({ children, title, subtitle, actions }) => {
   } = useSidebar();
 
   return (
-    <div className="flex min-h-screen bg-slate-900">
+    <div className="flex min-h-screen bg-gray-50">
       <Navbar />
       <Sidebar
         isExpanded={isExpanded}
@@ -21,8 +21,8 @@ const DashboardLayout = ({ children, title, subtitle, actions }) => {
       />
       <div className={`flex-1 p-8 pt-24 transition-all duration-300 ${isExpanded ? "ml-64" : "ml-20"}`}>
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">{title}</h1>
-          {subtitle && <p className="text-slate-400">{subtitle}</p>}
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{title}</h1>
+          {subtitle && <p className="text-gray-500">{subtitle}</p>}
           {actions && <div className="mt-4">{actions}</div>}
         </div>
         {children}

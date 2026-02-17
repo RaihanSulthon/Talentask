@@ -9,6 +9,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "../services/authService";
+import logoIcon from "../assets/Talentask_Logoremovebgpreview.png";
 
 const Sidebar = ({
   isExpanded,
@@ -62,10 +63,13 @@ const Sidebar = ({
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`fixed left-0 top-0 h-full bg-slate-800 border-r border-slate-700 transition-all duration-300 pt-16 z-40 ${
+      className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-sm transition-all duration-300 pt-16 z-40 ${
         isExpanded ? "w-64 shadow-2xl shadow-black/50" : "w-20"
       }`}
     >
+      <div className="flex items-center justify-center py-3 mb-2">
+        <img src={logoIcon} alt="Talentask" className="w-8 h-8" />
+      </div>
       <div className="flex flex-col h-full">
         <nav className="flex-1 py-6">
           {menuItems.map((item) => {
@@ -78,8 +82,8 @@ const Sidebar = ({
                 onClick={onAfterNavigate}
                 className={`flex items-center px-6 py-3 mb-1 transition-all duration-200 rounded-lg mx-2 ${
                   isActive
-                    ? "bg-emerald-500/20 text-emerald-400 border-l-2 border-emerald-500"
-                    : "text-slate-400 hover:bg-green-500/10 hover:text-white"
+                    ? "bg-violet-100 text-violet-700 border-l-2 border-violet-600"
+                    : "text-gray-500 hover:bg-violet-50 hover:text-violet-600"
                 }`}
               >
                 <Icon size={20} className="shrink-0" />

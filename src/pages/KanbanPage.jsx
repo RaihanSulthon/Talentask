@@ -220,15 +220,15 @@ const KanbanPage = () => {
           const getStatBgColor = (status) => {
             switch (status) {
               case "todo":
-                return "bg-slate-800";
+                return "bg-gray-600 border border-gray-300 text-gray-700";
               case "inprogress":
-                return "bg-yellow-600 border border-yellow-500";
+                return "bg-amber-500 text-white shadow-amber-200 shadow-md";
               case "inreview":
-                return "bg-blue-600 border border-blue-500";
+                return "bg-blue-500 text-white shadow-blue-200 shadow-md";
               case "done":
-                return "bg-emerald-600 border border-emerald-500";
+                return "bg-green-500 text-white shadow-green-200 shadow-md";
               default:
-                return "bg-slate-800";
+                return "bg-gray-200";
             }
           };
 
