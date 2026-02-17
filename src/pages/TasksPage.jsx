@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import DashboardLayout from "../layouts/DashboardLayout";
-import TaskStatCard from "../components/tasks/TaskStatCard";
+import Card from "../components/Card";
 import TaskListItem from "../components/tasks/TaskListItem";
 import TaskFilters from "../components/tasks/TaskFilters";
 import TaskViewToggle from "../components/tasks/TaskViewToggle";
@@ -236,54 +236,74 @@ const TasksPage = () => {
         ownedTeams.length > 0 && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+            className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
             <Plus size={20} />
             Create Task
           </button>
         )
-      }>
+      }
+    >
       {/* Statistics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        <TaskStatCard
-          icon="✓"
-          value={statistics.total}
-          label="Total Tasks"
-          gradient="bg-gradient-to-br from-emerald-500 to-teal-500"
-        />
-        <TaskStatCard
-          icon="⏱"
-          value={statistics.inProgress}
-          label="In Progress"
-          gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
-        />
-        <TaskStatCard
-          icon="⚠"
-          value={statistics.todo}
-          label="To Do"
-          gradient="bg-gradient-to-br from-orange-500 to-amber-500"
-        />
-        <TaskStatCard
-          icon="👁"
-          value={statistics.inReview}
-          label="Needs Review"
-          gradient="bg-gradient-to-br from-yellow-500 to-orange-500"
-        />
-        {!isUser && (
-          <TaskStatCard
-            icon="✓"
-            value={statistics.done}
-            label="Completed"
-            gradient="bg-gradient-to-br from-purple-500 to-pink-500"
-          />
-        )}
-        {isUser && (
-          <TaskStatCard
-            icon="👤"
-            value={statistics.myTasks}
-            label="My Tasks"
-            gradient="bg-gradient-to-br from-indigo-500 to-purple-500"
-          />
-        )}
+        {[
+          {
+            icon: "✔",
+            value: statistics.total,
+            label: "Total Tasks",
+            gradient: "bg-gradient-to-br from-emerald-500 to-teal-500",
+          },
+          {
+            icon: "⏱",
+            value: statistics.inProgress,
+            label: "In Progress",
+            gradient: "bg-gradient-to-br from-blue-500 to-cyan-500",
+          },
+          {
+            icon: "⚠",
+            value: statistics.todo,
+            label: "To Do",
+            gradient: "bg-gradient-to-br from-orange-500 to-amber-500",
+          },
+          {
+            icon: "👁",
+            value: statistics.inReview,
+            label: "Needs Review",
+            gradient: "bg-gradient-to-br from-yellow-500 to-orange-500",
+          },
+          !isUser
+            ? {
+                icon: "✔",
+                value: statistics.done,
+                label: "Completed",
+                gradient: "bg-gradient-to-br from-purple-500 to-pink-500",
+              }
+            : {
+                icon: "👤",
+                value: statistics.myTasks,
+                label: "My Tasks",
+                gradient: "bg-gradient-to-br from-indigo-500 to-purple-500",
+              },
+        ].map((stat, i) => (
+          <Card
+            key={i}
+            className="p-6 border border-slate-700 hover:border-slate-600 transition-all"
+          >
+            <div className="flex items-center gap-4">
+              <div
+                className={`w-12 h-12 ${stat.gradient} rounded-lg flex items-center justify-center text-2xl`}
+              >
+                {stat.icon}
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white">
+                  {stat.value}
+                </div>
+                <div className="text-slate-400 text-sm">{stat.label}</div>
+              </div>
+            </div>
+          </Card>
+        ))}
       </div>
 
       {/* Filters and Search */}
@@ -466,7 +486,8 @@ const TasksPage = () => {
           });
         }}
         title="Create New Task"
-        maxWidth="max-w-lg">
+        maxWidth="max-w-lg"
+      >
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -518,7 +539,8 @@ const TasksPage = () => {
                   .map((member) => (
                     <label
                       key={member.uid || member.id}
-                      className="flex items-center gap-3 p-2 hover:bg-slate-600 rounded cursor-pointer">
+                      className="flex items-center gap-3 p-2 hover:bg-slate-600 rounded cursor-pointer"
+                    >
                       <input
                         type="checkbox"
                         checked={formData.assignedTo.includes(
@@ -563,7 +585,8 @@ const TasksPage = () => {
               }
             }}
             disabled={actionLoading}
-            className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors">
+            className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+          >
             {actionLoading ? "Creating..." : "Create Task"}
           </button>
         </div>
@@ -581,7 +604,8 @@ const TasksPage = () => {
             </div>
             <span className="text-2xl font-bold text-white">Delete Task</span>
           </>
-        }>
+        }
+      >
         <div className="mb-6">
           <p className="text-slate-300">
             Are you sure you want to delete{" "}
@@ -598,7 +622,8 @@ const TasksPage = () => {
           <button
             onClick={() => setShowDeleteModal(false)}
             disabled={actionLoading}
-            className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Cancel
           </button>
           <button
@@ -615,7 +640,8 @@ const TasksPage = () => {
               }
             }}
             disabled={actionLoading}
-            className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             {actionLoading ? "Deleting..." : "Delete Task"}
           </button>
         </div>
@@ -628,7 +654,8 @@ const TasksPage = () => {
           setSelectedTask(null);
         }}
         title="Task Details"
-        maxWidth="max-w-2xl">
+        maxWidth="max-w-2xl"
+      >
         {selectedTask && (
           <TaskDetailContent
             task={selectedTask}

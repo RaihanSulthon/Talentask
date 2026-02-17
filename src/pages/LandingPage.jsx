@@ -1,6 +1,6 @@
 import LandingLayout from "../layouts/LandingLayout";
 import HeroSection from "../components/HeroSection";
-import FeatureCard from "../components/FeatureCard";
+import Card from "../components/Card";
 import { useAuth } from "../contexts/AuthContext";
 import { Link } from "react-router-dom";
 
@@ -57,7 +57,27 @@ const LandingPage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <FeatureCard key={index} {...feature} />
+              <Card
+                key={index}
+                className="group relative p-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 hover:transform hover:scale-[1.02]"
+              >
+                <div
+                  className={`absolute inset-0 ${feature.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
+                ></div>
+                <div className="relative">
+                  <div
+                    className={`w-12 h-12 ${feature.gradient} rounded-xl flex items-center justify-center mb-6`}
+                  >
+                    <span className="text-2xl">{feature.icon}</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3">
+                    {feature.title}
+                  </h3>
+                  <p className="text-slate-400 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </Card>
             ))}
           </div>
         </div>

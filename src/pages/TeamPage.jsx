@@ -10,9 +10,7 @@ import {
   Crown,
 } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
-import TeamCard from "../components/TeamCard";
-import TeamStatCard from "../components/TeamStatCard";
-import TeamMemberCard from "../components/TeamMemberCard";
+import Card from "../components/Card";
 import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import { Search } from "lucide-react";
@@ -124,27 +122,30 @@ const TeamPage = () => {
         canCreateTeam && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
             <Users size={20} />
             Create Team
           </button>
         )
-      }>
+      }
+    >
       {/* Teams Grid */}
       <div className="flex gap-4 mb-12 overflow-x-auto pb-4">
         {teams.map((team) => (
-          <div
+          <Card
             key={team.id}
             onClick={() =>
               setSelectedTeamId(selectedTeamId === team.id ? null : team.id)
             }
             className={`shrink-0 p-6 rounded-2xl border-2 transition-all duration-300 min-w-62.5 ${
               selectedTeamId === team.id
-                ? "bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/25 scale-100"
+                ? "bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/25"
                 : team.isOwner
                   ? "bg-slate-800/80 border-slate-700 hover:border-emerald-500/40 hover:bg-slate-800"
                   : "bg-slate-800/50 border-slate-700/50 hover:border-slate-600"
-            }`}>
+            }`}
+          >
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-xl font-bold text-white">{team.name}</h3>
               <div className="flex gap-2">
@@ -156,7 +157,8 @@ const TeamPage = () => {
                         openAddMemberModal(team);
                       }}
                       className="text-emerald-400 hover:text-emerald-300 transition-colors"
-                      title="Add Members">
+                      title="Add Members"
+                    >
                       <UserPlus size={18} />
                     </button>
                     <button
@@ -165,7 +167,8 @@ const TeamPage = () => {
                         onDeleteTeam(team.id);
                       }}
                       className="text-red-400 hover:text-red-300 transition-colors"
-                      title="Delete Team">
+                      title="Delete Team"
+                    >
                       <Trash2 size={18} />
                     </button>
                   </>
@@ -179,7 +182,7 @@ const TeamPage = () => {
               <Users size={16} />
               <span>{team.members?.length || 0} members</span>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
@@ -191,36 +194,52 @@ const TeamPage = () => {
             : "Statistics"}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <TeamStatCard
-            icon={Users}
-            value={displayedStats.totalMembers}
-            label="Team Members"
-            gradient="bg-emerald-500"
-          />
-          <TeamStatCard
-            icon={CheckCircle}
-            value={displayedStats.completedTasks}
-            label="Completed Tasks"
-            gradient="bg-blue-500"
-          />
-          <TeamStatCard
-            icon={Clock}
-            value={displayedStats.activeTasks}
-            label="Active Tasks"
-            gradient="bg-orange-500"
-          />
-          <TeamStatCard
-            icon={AlertCircle}
-            value={displayedStats.needsReview}
-            label="Needs Review"
-            gradient="bg-yellow-500"
-          />
-          <TeamStatCard
-            icon={TrendingUp}
-            value={displayedStats.totalTasks}
-            label="Total Tasks"
-            gradient="bg-purple-500"
-          />
+          {[
+            {
+              Icon: Users,
+              value: displayedStats.totalMembers,
+              label: "Team Members",
+              gradient: "bg-emerald-500",
+            },
+            {
+              Icon: CheckCircle,
+              value: displayedStats.completedTasks,
+              label: "Completed Tasks",
+              gradient: "bg-blue-500",
+            },
+            {
+              Icon: Clock,
+              value: displayedStats.activeTasks,
+              label: "Active Tasks",
+              gradient: "bg-orange-500",
+            },
+            {
+              Icon: AlertCircle,
+              value: displayedStats.needsReview,
+              label: "Needs Review",
+              gradient: "bg-yellow-500",
+            },
+            {
+              Icon: TrendingUp,
+              value: displayedStats.totalTasks,
+              label: "Total Tasks",
+              gradient: "bg-purple-500",
+            },
+          ].map(({ Icon, value, label, gradient }, i) => (
+            <Card key={i} className="p-6">
+              <div className="flex items-center gap-4">
+                <div
+                  className={`w-12 h-12 ${gradient} rounded-lg flex items-center justify-center`}
+                >
+                  <Icon size={24} className="text-white" />
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-white">{value}</div>
+                  <div className="text-slate-400 text-sm">{label}</div>
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
 
@@ -243,7 +262,8 @@ const TeamPage = () => {
                 activeTab === "Members"
                   ? "text-white border-b-2 border-emerald-500"
                   : "text-slate-400 hover:text-white"
-              }`}>
+              }`}
+            >
               Members
             </button>
           </div>
@@ -264,13 +284,55 @@ const TeamPage = () => {
                       );
 
                   return (
-                    <TeamMemberCard
+                    <Card
                       key={`${memberTeam?.id}-${member.uid}`}
-                      member={member}
-                      team={memberTeam}
-                      onRemove={onRemoveMember}
-                      showTeamName={!selectedTeamId}
-                    />
+                      className="p-6"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                            {member.displayName
+                              ?.substring(0, 2)
+                              .toUpperCase() || "U"}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-white font-semibold">
+                                {member.displayName}
+                              </h3>
+                              {member.uid === memberTeam?.ownerId && (
+                                <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full font-medium">
+                                  Owner
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-slate-400 text-sm">
+                              {member.email}
+                            </p>
+                            {!selectedTeamId && (
+                              <p className="text-slate-500 text-xs mt-1">
+                                <span className="text-slate-600 font-medium">
+                                  Team:
+                                </span>{" "}
+                                {memberTeam?.name}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {memberTeam?.isOwner &&
+                          member.uid !== memberTeam?.ownerId && (
+                            <button
+                              onClick={() =>
+                                onRemoveMember(memberTeam.id, member.uid)
+                              }
+                              className="text-red-400 hover:text-red-300 transition-colors"
+                              title="Remove member"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                      </div>
+                    </Card>
                   );
                 })
             ) : (
@@ -287,7 +349,8 @@ const TeamPage = () => {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         title="Create New Team"
-        maxWidth="max-w-md">
+        maxWidth="max-w-md"
+      >
         <input
           type="text"
           placeholder="Team name"
@@ -310,7 +373,8 @@ const TeamPage = () => {
             }
           }}
           disabled={!teamName.trim() || actionLoading}
-          className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {actionLoading ? "Creating..." : "Create Team"}
         </button>
       </Modal>
@@ -324,7 +388,8 @@ const TeamPage = () => {
           setSearchQuery("");
         }}
         title={`Add Member to ${selectedTeam?.name}`}
-        maxWidth="max-w-2xl">
+        maxWidth="max-w-2xl"
+      >
         <div className="relative mb-4">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -342,7 +407,8 @@ const TeamPage = () => {
           className="space-y-2 mb-6 overflow-y-auto pr-2 max-h-60 min-h-60
     [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/50
     [&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-lg
-    [&::-webkit-scrollbar-thumb]:hover:bg-slate-500">
+    [&::-webkit-scrollbar-thumb]:hover:bg-slate-500"
+        >
           {filteredUsers.length > 0 ? (
             filteredUsers.map((user) => (
               <div
@@ -352,7 +418,8 @@ const TeamPage = () => {
                   selectedMembers.includes(user.uid)
                     ? "bg-emerald-500/20 border-emerald-500"
                     : "bg-slate-700 border-slate-600 hover:border-slate-500"
-                }`}>
+                }`}
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
                     {user.displayName?.substring(0, 2).toUpperCase() || "U"}
@@ -369,7 +436,8 @@ const TeamPage = () => {
                         className="w-3 h-3 text-white"
                         fill="none"
                         viewBox="0 0 24 24"
-                        stroke="currentColor">
+                        stroke="currentColor"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -404,7 +472,8 @@ const TeamPage = () => {
             }
           }}
           disabled={selectedMembers.length === 0 || actionLoading}
-          className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {actionLoading
             ? "Adding..."
             : `Add ${selectedMembers.length} Member${selectedMembers.length !== 1 ? "s" : ""}`}
