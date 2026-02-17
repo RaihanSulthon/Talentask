@@ -19,7 +19,7 @@ const DashboardLayout = ({ children, title, subtitle, actions }) => {
         onMouseLeave={handleMouseLeave}
         onAfterNavigate={handleAfterNavigate}
       />
-      <div className="flex-1 p-8 pt-24 transition-all duration-300 ml-20">
+      <div className={`flex-1 p-8 pt-24 transition-all duration-300 ${isExpanded ? "ml-64" : "ml-20"}`}>
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">{title}</h1>
           {subtitle && <p className="text-slate-400">{subtitle}</p>}
