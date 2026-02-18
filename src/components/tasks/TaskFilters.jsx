@@ -20,7 +20,7 @@ const TaskFilters = ({
       <select
         value={selectedStatusFilter}
         onChange={(e) => setSelectedStatusFilter(e.target.value)}
-        className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
       >
         <option value="">All Status</option>
         <option value="todo">To Do</option>
@@ -33,7 +33,7 @@ const TaskFilters = ({
       <select
         value={selectedMemberFilter}
         onChange={(e) => setSelectedMemberFilter(e.target.value)}
-        className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
       >
         <option value="">All Members</option>
         {isUser && <option value="my-tasks">My Tasks</option>}
@@ -49,7 +49,7 @@ const TaskFilters = ({
       <select
         value={selectedSortBy}
         onChange={(e) => setSelectedSortBy(e.target.value)}
-        className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
       >
         <option value="recent">Most Recent</option>
         <option value="oldest">Oldest First</option>
@@ -60,7 +60,7 @@ const TaskFilters = ({
       {hasActiveFilters && (
         <button
           onClick={onResetFilters}
-          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
         >
           <X size={16} />
           Reset Filters

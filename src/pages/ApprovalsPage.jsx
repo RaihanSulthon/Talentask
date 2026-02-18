@@ -4,7 +4,15 @@ import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Card from "../components/Card";
-import { User, Calendar, Tag, CheckCircle, Clock, XCircle, Filter } from "lucide-react";
+import {
+  User,
+  Calendar,
+  Tag,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Filter,
+} from "lucide-react";
 import Modal from "../components/Modal";
 import ApprovalDetailContent from "../components/approvals/ApprovalDetailContent";
 
@@ -61,7 +69,16 @@ const ApprovalsPage = () => {
     }
 
     return filtered;
-  }, [tasks, teams, isAdmin, isSuperAdmin, isUser, ownedTeams, selectedTeamFilter, user]);
+  }, [
+    tasks,
+    teams,
+    isAdmin,
+    isSuperAdmin,
+    isUser,
+    ownedTeams,
+    selectedTeamFilter,
+    user,
+  ]);
 
   // Statistics
   const statistics = useMemo(() => {
@@ -142,19 +159,21 @@ const ApprovalsPage = () => {
         isAdmin
           ? "Review and approve tasks submitted by team members"
           : "Track your tasks awaiting approval"
-      }>
-
+      }
+    >
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Card 1: selalu tampil */}
-        <Card className="p-6 border border-slate-700">
+        <Card className="p-6 border border-violet-100">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-linear-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
               <Clock size={24} className="text-white" />
             </div>
             <div>
-              <div className="text-3xl font-bold text-white">{statistics.pending}</div>
-              <div className="text-slate-400 text-sm">Pending Approval</div>
+              <div className="text-3xl font-bold text-gray-800">
+                {statistics.pending}
+              </div>
+              <div className="text-gray-500 text-sm">Pending Approval</div>
             </div>
           </div>
         </Card>
@@ -162,26 +181,26 @@ const ApprovalsPage = () => {
         {/* Card 2 & 3: hanya untuk admin */}
         {isAdmin && (
           <>
-            <Card className="p-6 border border-slate-700">
+            <Card className="p-6 border border-violet-100">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-linear-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
                   <CheckCircle size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-white">-</div>
-                  <div className="text-slate-400 text-sm">Approved Today</div>
+                  <div className="text-3xl font-bold text-gray-800">-</div>
+                  <div className="text-gray-500 text-sm">Approved Today</div>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6 border border-slate-700">
+            <Card className="p-6 border border-violet-100">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-linear-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
                   <XCircle size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-white">-</div>
-                  <div className="text-slate-400 text-sm">Declined Today</div>
+                  <div className="text-3xl font-bold text-gray-800">-</div>
+                  <div className="text-gray-500 text-sm">Declined Today</div>
                 </div>
               </div>
             </Card>
@@ -196,7 +215,8 @@ const ApprovalsPage = () => {
           <select
             value={selectedTeamFilter}
             onChange={(e) => setSelectedTeamFilter(e.target.value)}
-            className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-400"
+          >
             <option value="">All Teams</option>
             {ownedTeams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -224,20 +244,23 @@ const ApprovalsPage = () => {
               <Card
                 key={task.id}
                 onClick={() => handleTaskClick(task)}
-                className="p-6 rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500/50 transition-all hover:shadow-lg hover:shadow-yellow-500/10">
+                className="p-6 rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500/50 transition-all hover:shadow-lg hover:shadow-yellow-500/10"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h4 className="text-lg font-semibold text-white">{task.title}</h4>
+                      <h4 className="text-lg font-semibold text-gray-800">
+                        {task.title}
+                      </h4>
                       <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full text-xs font-medium flex items-center gap-1">
                         <Clock size={12} />
                         Pending Approval
                       </span>
                     </div>
-                    <p className="text-sm text-slate-400 line-clamp-2 mb-3">
+                    <p className="text-sm text-gray-500 line-clamp-2 mb-3">
                       {task.description}
                     </p>
-                    <div className="flex items-center gap-4 text-xs text-slate-400">
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
                       <div className="flex items-center gap-1">
                         <Tag size={14} />
                         <span>{task.teamName || "Unknown Team"}</span>
@@ -264,20 +287,30 @@ const ApprovalsPage = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm("Are you sure you want to approve this task?"))
+                          if (
+                            window.confirm(
+                              "Are you sure you want to approve this task?",
+                            )
+                          )
                             handleApprove(task.id);
                         }}
-                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      >
                         <CheckCircle size={18} />
                         Approve
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm("Are you sure you want to decline this task? It will be returned to In Progress."))
+                          if (
+                            window.confirm(
+                              "Are you sure you want to decline this task? It will be returned to In Progress.",
+                            )
+                          )
                             handleDecline(task.id);
                         }}
-                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      >
                         <XCircle size={18} />
                         Decline
                       </button>
@@ -307,12 +340,13 @@ const ApprovalsPage = () => {
         maxWidth="max-w-2xl"
         title={
           <>
-            <span className="text-2xl font-bold text-white">Task Review</span>
+            <span className="text-2xl font-bold text-gray-800">Task Review</span>
             <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full text-xs font-medium">
               Pending Approval
             </span>
           </>
-        }>
+        }
+      >
         {selectedTask && (
           <ApprovalDetailContent
             task={selectedTask}
@@ -324,7 +358,11 @@ const ApprovalsPage = () => {
                 handleApprove(selectedTask.id);
             }}
             onDecline={() => {
-              if (window.confirm("Decline this task? It will return to In Progress."))
+              if (
+                window.confirm(
+                  "Decline this task? It will return to In Progress.",
+                )
+              )
                 handleDecline(selectedTask.id);
             }}
           />

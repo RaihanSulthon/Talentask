@@ -45,8 +45,8 @@ const CustomSelect = ({
   return (
     <div className="relative" ref={dropdownRef}>
       {label && (
-        <label className="block text-sm font-medium text-slate-300 mb-2">
-          {label} {required && <span className="text-red-400">*</span>}
+        <label className="block text-sm font-medium text-gray-600 mb-1.5">
+          {label} {required && <span className="text-rose-400">*</span>}
         </label>
       )}
 
@@ -54,15 +54,31 @@ const CustomSelect = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-4 py-3 bg-slate-700 text-left rounded-lg border-2 transition-all ${
+        className={`w-full px-4 py-3 bg-gray-50 text-left rounded-xl border transition-all ${
           isOpen
-            ? "border-emerald-500 ring-2 ring-emerald-500/20"
-            : "border-slate-600 hover:border-slate-500"
-        }`}>
+            ? "border-violet-400 ring-2 ring-violet-100"
+            : "border-gray-200 hover:border-gray-300"
+        }`}
+      >
         <div className="flex items-center justify-between">
-          <span className={value ? "text-white" : "text-slate-400"}>
-            {displayText}
-          </span>
+          {value && selectedOption ? (
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-linear-to-br from-blue-500 to-violet-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                {selectedOption.icon ||
+                  selectedOption.label.substring(0, 1).toUpperCase()}
+              </div>
+              <span className="text-gray-800 font-medium">
+                {selectedOption.label}
+              </span>
+              {selectedOption.description && (
+                <span className="px-2 py-0.5 bg-violet-100 text-violet-600 text-xs rounded-full font-medium">
+                  {selectedOption.description}
+                </span>
+              )}
+            </div>
+          ) : (
+            <span className="text-gray-400">{placeholder}</span>
+          )}
           <ChevronDown
             size={20}
             className={`text-slate-400 transition-transform duration-200 ${
@@ -74,48 +90,54 @@ const CustomSelect = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-slate-700 border-2 border-slate-600 rounded-lg shadow-2xl shadow-black/30 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl shadow-gray-200/60 overflow-hidden max-h-72">
+          {" "}
           {/* Search Bar */}
           {searchable && options.length > 5 && (
-            <div className="p-3 border-b border-slate-600">
+            <div className="p-3 border-b border-gray-100">
               <div className="relative">
                 <Search
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                 />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 text-sm"
+                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 text-sm"
                   onClick={(e) => e.stopPropagation()}
                 />
               </div>
             </div>
           )}
-
           {/* Options List */}
-          <div className="max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700">
+          <div
+            className="max-h-39 overflow-y-auto scroll-smooth"
+            style={{ willChange: "scroll-position" }}
+          >
+            {" "}
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => handleSelect(option.value)}
-                  className={`w-full px-4 py-3 flex items-center justify-between transition-colors ${
+                  className={`w-full px-4 py-2.5 group flex items-center justify-between transition-colors ${
                     value === option.value
-                      ? "bg-emerald-500/20 text-emerald-400"
-                      : "text-white hover:bg-slate-600"
-                  }`}>
+                      ? "bg-violet-50 text-violet-700"
+                      : "text-gray-700 hover:bg-violet-50 hover:text-violet-600"
+                  }`}
+                >
                   <div className="flex items-center gap-3">
                     {option.icon && (
                       <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors ${
                           value === option.value
-                            ? "bg-emerald-500 text-white"
-                            : "bg-slate-800 text-slate-300"
-                        }`}>
+                            ? "bg-violet-500 text-white"
+                            : "bg-gray-100 text-gray-600 group-hover:bg-violet-100 group-hover:text-violet-600"
+                        }`}
+                      >
                         {option.icon}
                       </div>
                     )}
@@ -129,15 +151,12 @@ const CustomSelect = ({
                     </div>
                   </div>
                   {value === option.value && (
-                    <Check
-                      size={18}
-                      className="text-emerald-400 shrink-0"
-                    />
+                    <Check size={16} className="text-violet-500 shrink-0" />
                   )}
                 </button>
               ))
             ) : (
-              <div className="px-4 py-8 text-center text-slate-400">
+              <div className="px-4 py-8 text-center text-gray-400 text-sm">
                 No options found
               </div>
             )}

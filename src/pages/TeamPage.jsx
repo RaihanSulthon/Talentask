@@ -108,7 +108,8 @@ const TeamPage = () => {
 
   if (loading || tasksLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-700">
+        {" "}
         Loading...
       </div>
     );
@@ -122,7 +123,7 @@ const TeamPage = () => {
         canCreateTeam && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
           >
             <Users size={20} />
             Create Team
@@ -138,16 +139,24 @@ const TeamPage = () => {
             onClick={() =>
               setSelectedTeamId(selectedTeamId === team.id ? null : team.id)
             }
-            className={`shrink-0 p-6 rounded-2xl border-2 transition-all duration-300 min-w-62.5 ${
+            className={`shrink-0 p-6 rounded-2xl border-2 transition-all duration-300 min-w-62.5 cursor-pointer ${
               selectedTeamId === team.id
-                ? "bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/25"
+                ? "bg-violet-50 border-violet-500 shadow-lg shadow-violet-200 ring-2 ring-violet-200"
                 : team.isOwner
-                  ? "bg-slate-800/80 border-slate-700 hover:border-emerald-500/40 hover:bg-slate-800"
-                  : "bg-slate-800/50 border-slate-700/50 hover:border-slate-600"
+                  ? "bg-white border-violet-200 hover:border-violet-400 hover:shadow-md hover:bg-violet-50/50"
+                  : "bg-white border-gray-200 hover:border-violet-300 hover:shadow-md hover:bg-violet-50/30"
             }`}
           >
             <div className="flex items-start justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">{team.name}</h3>
+              <h3
+                className={`text-xl font-bold transition-colors ${
+                  selectedTeamId === team.id
+                    ? "text-violet-700"
+                    : "text-gray-800"
+                }`}
+              >
+                {team.name}
+              </h3>
               <div className="flex gap-2">
                 {team.isOwner && (
                   <>
@@ -178,7 +187,11 @@ const TeamPage = () => {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2 text-slate-400 text-sm">
+            <div
+              className={`flex items-center gap-2 text-sm transition-colors ${
+                selectedTeamId === team.id ? "text-violet-500" : "text-gray-400"
+              }`}
+            >
               <Users size={16} />
               <span>{team.members?.length || 0} members</span>
             </div>
@@ -188,7 +201,7 @@ const TeamPage = () => {
 
       {/* Team Statistics */}
       <div className="mb-12">
-        <h2 className="text-2xl font-bold text-white mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
           {selectedTeamId
             ? `${selectedTeamData?.name} Statistics`
             : "Statistics"}
@@ -234,8 +247,10 @@ const TeamPage = () => {
                   <Icon size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-white">{value}</div>
-                  <div className="text-slate-400 text-sm">{label}</div>
+                  <div className="text-3xl font-bold text-gray-800">
+                    {value}
+                  </div>
+                  <div className="text-gray-500 text-sm">{label}</div>
                 </div>
               </div>
             </Card>
@@ -247,7 +262,7 @@ const TeamPage = () => {
       {teams.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-gray-800">
               {selectedTeamId
                 ? `${selectedTeamData?.name} Members`
                 : " Members"}
@@ -255,13 +270,13 @@ const TeamPage = () => {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-4 mb-6 border-b border-slate-700">
+          <div className="flex gap-4 mb-6 border-b border-gray-200">
             <button
               onClick={() => setActiveTab("Members")}
               className={`pb-3 px-1 font-medium transition-colors ${
                 activeTab === "Members"
-                  ? "text-white border-b-2 border-emerald-500"
-                  : "text-slate-400 hover:text-white"
+                  ? "text-violet-600 border-b-2 border-violet-500"
+                  : "text-gray-400 hover:text-gray-700"
               }`}
             >
               Members
@@ -297,7 +312,7 @@ const TeamPage = () => {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <h3 className="text-white font-semibold">
+                              <h3 className="text-gray-800 font-semibold">
                                 {member.displayName}
                               </h3>
                               {member.uid === memberTeam?.ownerId && (
@@ -306,12 +321,12 @@ const TeamPage = () => {
                                 </span>
                               )}
                             </div>
-                            <p className="text-slate-400 text-sm">
+                            <p className="text-gray-400 text-sm">
                               {member.email}
                             </p>
                             {!selectedTeamId && (
-                              <p className="text-slate-500 text-xs mt-1">
-                                <span className="text-slate-600 font-medium">
+                              <p className="text-gray-500 text-xs mt-1">
+                                <span className="text-gray-600 font-medium">
                                   Team:
                                 </span>{" "}
                                 {memberTeam?.name}
@@ -336,7 +351,7 @@ const TeamPage = () => {
                   );
                 })
             ) : (
-              <div className="col-span-full text-center text-slate-400 py-8">
+              <div className="col-span-full text-center text-gray-400 py-8">
                 No members found
               </div>
             )}
@@ -356,7 +371,7 @@ const TeamPage = () => {
           placeholder="Team name"
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
-          className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-6"
+          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-400 mb-6"
           autoFocus
         />
         <button
@@ -392,7 +407,7 @@ const TeamPage = () => {
       >
         <div className="relative mb-4">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             size={20}
           />
           <input
@@ -400,7 +415,7 @@ const TeamPage = () => {
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-violet-400 transition-all"
           />
         </div>
         <div
@@ -417,7 +432,7 @@ const TeamPage = () => {
                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                   selectedMembers.includes(user.uid)
                     ? "bg-emerald-500/20 border-emerald-500"
-                    : "bg-slate-700 border-slate-600 hover:border-slate-500"
+                    : "bg-white border-gray-200 hover:border-gray-300"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -425,10 +440,10 @@ const TeamPage = () => {
                     {user.displayName?.substring(0, 2).toUpperCase() || "U"}
                   </div>
                   <div className="flex-1">
-                    <div className="text-white font-medium">
+                    <div className="text-gray-800 font-medium">
                       {user.displayName}
                     </div>
-                    <div className="text-slate-400 text-sm">{user.email}</div>
+                    <div className="text-gray-500 text-sm">{user.email}</div>
                   </div>
                   {selectedMembers.includes(user.uid) && (
                     <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
@@ -451,7 +466,7 @@ const TeamPage = () => {
               </div>
             ))
           ) : (
-            <div className="text-center text-slate-400 py-8">
+            <div className="text-center text-gray-400 py-8">
               {searchQuery
                 ? "No users found matching your search"
                 : "No available users to add"}

@@ -289,8 +289,8 @@ const KanbanPage = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Title *
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
+              Title <span className="text-rose-400">*</span>
             </label>
             <input
               type="text"
@@ -298,12 +298,12 @@ const KanbanPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all"
               placeholder="Enter task title"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
               Description
             </label>
             <textarea
@@ -312,7 +312,7 @@ const KanbanPage = () => {
                 setFormData({ ...formData, description: e.target.value })
               }
               rows={3}
-              className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all resize-none"
               placeholder="Enter task description"
             />
           </div>
@@ -329,16 +329,16 @@ const KanbanPage = () => {
           />
           {selectedTeamForCreate?.members && (
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-gray-600 mb-1.5">
                 Assign To
               </label>
-              <div className="space-y-2 max-h-48 overflow-y-auto bg-slate-700 rounded-lg p-3">
+              <div className="space-y-1 max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2 bg-gray-50">
                 {selectedTeamForCreate.members
                   .filter((m) => m.role !== "admin" && m.role !== "super_admin")
                   .map((member) => (
                     <label
                       key={member.uid || member.id}
-                      className="flex items-center gap-3 p-2 hover:bg-slate-600 rounded cursor-pointer"
+                      className="flex items-center gap-3 p-2.5 hover:bg-white rounded-lg cursor-pointer transition-colors"
                     >
                       <input
                         type="checkbox"
@@ -346,13 +346,13 @@ const KanbanPage = () => {
                           member.uid || member.id,
                         )}
                         onChange={() => toggleAssignee(member.uid || member.id)}
-                        className="w-4 h-4 text-emerald-500 bg-slate-800 border-slate-500 rounded focus:ring-emerald-500"
+                        className="w-4 h-4 accent-violet-500 rounded"
                       />
                       <div className="flex-1">
-                        <div className="text-white font-medium">
+                        <div className="text-gray-800 font-medium text-sm">
                           {member.displayName}
                         </div>
-                        <div className="text-slate-400 text-sm">
+                        <div className="text-gray-400 text-xs">
                           {member.email}
                         </div>
                       </div>
@@ -376,7 +376,7 @@ const KanbanPage = () => {
               });
             }}
             disabled={actionLoading}
-            className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+            className="w-full py-3 bg-violet-500 hover:bg-violet-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-xl font-medium transition-all shadow-sm shadow-violet-200"
           >
             {actionLoading ? "Creating..." : "Create Task"}
           </button>
@@ -393,19 +393,21 @@ const KanbanPage = () => {
             <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
               <AlertTriangle className="text-red-400" size={24} />
             </div>
-            <span className="text-2xl font-bold text-white">Delete Task</span>
+            <span className="text-xl font-semibold text-gray-800">
+              Delete Task
+            </span>
           </>
         }
       >
         <div className="mb-6">
-          <p className="text-slate-300">
+          <p className="text-gray-500 text-center">
             Are you sure you want to delete{" "}
-            <span className="font-semibold text-white">
+            <span className="font-semibold text-gray-800">
               "{selectedTask?.title}"
             </span>
             ?
           </p>
-          <p className="text-slate-400 text-sm mt-2">
+          <p className="text-gray-400 text-sm mt-2">
             This action cannot be undone.
           </p>
         </div>
@@ -413,7 +415,7 @@ const KanbanPage = () => {
           <button
             onClick={() => setShowDeleteModal(false)}
             disabled={actionLoading}
-            className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>

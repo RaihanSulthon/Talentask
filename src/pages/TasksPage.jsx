@@ -7,7 +7,17 @@ import Card from "../components/Card";
 import TaskListItem from "../components/tasks/TaskListItem";
 import TaskFilters from "../components/tasks/TaskFilters";
 import TaskViewToggle from "../components/tasks/TaskViewToggle";
-import { Plus, Search, AlertTriangle } from "lucide-react";
+import {
+  Plus,
+  Search,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  ListTodo,
+  Eye,
+  CheckCheck,
+  User,
+} from "lucide-react";
 import TeamFilterDropdown from "../components/kanban/TeamFilterDropdown";
 import Modal from "../components/Modal";
 import CustomSelect from "../components/CustomSelect";
@@ -248,62 +258,89 @@ const TasksPage = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {[
           {
-            icon: "✔",
+            icon: CheckCircle2,
             value: statistics.total,
             label: "Total Tasks",
-            gradient: "bg-gradient-to-br from-emerald-500 to-teal-500",
+            color: "text-emerald-500",
+            bg: "bg-emerald-50",
+            border: "border-emerald-100",
+            accent: "bg-emerald-500",
           },
           {
-            icon: "⏱",
+            icon: Clock,
             value: statistics.inProgress,
             label: "In Progress",
-            gradient: "bg-gradient-to-br from-blue-500 to-cyan-500",
+            color: "text-blue-500",
+            bg: "bg-blue-50",
+            border: "border-blue-100",
+            accent: "bg-blue-500",
           },
           {
-            icon: "⚠",
+            icon: ListTodo,
             value: statistics.todo,
             label: "To Do",
-            gradient: "bg-gradient-to-br from-orange-500 to-amber-500",
+            color: "text-amber-500",
+            bg: "bg-amber-50",
+            border: "border-amber-100",
+            accent: "bg-amber-500",
           },
           {
-            icon: "👁",
+            icon: Eye,
             value: statistics.inReview,
             label: "Needs Review",
-            gradient: "bg-gradient-to-br from-yellow-500 to-orange-500",
+            color: "text-violet-500",
+            bg: "bg-violet-50",
+            border: "border-violet-100",
+            accent: "bg-violet-500",
           },
           !isUser
             ? {
-                icon: "✔",
+                icon: CheckCheck,
                 value: statistics.done,
                 label: "Completed",
-                gradient: "bg-gradient-to-br from-purple-500 to-pink-500",
+                color: "text-pink-500",
+                bg: "bg-pink-50",
+                border: "border-pink-100",
+                accent: "bg-pink-500",
               }
             : {
-                icon: "👤",
+                icon: User,
                 value: statistics.myTasks,
                 label: "My Tasks",
-                gradient: "bg-gradient-to-br from-indigo-500 to-purple-500",
+                color: "text-indigo-500",
+                bg: "bg-indigo-50",
+                border: "border-indigo-100",
+                accent: "bg-indigo-500",
               },
-        ].map((stat, i) => (
-          <Card
-            key={i}
-            className="p-6 border border-slate-700 hover:border-slate-600 transition-all"
-          >
-            <div className="flex items-center gap-4">
+        ].map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <Card
+              key={i}
+              className={`p-5 border ${stat.border} hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden relative`}
+            >
+              {/* Accent bar top */}
               <div
-                className={`w-12 h-12 ${stat.gradient} rounded-lg flex items-center justify-center text-2xl`}
-              >
-                {stat.icon}
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-white">
-                  {stat.value}
+                className={`absolute top-0 left-0 right-0 h-1 ${stat.accent} rounded-t-xl`}
+              />
+              <div className="flex items-center gap-3 mt-1">
+                <div
+                  className={`w-10 h-10 ${stat.bg} rounded-xl flex items-center justify-center shrink-0`}
+                >
+                  <Icon size={20} className={stat.color} />
                 </div>
-                <div className="text-slate-400 text-sm">{stat.label}</div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-800 leading-none">
+                    {stat.value}
+                  </div>
+                  <div className="text-gray-400 text-xs mt-1 font-medium">
+                    {stat.label}
+                  </div>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       {/* Filters and Search */}
@@ -312,7 +349,7 @@ const TasksPage = () => {
           {/* Search */}
           <div className="relative flex-1">
             <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               size={20}
             />
             <input
@@ -320,7 +357,7 @@ const TasksPage = () => {
               placeholder="Search tasks..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
           </div>
 
@@ -367,7 +404,7 @@ const TasksPage = () => {
                 />
               ))
             ) : (
-              <div className="text-center py-16 text-slate-400">
+              <div className="text-center py-16 text-gray-400">
                 <p className="text-lg">No tasks found</p>
                 <p className="text-sm mt-2">
                   Try adjusting your filters or create a new task
@@ -379,46 +416,84 @@ const TasksPage = () => {
 
         {viewMode === "grouped" && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {["todo", "inprogress", "inreview", "done"].map((status) => (
-              <div key={status} className="bg-slate-800/50 rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-slate-400 uppercase mb-4">
-                  {status === "todo"
-                    ? "To Do"
-                    : status === "inprogress"
-                      ? "In Progress"
-                      : status === "inreview"
-                        ? "In Review"
-                        : "Done"}
-                  <span className="ml-2 px-2 py-1 bg-slate-700 text-slate-300 text-xs rounded-full">
-                    {filteredTasks.filter((t) => t.status === status).length}
-                  </span>
-                </h3>
-                <div className="space-y-3">
-                  {filteredTasks
-                    .filter((t) => t.status === status)
-                    .map((task) => (
-                      <TaskListItem
-                        key={task.id}
-                        task={task}
-                        onClick={() => onTaskClick(task)}
-                        onStatusChange={
-                          isUser || canEditTask(task) ? onStatusChange : null
-                        }
-                        teams={teams}
-                        canEdit={canEditTask(task)}
-                        isUser={isUser}
-                        compact
-                      />
-                    ))}
-                  {filteredTasks.filter((t) => t.status === status).length ===
-                    0 && (
-                    <p className="text-slate-500 text-sm text-center py-8">
-                      No tasks
-                    </p>
-                  )}
+            {[
+              {
+                status: "todo",
+                label: "To Do",
+                accent: "bg-amber-400",
+                badge: "bg-amber-50 text-amber-600 border border-amber-200",
+              },
+              {
+                status: "inprogress",
+                label: "In Progress",
+                accent: "bg-blue-400",
+                badge: "bg-blue-50 text-blue-600 border border-blue-200",
+              },
+              {
+                status: "inreview",
+                label: "In Review",
+                accent: "bg-violet-400",
+                badge: "bg-violet-50 text-violet-600 border border-violet-200",
+              },
+              {
+                status: "done",
+                label: "Done",
+                accent: "bg-emerald-400",
+                badge:
+                  "bg-emerald-50 text-emerald-600 border border-emerald-200",
+              },
+            ].map(({ status, label, accent, badge }) => {
+              const count = filteredTasks.filter(
+                (t) => t.status === status,
+              ).length;
+              return (
+                <div
+                  key={status}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+                >
+                  {/* Colored top bar */}
+                  <div className={`h-1 w-full ${accent}`} />
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
+                    <span className="text-sm font-semibold text-gray-700">
+                      {label}
+                    </span>
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badge}`}
+                    >
+                      {count}
+                    </span>
+                  </div>
+                  {/* Tasks */}
+                  <div className="p-3 space-y-2">
+                    {filteredTasks
+                      .filter((t) => t.status === status)
+                      .map((task) => (
+                        <TaskListItem
+                          key={task.id}
+                          task={task}
+                          onClick={() => onTaskClick(task)}
+                          onStatusChange={
+                            isUser || canEditTask(task) ? onStatusChange : null
+                          }
+                          teams={teams}
+                          canEdit={canEditTask(task)}
+                          isUser={isUser}
+                          compact
+                        />
+                      ))}
+                    {count === 0 && (
+                      <div className="flex flex-col items-center justify-center py-10 text-gray-300">
+                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-2">
+                          <span className="text-gray-300 text-lg">—</span>
+                        </div>
+                        <p className="text-sm">No tasks</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -465,7 +540,7 @@ const TasksPage = () => {
                 );
               })
             ) : (
-              <div className="text-center py-16 text-slate-400">
+              <div className="text-center py-16 text-gray-400">
                 <p className="text-lg">No tasks found</p>
               </div>
             )}
@@ -490,8 +565,8 @@ const TasksPage = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Title *
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
+              Title <span className="text-rose-400">*</span>
             </label>
             <input
               type="text"
@@ -499,12 +574,12 @@ const TasksPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all"
               placeholder="Enter task title"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
               Description
             </label>
             <textarea
@@ -513,7 +588,7 @@ const TasksPage = () => {
                 setFormData({ ...formData, description: e.target.value })
               }
               rows={3}
-              className="w-full px-4 py-2 bg-slate-700 text-white rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all resize-none"
               placeholder="Enter task description"
             />
           </div>
@@ -530,16 +605,16 @@ const TasksPage = () => {
           />
           {selectedTeamForCreate?.members && (
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-gray-600 mb-1.5">
                 Assign To
               </label>
-              <div className="space-y-2 max-h-48 overflow-y-auto bg-slate-700 rounded-lg p-3">
+              <div className="space-y-1 max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2 bg-gray-50">
                 {selectedTeamForCreate.members
                   .filter((m) => m.role !== "admin" && m.role !== "super_admin")
                   .map((member) => (
                     <label
                       key={member.uid || member.id}
-                      className="flex items-center gap-3 p-2 hover:bg-slate-600 rounded cursor-pointer"
+                      className="flex items-center gap-3 p-2.5 hover:bg-white rounded-lg cursor-pointer transition-colors"
                     >
                       <input
                         type="checkbox"
@@ -547,13 +622,13 @@ const TasksPage = () => {
                           member.uid || member.id,
                         )}
                         onChange={() => toggleAssignee(member.uid || member.id)}
-                        className="w-4 h-4 text-emerald-500 bg-slate-800 border-slate-500 rounded focus:ring-emerald-500"
+                        className="w-4 h-4 accent-violet-500 rounded"
                       />
                       <div className="flex-1">
-                        <div className="text-white font-medium">
+                        <div className="text-gray-800 font-medium text-sm">
                           {member.displayName}
                         </div>
-                        <div className="text-slate-400 text-sm">
+                        <div className="text-gray-400 text-xs">
                           {member.email}
                         </div>
                       </div>
@@ -585,7 +660,7 @@ const TasksPage = () => {
               }
             }}
             disabled={actionLoading}
-            className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+            className="w-full py-3 bg-violet-500 hover:bg-violet-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-xl font-medium transition-all shadow-sm shadow-violet-200"
           >
             {actionLoading ? "Creating..." : "Create Task"}
           </button>

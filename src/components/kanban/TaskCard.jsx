@@ -34,7 +34,7 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
       case "inreview":
         return "border-t-4 border-t-blue-500";
       case "done":
-        return "border-t-4 border-t-violet-600";
+        return "border-t-4 border-t-emerald-500";
       default:
         return "";
     }
@@ -68,7 +68,9 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
     >
       {/* Header with three dots */}
       <div className="flex items-start justify-between mb-3">
-        <h4 className="font-semibold text-gray-900 flex-1 pr-2">{task.title}</h4>
+        <h4 className="font-semibold text-gray-900 flex-1 pr-2">
+          {task.title}
+        </h4>
 
         {/* Three dots menu */}
         <div className="relative" ref={menuRef}>

@@ -5,6 +5,7 @@ import {
   CheckSquare,
   FileCheck,
   UserCog,
+  Home,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -68,7 +69,7 @@ const Sidebar = ({
       }`}
     >
       <div className="flex items-center justify-center py-3 mb-2">
-        <img src={logoIcon} alt="Talentask" className="w-8 h-8" />
+        <img src={logoIcon} alt="Talentask" className="w-auto h-12" />
       </div>
       <div className="flex flex-col h-full">
         <nav className="flex-1 py-6">
@@ -99,6 +100,24 @@ const Sidebar = ({
               </Link>
             );
           })}
+          <div className="py-4 border-t border-gray-100">
+            <Link
+              to="/landing"
+              onClick={onAfterNavigate}
+              className="flex items-center px-6 py-3 mx-2 rounded-lg text-gray-400 hover:bg-violet-50 hover:text-violet-600 transition-all duration-200"
+            >
+              <Home size={20} className="shrink-0" />
+              <span
+                className={`ml-4 font-medium whitespace-nowrap transition-all duration-300 ${
+                  isExpanded
+                    ? "opacity-100 w-auto"
+                    : "opacity-0 w-0 overflow-hidden"
+                }`}
+              >
+                Back to Home
+              </span>
+            </Link>
+          </div>
         </nav>
       </div>
     </div>

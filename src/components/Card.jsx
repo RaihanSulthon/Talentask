@@ -2,7 +2,7 @@ const Card = ({ children, className = "", onClick }) => {
   return (
     <div
       onClick={onClick}
-      className={`bg-slate-800 rounded-xl ${onClick ? "cursor-pointer" : ""} ${className}`}
+      className={`bg-white border border-gray-200 rounded-xl shadow-sm ${onClick ? "cursor-pointer" : ""} ${className}`}
     >
       {children}
     </div>
