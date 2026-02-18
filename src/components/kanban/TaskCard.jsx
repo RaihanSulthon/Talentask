@@ -1,4 +1,5 @@
 import { Clock, User, MoreVertical, Edit2, Trash2 } from "lucide-react";
+import { getTeamColor } from "../../utils/teamColors";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -57,6 +58,8 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
     onDelete(task);
   };
 
+  const teamColor = getTeamColor(task.teamId);
+
   return (
     <div
       draggable
@@ -110,7 +113,14 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
         <p className="text-sm text-gray-500 line-clamp-2 flex-1">
           {task.description}
         </p>
-        <span className="shrink-0 px-2 py-1 bg-violet-100 text-violet-700 text-xs rounded-full font-medium whitespace-nowrap">
+        <span
+          style={{
+            backgroundColor: teamColor.bg,
+            color: teamColor.text,
+            border: `1px solid ${teamColor.border}`,
+          }}
+          className="shrink-0 px-2 py-1 text-xs rounded-full font-medium whitespace-nowrap"
+        >
           {task.teamName || "Team"}
         </span>
       </div>

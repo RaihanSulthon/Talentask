@@ -20,19 +20,19 @@ const KanbanColumn = ({
       case "done":
         return "bg-green-50";
       default:
-        return "bg-gray-50";
+        return "bg-violet-50/40";
     }
   };
 
   const getColumnBorderColor = (status, isDragging) => {
     if (isDragging) return "border-violet-500";
-    return "border-gray-300";
+    return "border-violet-100";
   };
 
   const getCountBadgeColor = (status) => {
     switch (status) {
       case "todo":
-        return "bg-gray-200 text-gray-700";
+        return "bg-violet-100 text-violet-700 border border-violet-200";
       case "inprogress":
         return "bg-amber-500 text-white border border-amber-400";
       case "inreview":
@@ -47,7 +47,8 @@ const KanbanColumn = ({
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase">
+        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+          {" "}
           {column.title}
         </h3>
         <span
