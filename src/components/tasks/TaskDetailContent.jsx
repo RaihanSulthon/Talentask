@@ -323,23 +323,31 @@ const TaskDetailContent = ({
           Status
         </label>
         {isUser ? (
-          <CustomSelect
-            options={statusSelectOptions.filter((opt) => opt.value !== "done")}
-            value={formData.status}
-            onChange={(value) => {
-              if (value === "inreview") {
-                if (
-                  !window.confirm(
-                    "Submit this task for approval? Your team owner will review it.",
-                  )
-                ) {
-                  return;
+          task.status === "done" ? (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
+              ✅ Done
+            </span>
+          ) : (
+            <CustomSelect
+              options={statusSelectOptions.filter(
+                (opt) => opt.value !== "done",
+              )}
+              value={formData.status}
+              onChange={(value) => {
+                if (value === "inreview") {
+                  if (
+                    !window.confirm(
+                      "Submit this task for approval? Your team owner will review it.",
+                    )
+                  ) {
+                    return;
+                  }
                 }
-              }
-              setFormData({ ...formData, status: value });
-              onUpdate(task.id, { status: value });
-            }}
-          />
+                setFormData({ ...formData, status: value });
+                onUpdate(task.id, { status: value });
+              }}
+            />
+          )
         ) : (
           <span
             className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${

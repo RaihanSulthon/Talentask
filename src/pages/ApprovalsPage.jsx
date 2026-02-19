@@ -87,11 +87,42 @@ const ApprovalsPage = () => {
   ]);
 
   // Statistics
+  // Statistics
   const statistics = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const isToday = (timestamp) => {
+      if (!timestamp) return false;
+      const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return d >= today;
+    };
+
+    // Filter tasks from owned/visible teams
+    const visibleTeamIds = isSuperAdmin
+      ? null
+      : isAdmin
+        ? ownedTeams.map((t) => t.id)
+        : null;
+
+    const visibleTasks = tasks.filter((task) =>
+      visibleTeamIds ? visibleTeamIds.includes(task.teamId) : true,
+    );
+
+    const approvedToday = visibleTasks.filter(
+      (task) => task.status === "done" && isToday(task.updatedAt),
+    ).length;
+
+    const declinedToday = visibleTasks.filter(
+      (task) => task.status === "inprogress" && isToday(task.updatedAt),
+    ).length;
+
     return {
       pending: pendingApprovals.length,
+      approvedToday,
+      declinedToday,
     };
-  }, [pendingApprovals]);
+  }, [tasks, pendingApprovals, ownedTeams, isAdmin, isSuperAdmin]);
 
   const handleApprove = async (task) => {
     try {
@@ -199,7 +230,7 @@ const ApprovalsPage = () => {
                   <CheckCircle size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-800">-</div>
+                  <div className="text-3xl font-bold text-gray-800">{statistics.approvedToday}</div>
                   <div className="text-gray-500 text-sm">Approved Today</div>
                 </div>
               </div>
@@ -211,7 +242,7 @@ const ApprovalsPage = () => {
                   <XCircle size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-800">-</div>
+                  <div className="text-3xl font-bold text-gray-800">{statistics.declinedToday}</div>
                   <div className="text-gray-500 text-sm">Declined Today</div>
                 </div>
               </div>
