@@ -17,6 +17,8 @@ import {
   Eye,
   CheckCheck,
   User,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import TeamFilterDropdown from "../components/kanban/TeamFilterDropdown";
 import Modal from "../components/Modal";
@@ -47,8 +49,32 @@ const TasksPage = () => {
   const [selectedTeamFilter, setSelectedTeamFilter] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("");
   const [selectedMemberFilter, setSelectedMemberFilter] = useState("");
-  const [selectedSortBy, setSelectedSortBy] = useState("recent");
-  const [viewMode, setViewMode] = useState("list"); // list, grouped, timeline
+  const [dateRange, setDateRange] = useState({ start: null, end: null });
+  const [viewMode, setViewMode] = useState("list");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 4;
+
+  // Bungkus setiap setter filter agar reset page
+  const handleStatusFilter = (v) => {
+    setSelectedStatusFilter(v);
+    setCurrentPage(1);
+  };
+  const handleMemberFilter = (v) => {
+    setSelectedMemberFilter(v);
+    setCurrentPage(1);
+  };
+  const handleDateRange = (v) => {
+    setDateRange(v);
+    setCurrentPage(1);
+  };
+  const handleSearch = (v) => {
+    setSearchQuery(v);
+    setCurrentPage(1);
+  };
+  const handleTeamFilter = (v) => {
+    setSelectedTeamFilter(v);
+    setCurrentPage(1);
+  };
 
   const toggleAssignee = (memberId) => {
     setFormData((prev) => ({
@@ -134,28 +160,26 @@ const TasksPage = () => {
       }
     }
 
-    // Sort
-    switch (selectedSortBy) {
-      case "recent":
-        filtered.sort((a, b) => {
-          const dateA = a.updatedAt?.toDate?.() || new Date(a.updatedAt);
-          const dateB = b.updatedAt?.toDate?.() || new Date(b.updatedAt);
-          return dateB - dateA;
-        });
-        break;
-      case "oldest":
-        filtered.sort((a, b) => {
-          const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt);
-          const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt);
-          return dateA - dateB;
-        });
-        break;
-      case "name":
-        filtered.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      default:
-        break;
+    // Filter by date range
+    if (dateRange.start) {
+      filtered = filtered.filter((task) => {
+        const taskDate = task.createdAt?.toDate?.() || new Date(task.createdAt);
+        const start = new Date(dateRange.start);
+        start.setHours(0, 0, 0, 0);
+        const end = dateRange.end
+          ? new Date(dateRange.end)
+          : new Date(dateRange.start);
+        end.setHours(23, 59, 59, 999);
+        return taskDate >= start && taskDate <= end;
+      });
     }
+
+    // Default sort: most recent
+    filtered.sort((a, b) => {
+      const dateA = a.updatedAt?.toDate?.() || new Date(a.updatedAt);
+      const dateB = b.updatedAt?.toDate?.() || new Date(b.updatedAt);
+      return dateB - dateA;
+    });
 
     return filtered;
   }, [
@@ -165,7 +189,7 @@ const TasksPage = () => {
     selectedTeamFilter,
     selectedStatusFilter,
     selectedMemberFilter,
-    selectedSortBy,
+    dateRange,
     user,
   ]);
 
@@ -207,6 +231,14 @@ const TasksPage = () => {
     return Array.from(memberMap.values());
   }, [teams, selectedTeamFilter, availableTeams]);
 
+  const hasUnassigned = useMemo(
+    () =>
+      filteredTasks.some(
+        (task) => !task.assignedTo || task.assignedTo.length === 0,
+      ),
+    [filteredTasks],
+  );
+
   const onTaskClick = (task) => {
     setSelectedTask(task);
     setShowDetailModal(true);
@@ -226,7 +258,7 @@ const TasksPage = () => {
     setSelectedTeamFilter("");
     setSelectedStatusFilter("");
     setSelectedMemberFilter("");
-    setSelectedSortBy("recent");
+    setDateRange({ start: null, end: null });
   };
 
   if (teamsLoading || tasksLoading) {
@@ -374,9 +406,10 @@ const TasksPage = () => {
           setSelectedStatusFilter={setSelectedStatusFilter}
           selectedMemberFilter={selectedMemberFilter}
           setSelectedMemberFilter={setSelectedMemberFilter}
-          selectedSortBy={selectedSortBy}
-          setSelectedSortBy={setSelectedSortBy}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
           availableMembers={availableMembers}
+          hasUnassigned={hasUnassigned}
           onResetFilters={handleResetFilters}
           isUser={isUser}
         />
@@ -387,32 +420,117 @@ const TasksPage = () => {
 
       {/* Tasks List */}
       <div className="space-y-3">
-        {viewMode === "list" && (
-          <>
-            {filteredTasks.length > 0 ? (
-              filteredTasks.map((task) => (
-                <TaskListItem
-                  key={task.id}
-                  task={task}
-                  onClick={() => onTaskClick(task)}
-                  onStatusChange={
-                    isUser || canEditTask(task) ? onStatusChange : null
-                  }
-                  teams={teams}
-                  canEdit={canEditTask(task)}
-                  isUser={isUser}
-                />
-              ))
-            ) : (
-              <div className="text-center py-16 text-gray-400">
-                <p className="text-lg">No tasks found</p>
-                <p className="text-sm mt-2">
-                  Try adjusting your filters or create a new task
-                </p>
-              </div>
-            )}
-          </>
-        )}
+        {viewMode === "list" &&
+          (() => {
+            const totalPages = Math.ceil(filteredTasks.length / ITEMS_PER_PAGE);
+            const paginated = filteredTasks.slice(
+              (currentPage - 1) * ITEMS_PER_PAGE,
+              currentPage * ITEMS_PER_PAGE,
+            );
+
+            return (
+              <>
+                {filteredTasks.length > 0 ? (
+                  <>
+                    <div className="space-y-3">
+                      {paginated.map((task) => (
+                        <TaskListItem
+                          key={task.id}
+                          task={task}
+                          onClick={() => onTaskClick(task)}
+                          onStatusChange={
+                            isUser || canEditTask(task) ? onStatusChange : null
+                          }
+                          teams={teams}
+                          canEdit={canEditTask(task)}
+                          isUser={isUser}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                        <span className="text-sm text-gray-400">
+                          Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                          {Math.min(
+                            currentPage * ITEMS_PER_PAGE,
+                            filteredTasks.length,
+                          )}{" "}
+                          of {filteredTasks.length} tasks
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() =>
+                              setCurrentPage((p) => Math.max(1, p - 1))
+                            }
+                            disabled={currentPage === 1}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <ChevronLeft size={16} />
+                          </button>
+
+                          {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(
+                              (p) =>
+                                p === 1 ||
+                                p === totalPages ||
+                                Math.abs(p - currentPage) <= 1,
+                            )
+                            .reduce((acc, p, idx, arr) => {
+                              if (idx > 0 && p - arr[idx - 1] > 1)
+                                acc.push("...");
+                              acc.push(p);
+                              return acc;
+                            }, [])
+                            .map((p, idx) =>
+                              p === "..." ? (
+                                <span
+                                  key={`ellipsis-${idx}`}
+                                  className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm"
+                                >
+                                  …
+                                </span>
+                              ) : (
+                                <button
+                                  key={p}
+                                  onClick={() => setCurrentPage(p)}
+                                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors
+                          ${
+                            currentPage === p
+                              ? "bg-violet-600 text-white shadow-sm shadow-violet-200"
+                              : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                                >
+                                  {p}
+                                </button>
+                              ),
+                            )}
+
+                          <button
+                            onClick={() =>
+                              setCurrentPage((p) => Math.min(totalPages, p + 1))
+                            }
+                            disabled={currentPage === totalPages}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <ChevronRight size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-16 text-gray-400">
+                    <p className="text-lg">No tasks found</p>
+                    <p className="text-sm mt-2">
+                      Try adjusting your filters or create a new task
+                    </p>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
         {viewMode === "grouped" && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -449,7 +567,7 @@ const TasksPage = () => {
               return (
                 <div
                   key={status}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col"
                 >
                   {/* Colored top bar */}
                   <div className={`h-1 w-full ${accent}`} />
@@ -465,7 +583,16 @@ const TasksPage = () => {
                     </span>
                   </div>
                   {/* Tasks */}
-                  <div className="p-3 space-y-2">
+                  {/* Tasks — scrollable, max height */}
+                  <div
+                    className="p-3 flex-1 overflow-y-auto max-h-[calc(100vh-420px)] min-h-48
+  [&::-webkit-scrollbar]:w-1.5
+  [&::-webkit-scrollbar-track]:bg-transparent
+  [&::-webkit-scrollbar-thumb]:bg-gray-200
+  [&::-webkit-scrollbar-thumb]:rounded-full
+  [&::-webkit-scrollbar-thumb:hover]:bg-gray-300
+  space-y-2"
+                  >
                     {filteredTasks
                       .filter((t) => t.status === status)
                       .map((task) => (
@@ -485,7 +612,7 @@ const TasksPage = () => {
                     {count === 0 && (
                       <div className="flex flex-col items-center justify-center py-10 text-gray-300">
                         <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-2">
-                          <span className="text-gray-300 text-lg">—</span>
+                          <span className="text-gray-300 text-lg">–</span>
                         </div>
                         <p className="text-sm">No tasks</p>
                       </div>
