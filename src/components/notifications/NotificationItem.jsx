@@ -10,6 +10,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const typeConfig = {
   task_assigned: { icon: Bell, color: "text-blue-500", bg: "bg-blue-50" },
@@ -61,17 +62,18 @@ const NotificationItem = ({
     return `${Math.floor(hours / 24)}d ago`;
   };
 
+  const { userRole } = useAuth();
+
   const handleClick = async () => {
-    // Mark as read
     if (!notification.isRead) await onMarkAsRead(notification.id);
 
-    // Navigate ke task jika taskId tersedia dan bukan type deleted
     if (notification.taskId && notification.type !== "task_deleted") {
       onClose?.();
-      navigate("/tasks");
+      // Route berbeda berdasarkan role
+      const isAdmin = userRole === "super_admin" || userRole === "admin";
+      navigate(isAdmin ? "/admin/tasks" : "/user/tasks");
     }
   };
-
   const handleDelete = (e) => {
     e.stopPropagation();
     onDelete(notification.id);
