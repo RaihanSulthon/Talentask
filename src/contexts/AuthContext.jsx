@@ -13,7 +13,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for super admin on mount
     const checkSuperAdmin = () => {
       const superAdminAuth = localStorage.getItem("superAdminAuth");
       if (superAdminAuth) {
@@ -32,12 +31,8 @@ export const AuthProvider = ({ children }) => {
       return false;
     };
 
-    // Initial check - ALWAYS check super admin first before Firebase
-    if (checkSuperAdmin()) {
-      return;
-    }
-
-    // Listen for super admin login/logout
+    // ✅ FIX: Daftarkan event listeners SEBELUM initial check,
+    // jangan pakai early return
     const handleSuperAdminLogin = () => {
       checkSuperAdmin();
     };
@@ -51,11 +46,13 @@ export const AuthProvider = ({ children }) => {
     window.addEventListener("superAdminLogin", handleSuperAdminLogin);
     window.addEventListener("superAdminLogout", handleSuperAdminLogout);
 
-    // Firebase auth listener
+    // Initial check setelah listener terdaftar
+    checkSuperAdmin();
+
+    // Firebase auth listener tetap berjalan untuk non-super-admin
     let unsubscribeUser = null;
-    
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // Always skip Firebase if super admin is logged in
       if (localStorage.getItem("superAdminAuth")) {
         setLoading(false);
         return;
@@ -72,9 +69,12 @@ export const AuthProvider = ({ children }) => {
           setLoading(false);
         });
       } else {
-        setUser(null);
-        setUserRole(null);
-        setLoading(false);
+        // ✅ Hanya reset jika bukan super admin
+        if (!localStorage.getItem("superAdminAuth")) {
+          setUser(null);
+          setUserRole(null);
+          setLoading(false);
+        }
       }
     });
 

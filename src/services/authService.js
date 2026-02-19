@@ -60,18 +60,16 @@ export const signIn = async (email, password) => {
 };
 
 export const signOut = async () => {
-  // Check if super admin is logged in
   const isSuperAdmin = localStorage.getItem("superAdminAuth");
 
   if (isSuperAdmin) {
-    // Clear super admin auth
-    localStorage.removeItem("superAdminAuth");
-    // Trigger event for UI update
-    window.dispatchEvent(new Event("superAdminLogout"));
+    localStorage.removeItem("superAdminAuth"); // ✅ Hapus dulu
+    window.dispatchEvent(new Event("superAdminLogout")); // ✅ Baru dispatch
+    // Tambah small delay agar React state sempat update
+    await new Promise((resolve) => setTimeout(resolve, 50));
     return;
   }
 
-  // Sign out Firebase user
   if (auth.currentUser) {
     return await firebaseSignOut(auth);
   }
