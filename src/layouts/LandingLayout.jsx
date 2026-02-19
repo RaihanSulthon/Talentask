@@ -88,16 +88,16 @@ const LandingLayout = ({ children }) => {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
                 <Link
                   to="/auth?mode=login"
-                  className="text-slate-300 hover:text-white transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-violet-600 border border-violet-300 rounded-lg hover:bg-violet-50 hover:border-violet-500 hover:text-violet-700 transition-all duration-200"
                 >
                   Login
                 </Link>
                 <Link
                   to="/auth?mode=signup"
-                  className="bg-linear-to-r from-blue-500 to-violet-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-violet-700 transition-all duration-200"
+                  className="px-4 py-2 text-sm font-semibold bg-linear-to-r from-blue-500 to-violet-600 text-white rounded-lg hover:from-blue-600 hover:to-violet-700 transition-all duration-200 shadow-sm shadow-violet-200"
                 >
                   Get Started
                 </Link>
