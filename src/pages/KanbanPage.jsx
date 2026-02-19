@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
@@ -152,6 +153,27 @@ const KanbanPage = () => {
     }
     setDraggedTask(null);
   };
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Auto-open task modal dari notifikasi
+  useEffect(() => {
+    const taskId = searchParams.get("taskId");
+    if (!taskId || tasks.length === 0) return;
+
+    const found = tasks.find((t) => t.id === taskId);
+    if (found) {
+      const taskWithTeam = {
+        ...found,
+        teamName:
+          teams.find((t) => t.id === found.teamId)?.name || "Unknown Team",
+      };
+      setSelectedTask(taskWithTeam);
+      setIsEditMode(false);
+      setShowDetailModal(true);
+      setSearchParams({}); // bersihkan URL
+    }
+  }, [tasks, searchParams]);
 
   const onTaskClick = (task) => {
     const taskWithTeam = {

@@ -66,14 +66,15 @@ const NotificationItem = ({
 
   const handleClick = async () => {
     if (!notification.isRead) await onMarkAsRead(notification.id);
-
     if (notification.taskId && notification.type !== "task_deleted") {
       onClose?.();
-      // Route berbeda berdasarkan role
       const isAdmin = userRole === "super_admin" || userRole === "admin";
-      navigate(isAdmin ? "/admin/tasks" : "/user/tasks");
+      navigate(
+        `${isAdmin ? "/admin/board" : "/user/kanban"}?taskId=${notification.taskId}`,
+      );
     }
   };
+
   const handleDelete = (e) => {
     e.stopPropagation();
     onDelete(notification.id);
