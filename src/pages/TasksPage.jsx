@@ -452,7 +452,7 @@ const TasksPage = () => {
                     {totalPages > 1 && (
                       <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
                         <span className="text-sm text-gray-400">
-                          Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                          Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}– {""}
                           {Math.min(
                             currentPage * ITEMS_PER_PAGE,
                             filteredTasks.length,
