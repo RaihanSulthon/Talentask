@@ -246,7 +246,7 @@ const TasksPage = () => {
         ownedTeams.length > 0 && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
           >
             <Plus size={20} />
             Create Task
