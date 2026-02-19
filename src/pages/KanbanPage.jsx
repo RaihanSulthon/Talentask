@@ -132,11 +132,7 @@ const KanbanPage = () => {
 
       try {
         const taskTeam = teams.find((t) => t.id === draggedTask.teamId);
-        const ownerIds =
-          taskTeam?.members
-            ?.filter((m) => m.isOwner === true)
-            .map((m) => m.uid || m.id) || [];
-
+        const ownerIds = taskTeam?.ownerId ? [taskTeam.ownerId] : [];
         await handleUpdateTaskStatus(draggedTask.id, newStatus, {
           taskTitle: draggedTask.title,
           teamId: draggedTask.teamId,
@@ -205,10 +201,7 @@ const KanbanPage = () => {
     try {
       setActionLoading(true);
       const taskTeam = teams.find((t) => t.id === selectedTask.teamId);
-      const ownerIds =
-        taskTeam?.members
-          ?.filter((m) => m.isOwner === true)
-          .map((m) => m.uid || m.id) || [];
+      const ownerIds = taskTeam?.ownerId ? [taskTeam.ownerId] : [];
 
       await handleDeleteTask(selectedTask.id, {
         taskTitle: selectedTask.title,

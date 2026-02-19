@@ -249,10 +249,7 @@ const TasksPage = () => {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return;
       const taskTeam = teams.find((t) => t.id === task.teamId);
-      const ownerIds =
-        taskTeam?.members
-          ?.filter((m) => m.isOwner === true)
-          .map((m) => m.uid || m.id) || [];
+      const ownerIds = taskTeam?.ownerId ? [taskTeam.ownerId] : [];
 
       await handleUpdateTaskStatus(taskId, newStatus, {
         taskTitle: task.title,
@@ -851,10 +848,7 @@ const TasksPage = () => {
                 const taskTeam = teams.find(
                   (t) => t.id === taskToDelete.teamId,
                 );
-                const ownerIds =
-                  taskTeam?.members
-                    ?.filter((m) => m.isOwner === true)
-                    .map((m) => m.uid || m.id) || [];
+                const ownerIds = taskTeam?.ownerId ? [taskTeam.ownerId] : [];
 
                 await handleDeleteTask(taskToDelete.id, {
                   taskTitle: taskToDelete.title,
