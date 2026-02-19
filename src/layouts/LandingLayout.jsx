@@ -31,18 +31,59 @@ const LandingLayout = ({ children }) => {
 
           <div className="flex items-center space-x-6">
             {user ? (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-3">
+                {/* Greeting chip */}
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
+                  <div className="w-6 h-6 rounded-full bg-linear-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold">
+                    {user.displayName?.charAt(0).toUpperCase() || "U"}
+                  </div>
+                  <span className="text-sm text-gray-700 font-medium">
+                    {user.displayName}
+                  </span>
+                </div>
+
+                {/* Dashboard button */}
                 <Link
                   to="/"
-                  className="text-violet-600 hover:text-violet-700 font-medium transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-linear-to-r from-blue-500 to-violet-600 text-white text-sm font-semibold rounded-lg hover:from-blue-600 hover:to-violet-700 transition-all duration-200 shadow-sm shadow-violet-300"
                 >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                  </svg>
                   Dashboard
                 </Link>
-                <span className="text-gray-500">Hi, {user.displayName}</span>
+
+                {/* Logout button */}
                 <button
                   onClick={handleLogout}
-                  className="text-slate-400 hover:text-white transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all duration-200"
                 >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
                   Logout
                 </button>
               </div>
