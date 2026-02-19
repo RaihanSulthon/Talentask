@@ -11,6 +11,7 @@ import {
   Plus,
   Search,
   AlertTriangle,
+  AlertCircle,
   CheckCircle2,
   Clock,
   ListTodo,
@@ -108,6 +109,17 @@ const TasksPage = () => {
     teamId: "",
     assignedTo: [],
   });
+  const [formErrors, setFormErrors] = useState({});
+
+  const validateTaskForm = () => {
+    const errors = {};
+    if (!formData.title.trim()) errors.title = "Title is required";
+    if (!formData.description.trim())
+      errors.description = "Description is required";
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const selectedTeamForCreate = teams.find((t) => t.id === formData.teamId);
   const teamOptions = ownedTeams.map((team) => ({
     value: team.id,
@@ -699,6 +711,7 @@ const TasksPage = () => {
             teamId: "",
             assignedTo: [],
           });
+          setFormErrors({});
         }}
         title="Create New Task"
         maxWidth="max-w-lg"
@@ -711,26 +724,50 @@ const TasksPage = () => {
             <input
               type="text"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all"
+              onChange={(e) => {
+                setFormData({ ...formData, title: e.target.value });
+                if (formErrors.title)
+                  setFormErrors((prev) => ({ ...prev, title: "" }));
+              }}
+              className={`w-full px-4 py-2.5 border rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                formErrors.title
+                  ? "bg-red-50 border-red-400 focus:ring-red-100"
+                  : "bg-gray-50 border-gray-200 focus:ring-violet-100 focus:border-violet-400"
+              }`}
               placeholder="Enter task title"
             />
+            {formErrors.title && (
+              <p className="flex items-center gap-1.5 mt-1.5 text-xs text-red-500">
+                <AlertCircle size={12} className="shrink-0" />
+                {formErrors.title}
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1.5">
-              Description
+              Description <span className="text-rose-400">*</span>
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              onChange={(e) => {
+                setFormData({ ...formData, description: e.target.value });
+                if (formErrors.description)
+                  setFormErrors((prev) => ({ ...prev, description: "" }));
+              }}
               rows={3}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all resize-none"
+              className={`w-full px-4 py-2.5 border rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all resize-none ${
+                formErrors.description
+                  ? "bg-red-50 border-red-400 focus:ring-red-100"
+                  : "bg-gray-50 border-gray-200 focus:ring-violet-100 focus:border-violet-400"
+              }`}
               placeholder="Enter task description"
             />
+            {formErrors.description && (
+              <p className="flex items-center gap-1.5 mt-1.5 text-xs text-red-500">
+                <AlertCircle size={12} className="shrink-0" />
+                {formErrors.description}
+              </p>
+            )}
           </div>
           <CustomSelect
             options={teamOptions}
@@ -779,10 +816,7 @@ const TasksPage = () => {
           )}
           <button
             onClick={async () => {
-              if (!formData.title || !formData.teamId) {
-                alert("Please fill in all required fields");
-                return;
-              }
+              if (!validateTaskForm()) return;
               try {
                 setActionLoading(true);
                 await handleCreateTask(formData);
@@ -793,6 +827,7 @@ const TasksPage = () => {
                   teamId: "",
                   assignedTo: [],
                 });
+                setFormErrors({});
               } catch (error) {
                 alert("Failed to create task");
               } finally {

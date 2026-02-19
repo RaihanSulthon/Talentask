@@ -7,7 +7,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import KanbanColumn from "../components/kanban/KanbanColumn";
 import TeamFilterDropdown from "../components/kanban/TeamFilterDropdown";
 import Modal from "../components/Modal";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, AlertCircle } from "lucide-react";
 import CustomSelect from "../components/CustomSelect";
 import TaskDetailContent from "../components/tasks/TaskDetailContent";
 
@@ -72,6 +72,17 @@ const KanbanPage = () => {
     teamId: "",
     assignedTo: [],
   });
+  const [formErrors, setFormErrors] = useState({});
+
+  const validateTaskForm = () => {
+    const errors = {};
+    if (!formData.title.trim()) errors.title = "Title is required";
+    if (!formData.description.trim())
+      errors.description = "Description is required";
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const selectedTeamForCreate =
     ownedTeams.find((t) => t.id === formData.teamId) || null;
   const teamOptions = ownedTeams.map((team) => ({
@@ -326,6 +337,7 @@ const KanbanPage = () => {
             teamId: "",
             assignedTo: [],
           });
+          setFormErrors({});
         }}
         title="Create New Task"
         maxWidth="max-w-lg"
@@ -338,26 +350,50 @@ const KanbanPage = () => {
             <input
               type="text"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all"
+              onChange={(e) => {
+                setFormData({ ...formData, title: e.target.value });
+                if (formErrors.title)
+                  setFormErrors((prev) => ({ ...prev, title: "" }));
+              }}
+              className={`w-full px-4 py-2.5 border rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                formErrors.title
+                  ? "bg-red-50 border-red-400 focus:ring-red-100"
+                  : "bg-gray-50 border-gray-200 focus:ring-violet-100 focus:border-violet-400"
+              }`}
               placeholder="Enter task title"
             />
+            {formErrors.title && (
+              <p className="flex items-center gap-1.5 mt-1.5 text-xs text-red-500">
+                <AlertCircle size={12} className="shrink-0" />
+                {formErrors.title}
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1.5">
-              Description
+              Description <span className="text-rose-400">*</span>
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              onChange={(e) => {
+                setFormData({ ...formData, description: e.target.value });
+                if (formErrors.description)
+                  setFormErrors((prev) => ({ ...prev, description: "" }));
+              }}
               rows={3}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all resize-none"
+              className={`w-full px-4 py-2.5 border rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all resize-none ${
+                formErrors.description
+                  ? "bg-red-50 border-red-400 focus:ring-red-100"
+                  : "bg-gray-50 border-gray-200 focus:ring-violet-100 focus:border-violet-400"
+              }`}
               placeholder="Enter task description"
             />
+            {formErrors.description && (
+              <p className="flex items-center gap-1.5 mt-1.5 text-xs text-red-500">
+                <AlertCircle size={12} className="shrink-0" />
+                {formErrors.description}
+              </p>
+            )}
           </div>
           <CustomSelect
             options={teamOptions}
@@ -406,17 +442,15 @@ const KanbanPage = () => {
           )}
           <button
             onClick={async () => {
-              if (!formData.title || !formData.teamId) {
-                alert("Please fill in all required fields");
-                return;
-              }
-              await onCreateTask(formData); // pakai wrapper yang sudah ada
+              if (!validateTaskForm()) return;
+              await onCreateTask(formData);
               setFormData({
                 title: "",
                 description: "",
                 teamId: "",
                 assignedTo: [],
               });
+              setFormErrors({});
             }}
             disabled={actionLoading}
             className="w-full py-3 bg-violet-500 hover:bg-violet-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-xl font-medium transition-all shadow-sm shadow-violet-200"

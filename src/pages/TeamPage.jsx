@@ -35,6 +35,7 @@ const TeamPage = () => {
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [teamName, setTeamName] = useState("");
+  const [teamNameError, setTeamNameError] = useState("");
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("Members");
@@ -362,24 +363,50 @@ const TeamPage = () => {
       {/* Create Team Modal */}
       <Modal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          setShowCreateModal(false);
+          setTeamNameError("");
+        }}
         title="Create New Team"
         maxWidth="max-w-md"
       >
-        <input
-          type="text"
-          placeholder="Team name"
-          value={teamName}
-          onChange={(e) => setTeamName(e.target.value)}
-          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-400 mb-6"
-          autoFocus
-        />
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-600 mb-1.5">
+            Team Name <span className="text-rose-400">*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. Design Team"
+            value={teamName}
+            onChange={(e) => {
+              setTeamName(e.target.value);
+              if (teamNameError) setTeamNameError("");
+            }}
+            className={`w-full px-4 py-3 border rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all ${
+              teamNameError
+                ? "bg-red-50 border-red-400 focus:ring-red-100"
+                : "bg-white border-gray-200 focus:ring-violet-400"
+            }`}
+            autoFocus
+          />
+          {teamNameError && (
+            <p className="flex items-center gap-1.5 mt-1.5 text-xs text-red-500">
+              <AlertCircle size={12} className="shrink-0" />
+              {teamNameError}
+            </p>
+          )}
+        </div>
         <button
           onClick={async () => {
+            if (!teamName.trim()) {
+              setTeamNameError("Team name is required");
+              return;
+            }
             try {
               setActionLoading(true);
               await handleCreateTeam(teamName);
               setTeamName("");
+              setTeamNameError("");
               setShowCreateModal(false);
             } catch (error) {
               alert("Failed to create team");
@@ -387,7 +414,7 @@ const TeamPage = () => {
               setActionLoading(false);
             }
           }}
-          disabled={!teamName.trim() || actionLoading}
+          disabled={actionLoading}
           className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {actionLoading ? "Creating..." : "Create Team"}
