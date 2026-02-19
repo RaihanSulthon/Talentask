@@ -4,6 +4,8 @@ import {
   subscribeToNotifications,
   markAsRead,
   markAllAsRead,
+  deleteNotification,
+  deleteAllNotifications,
 } from "../services/notificationService";
 
 export const useNotifications = () => {
@@ -38,5 +40,22 @@ export const useNotifications = () => {
     await markAllAsRead(user.uid);
   };
 
-  return { notifications, unreadCount, loading, handleMarkAsRead, handleMarkAllAsRead };
+  const handleDeleteNotification = async (notifId) => {
+    await deleteNotification(notifId);
+  };
+
+  const handleDeleteAllNotifications = async () => {
+    if (!user) return;
+    await deleteAllNotifications(user.uid);
+  };
+
+  return {
+    notifications,
+    unreadCount,
+    loading,
+    handleMarkAsRead,
+    handleMarkAllAsRead,
+    handleDeleteNotification,
+    handleDeleteAllNotifications,
+  };
 };

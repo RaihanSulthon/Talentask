@@ -130,7 +130,21 @@ const KanbanPage = () => {
       }
 
       try {
-        await handleUpdateTaskStatus(draggedTask.id, newStatus);
+        const taskTeam = teams.find((t) => t.id === draggedTask.teamId);
+        const ownerIds =
+          taskTeam?.members
+            ?.filter((m) => m.isOwner === true)
+            .map((m) => m.uid || m.id) || [];
+
+        await handleUpdateTaskStatus(draggedTask.id, newStatus, {
+          taskTitle: draggedTask.title,
+          teamId: draggedTask.teamId,
+          teamName: taskTeam?.name || "",
+          assignedTo: draggedTask.assignedTo || [],
+          ownerIds,
+          actorId: user.uid,
+          actorName: user.displayName,
+        });
       } catch (error) {
         console.error("Error updating task status:", error);
         alert("Failed to update task status");
@@ -168,7 +182,21 @@ const KanbanPage = () => {
   const confirmDelete = async () => {
     try {
       setActionLoading(true);
-      await handleDeleteTask(selectedTask.id);
+      const taskTeam = teams.find((t) => t.id === selectedTask.teamId);
+      const ownerIds =
+        taskTeam?.members
+          ?.filter((m) => m.isOwner === true)
+          .map((m) => m.uid || m.id) || [];
+
+      await handleDeleteTask(selectedTask.id, {
+        taskTitle: selectedTask.title,
+        teamId: selectedTask.teamId,
+        teamName: taskTeam?.name || "",
+        assignedTo: selectedTask.assignedTo || [],
+        ownerIds,
+        actorId: user.uid,
+        actorName: user.displayName,
+      });
       setShowDeleteModal(false);
       setSelectedTask(null);
     } catch (error) {

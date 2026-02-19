@@ -1,6 +1,14 @@
 import {
-  collection, addDoc, updateDoc, doc,
-  query, where, onSnapshot, writeBatch, getDocs
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  onSnapshot,
+  writeBatch,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 
@@ -44,7 +52,7 @@ export const markAllAsRead = async (userId) => {
   const q = query(
     collection(db, "notifications"),
     where("recipientId", "==", userId),
-    where("isRead", "==", false)
+    where("isRead", "==", false),
   );
   const snapshot = await getDocs(q);
   const batch = writeBatch(db);
@@ -55,7 +63,22 @@ export const markAllAsRead = async (userId) => {
 export const subscribeToNotifications = (userId, callback) => {
   const q = query(
     collection(db, "notifications"),
-    where("recipientId", "==", userId)
+    where("recipientId", "==", userId),
   );
   return onSnapshot(q, callback);
+};
+
+export const deleteNotification = async (notifId) => {
+  return await deleteDoc(doc(db, "notifications", notifId));
+};
+
+export const deleteAllNotifications = async (userId) => {
+  const q = query(
+    collection(db, "notifications"),
+    where("recipientId", "==", userId),
+  );
+  const snapshot = await getDocs(q);
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((d) => batch.delete(d.ref));
+  return await batch.commit();
 };

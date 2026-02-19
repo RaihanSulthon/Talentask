@@ -21,6 +21,8 @@ const Navbar = () => {
     loading,
     handleMarkAsRead,
     handleMarkAllAsRead,
+    handleDeleteNotification,
+    handleDeleteAllNotifications,
   } = useNotifications();
 
   useEffect(() => {
@@ -102,6 +104,9 @@ const Navbar = () => {
             loading={loading}
             onMarkAsRead={handleMarkAsRead}
             onMarkAllAsRead={handleMarkAllAsRead}
+            onDelete={handleDeleteNotification}
+            onDeleteAll={handleDeleteAllNotifications}
+            onClose={() => setShowNotif(false)}
           />
         </div>
 

@@ -95,58 +95,105 @@ export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
     taskTitle = "",
     teamId = "",
     teamName = "",
+    assignedTo = [],   // array uid member yang di-assign
+    ownerIds = [],     // array uid owner/admin team
+    actorId = "",
+    actorName = "",
+    isDecline = false,
+  } = context;
+
+  // Semua pihak terlibat = assignee + owner, dikurangi actor sendiri
+  const allInvolved = [...new Set([...assignedTo, ...ownerIds])].filter(
+    (id) => id !== actorId
+  );
+
+  // 1. Status berubah ke apapun → notif ke semua pihak terlibat (kecuali actor)
+  if (allInvolved.length > 0 && taskTitle) {
+    const statusLabel = {
+      todo: "To Do",
+      inprogress: "In Progress",
+      inreview: "In Review",
+      done: "Done",
+    }[newStatus] || newStatus;
+
+    await createNotificationForMany(allInvolved, {
+      type: "task_status_changed",
+      title: "Task Status Updated",
+      message: `"${taskTitle}" status changed to ${statusLabel} by ${actorName}`,
+      taskId, taskTitle, teamId, teamName,
+      createdBy: actorId, createdByName: actorName,
+    });
+  }
+
+  // 2. Submit ke review → notif khusus ke owner (sebagai approval request)
+  if (newStatus === "inreview" && ownerIds.length > 0) {
+    const reviewerRecipients = ownerIds.filter((id) => id !== actorId);
+    if (reviewerRecipients.length > 0) {
+      await createNotificationForMany(reviewerRecipients, {
+        type: "task_submitted_review",
+        title: "Task Needs Approval ⏳",
+        message: `"${taskTitle}" has been submitted for approval by ${actorName}`,
+        taskId, taskTitle, teamId, teamName,
+        createdBy: actorId, createdByName: actorName,
+      });
+    }
+  }
+
+  // 3. Approved → notif ke assignee
+  if (newStatus === "done" && !isDecline && assignedTo.length > 0) {
+    const assigneeRecipients = assignedTo.filter((id) => id !== actorId);
+    if (assigneeRecipients.length > 0) {
+      await createNotificationForMany(assigneeRecipients, {
+        type: "task_approved",
+        title: "Task Approved ✓",
+        message: `Your task "${taskTitle}" has been approved by ${actorName}`,
+        taskId, taskTitle, teamId, teamName,
+        createdBy: actorId, createdByName: actorName,
+      });
+    }
+  }
+
+  // 4. Declined → notif ke assignee
+  if (newStatus === "inprogress" && isDecline && assignedTo.length > 0) {
+    const assigneeRecipients = assignedTo.filter((id) => id !== actorId);
+    if (assigneeRecipients.length > 0) {
+      await createNotificationForMany(assigneeRecipients, {
+        type: "task_declined",
+        title: "Task Declined ✗",
+        message: `Your task "${taskTitle}" was declined by ${actorName} and needs revision`,
+        taskId, taskTitle, teamId, teamName,
+        createdBy: actorId, createdByName: actorName,
+      });
+    }
+  }
+};
+
+// TAMBAH: fungsi deleteTask dengan notifikasi
+export const deleteTask = async (taskId, context = {}) => {
+  const {
+    taskTitle = "",
+    teamId = "",
+    teamName = "",
     assignedTo = [],
-    adminIds = [],
+    ownerIds = [],
     actorId = "",
     actorName = "",
   } = context;
 
-  // User submit ke review → notif ke admin
-  if (newStatus === "inreview" && adminIds.length > 0) {
-    await createNotificationForMany(adminIds, {
-      type: "task_submitted_review",
-      title: "Task Needs Review",
-      message: `"${taskTitle}" has been submitted for approval`,
-      taskId,
-      taskTitle,
-      teamId,
-      teamName,
-      createdBy: actorId,
-      createdByName: actorName,
-    });
-  }
+  await deleteDoc(doc(db, "tasks", taskId));
 
-  // Admin approve → notif ke assignee
-  if (newStatus === "done" && assignedTo.length > 0) {
-    await createNotificationForMany(assignedTo, {
-      type: "task_approved",
-      title: "Task Approved ✓",
-      message: `Your task "${taskTitle}" has been approved`,
-      taskId,
-      taskTitle,
-      teamId,
-      teamName,
-      createdBy: actorId,
-      createdByName: actorName,
-    });
-  }
+  // Notif ke semua pihak terlibat
+  const allInvolved = [...new Set([...assignedTo, ...ownerIds])].filter(
+    (id) => id !== actorId
+  );
 
-  // Admin decline → notif ke assignee
-  if (
-    newStatus === "inprogress" &&
-    assignedTo.length > 0 &&
-    context.isDecline
-  ) {
-    await createNotificationForMany(assignedTo, {
-      type: "task_declined",
-      title: "Task Declined",
-      message: `Your task "${taskTitle}" was declined and needs revision`,
-      taskId,
-      taskTitle,
-      teamId,
-      teamName,
-      createdBy: actorId,
-      createdByName: actorName,
+  if (allInvolved.length > 0 && taskTitle) {
+    await createNotificationForMany(allInvolved, {
+      type: "task_deleted",
+      title: "Task Deleted",
+      message: `Task "${taskTitle}" has been deleted by ${actorName}`,
+      taskId, taskTitle, teamId, teamName,
+      createdBy: actorId, createdByName: actorName,
     });
   }
 };
@@ -165,10 +212,6 @@ export const removeAssignee = async (taskId, memberId) => {
     assignedTo: arrayRemove(memberId),
     updatedAt: new Date(),
   });
-};
-
-export const deleteTask = async (taskId) => {
-  return await deleteDoc(doc(db, "tasks", taskId));
 };
 
 export const subscribeToTeamTasks = (userId, userRole, teamIds, callback) => {

@@ -1,18 +1,53 @@
-import { CheckCircle, Clock, XCircle, UserPlus, UserMinus, Edit3, Bell } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  XCircle,
+  UserPlus,
+  UserMinus,
+  Edit3,
+  Bell,
+  Trash2,
+  ArrowUpRight,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const typeConfig = {
-  task_assigned:         { icon: Bell,        color: "text-blue-400",    bg: "bg-blue-500/10" },
-  task_submitted_review: { icon: Clock,        color: "text-yellow-400",  bg: "bg-yellow-500/10" },
-  task_approved:         { icon: CheckCircle,  color: "text-emerald-400", bg: "bg-emerald-500/10" },
-  task_declined:         { icon: XCircle,      color: "text-red-400",     bg: "bg-red-500/10" },
-  task_updated:          { icon: Edit3,        color: "text-purple-400",  bg: "bg-purple-500/10" },
-  member_added:          { icon: UserPlus,     color: "text-teal-400",    bg: "bg-teal-500/10" },
-  member_removed:        { icon: UserMinus,    color: "text-orange-400",  bg: "bg-orange-500/10" },
+  task_assigned: { icon: Bell, color: "text-blue-500", bg: "bg-blue-50" },
+  task_submitted_review: {
+    icon: Clock,
+    color: "text-amber-500",
+    bg: "bg-amber-50",
+  },
+  task_approved: {
+    icon: CheckCircle,
+    color: "text-emerald-500",
+    bg: "bg-emerald-50",
+  },
+  task_declined: { icon: XCircle, color: "text-red-500", bg: "bg-red-50" },
+  task_updated: { icon: Edit3, color: "text-violet-500", bg: "bg-violet-50" },
+  task_status_changed: {
+    icon: ArrowUpRight,
+    color: "text-indigo-500",
+    bg: "bg-indigo-50",
+  },
+  task_deleted: { icon: Trash2, color: "text-gray-500", bg: "bg-gray-100" },
+  member_added: { icon: UserPlus, color: "text-teal-500", bg: "bg-teal-50" },
+  member_removed: {
+    icon: UserMinus,
+    color: "text-orange-500",
+    bg: "bg-orange-50",
+  },
 };
 
-const NotificationItem = ({ notification, onMarkAsRead }) => {
+const NotificationItem = ({
+  notification,
+  onMarkAsRead,
+  onDelete,
+  onClose,
+}) => {
   const config = typeConfig[notification.type] || typeConfig.task_assigned;
   const Icon = config.icon;
+  const navigate = useNavigate();
 
   const formatTime = (createdAt) => {
     if (!createdAt) return "";
@@ -26,25 +61,74 @@ const NotificationItem = ({ notification, onMarkAsRead }) => {
     return `${Math.floor(hours / 24)}d ago`;
   };
 
+  const handleClick = async () => {
+    // Mark as read
+    if (!notification.isRead) await onMarkAsRead(notification.id);
+
+    // Navigate ke task jika taskId tersedia dan bukan type deleted
+    if (notification.taskId && notification.type !== "task_deleted") {
+      onClose?.();
+      navigate("/tasks");
+    }
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    onDelete(notification.id);
+  };
+
+  const isClickable =
+    notification.taskId && notification.type !== "task_deleted";
+
   return (
     <div
-      onClick={() => !notification.isRead && onMarkAsRead(notification.id)}
-      className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-slate-700/50
-        ${!notification.isRead ? "bg-slate-700/30" : ""}`}
+      onClick={handleClick}
+      className={`group relative flex items-start gap-3 px-4 py-3.5 transition-colors
+        ${isClickable ? "cursor-pointer" : "cursor-default"}
+        ${!notification.isRead ? "bg-violet-50/60" : "hover:bg-gray-50"}
+      `}
     >
-      <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${config.bg}`}>
-        <Icon size={16} className={config.color} />
+      {/* Unread indicator */}
+      {!notification.isRead && (
+        <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-violet-500 rounded-full" />
+      )}
+
+      {/* Icon */}
+      <div
+        className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center ${config.bg}`}
+      >
+        <Icon size={17} className={config.color} />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium ${notification.isRead ? "text-slate-400" : "text-white"}`}>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pr-6">
+        <p
+          className={`text-sm font-semibold leading-snug ${notification.isRead ? "text-gray-500" : "text-gray-800"}`}
+        >
           {notification.title}
         </p>
-        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{notification.message}</p>
-        <p className="text-xs text-slate-600 mt-1">{formatTime(notification.createdAt)}</p>
+        <p className="text-xs text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
+          {notification.message}
+        </p>
+        <div className="flex items-center gap-2 mt-1.5">
+          <span className="text-[11px] text-gray-300">
+            {formatTime(notification.createdAt)}
+          </span>
+          {isClickable && (
+            <span className="text-[11px] text-violet-400 font-medium flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              View task <ArrowUpRight size={10} />
+            </span>
+          )}
+        </div>
       </div>
-      {!notification.isRead && (
-        <div className="shrink-0 w-2 h-2 bg-emerald-400 rounded-full mt-1.5" />
-      )}
+
+      {/* Delete button */}
+      <button
+        onClick={handleDelete}
+        className="absolute right-3 top-3 p-1 text-gray-300 hover:text-red-400 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+      >
+        <Trash2 size={13} />
+      </button>
     </div>
   );
 };

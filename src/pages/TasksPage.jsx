@@ -246,7 +246,23 @@ const TasksPage = () => {
 
   const onStatusChange = async (taskId, newStatus) => {
     try {
-      await handleUpdateTaskStatus(taskId, newStatus);
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      const taskTeam = teams.find((t) => t.id === task.teamId);
+      const ownerIds =
+        taskTeam?.members
+          ?.filter((m) => m.isOwner === true)
+          .map((m) => m.uid || m.id) || [];
+
+      await handleUpdateTaskStatus(taskId, newStatus, {
+        taskTitle: task.title,
+        teamId: task.teamId,
+        teamName: taskTeam?.name || "",
+        assignedTo: task.assignedTo || [],
+        ownerIds,
+        actorId: user.uid,
+        actorName: user.displayName,
+      });
     } catch (error) {
       console.error("Error updating task status:", error);
       alert("Failed to update task status");
@@ -832,7 +848,23 @@ const TasksPage = () => {
             onClick={async () => {
               try {
                 setActionLoading(true);
-                await handleDeleteTask(taskToDelete.id);
+                const taskTeam = teams.find(
+                  (t) => t.id === taskToDelete.teamId,
+                );
+                const ownerIds =
+                  taskTeam?.members
+                    ?.filter((m) => m.isOwner === true)
+                    .map((m) => m.uid || m.id) || [];
+
+                await handleDeleteTask(taskToDelete.id, {
+                  taskTitle: taskToDelete.title,
+                  teamId: taskToDelete.teamId,
+                  teamName: taskTeam?.name || "",
+                  assignedTo: taskToDelete.assignedTo || [],
+                  ownerIds,
+                  actorId: user.uid,
+                  actorName: user.displayName,
+                });
                 setShowDeleteModal(false);
                 setTaskToDelete(null);
               } catch (error) {
