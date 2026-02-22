@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useSearchParams } from "react-router-dom";
 import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -35,6 +36,25 @@ const ApprovalsPage = () => {
     type: null,
     task: null,
   });
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Auto-buka task dari notif jika ada ?taskId= di URL
+  useEffect(() => {
+    const taskIdFromUrl = searchParams.get("taskId");
+    if (taskIdFromUrl && tasks.length > 0) {
+      const task = tasks.find((t) => t.id === taskIdFromUrl);
+      if (task) {
+        const taskWithTeamName = {
+          ...task,
+          teamName:
+            teams.find((t) => t.id === task.teamId)?.name || "Unknown Team",
+        };
+        setSelectedTask(taskWithTeamName);
+        setSearchParams({}, { replace: true }); // bersihkan URL setelah dibuka
+      }
+    }
+  }, [searchParams, tasks, teams]);
 
   const isAdmin = userRole === "super_admin" || userRole === "admin";
   const isSuperAdmin = userRole === "super_admin";
@@ -230,7 +250,9 @@ const ApprovalsPage = () => {
                   <CheckCircle size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-800">{statistics.approvedToday}</div>
+                  <div className="text-3xl font-bold text-gray-800">
+                    {statistics.approvedToday}
+                  </div>
                   <div className="text-gray-500 text-sm">Approved Today</div>
                 </div>
               </div>
@@ -242,7 +264,9 @@ const ApprovalsPage = () => {
                   <XCircle size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-800">{statistics.declinedToday}</div>
+                  <div className="text-3xl font-bold text-gray-800">
+                    {statistics.declinedToday}
+                  </div>
                   <div className="text-gray-500 text-sm">Declined Today</div>
                 </div>
               </div>

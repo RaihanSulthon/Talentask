@@ -74,7 +74,17 @@ const NotificationItem = ({
       notification.type === "member_added" ||
       notification.type === "member_removed"
     ) {
-      navigate("/team"); // ← satu route untuk semua role
+      navigate("/team");
+    } else if (
+      notification.type === "task_submitted_review" ||
+      notification.type === "task_needs_approval"
+    ) {
+      // Arahkan admin ke halaman approvals dengan taskId, user ke kanban
+      if (isAdmin) {
+        navigate(`/admin/approvals?taskId=${notification.taskId}`);
+      } else {
+        navigate(`/user/kanban?taskId=${notification.taskId}`);
+      }
     } else if (notification.taskId && notification.type !== "task_deleted") {
       navigate(
         `${isAdmin ? "/admin/board" : "/user/kanban"}?taskId=${notification.taskId}`,
