@@ -8,6 +8,7 @@ import {
   UserPlus,
   Trash2,
   Crown,
+  AlertTriangle,
 } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Card from "../components/Card";
@@ -33,6 +34,8 @@ const TeamPage = () => {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showDeleteTeamModal, setShowDeleteTeamModal] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [teamName, setTeamName] = useState("");
   const [teamNameError, setTeamNameError] = useState("");
@@ -65,14 +68,24 @@ const TeamPage = () => {
     }
   };
 
-  const onDeleteTeam = async (teamId) => {
-    if (!confirm("Are you sure you want to delete this team?")) return;
+  const onDeleteTeam = (team) => {
+    setTeamToDelete(team);
+    setShowDeleteTeamModal(true);
+  };
 
+  const confirmDeleteTeam = async () => {
+    if (!teamToDelete) return;
     try {
-      await handleDeleteTeam(teamId);
+      setActionLoading(true);
+      await handleDeleteTeam(teamToDelete.id);
+      if (selectedTeamId === teamToDelete.id) setSelectedTeamId(null);
+      setShowDeleteTeamModal(false);
+      setTeamToDelete(null);
     } catch (error) {
       console.error("Error deleting team:", error);
       alert("Failed to delete team");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -174,7 +187,7 @@ const TeamPage = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDeleteTeam(team.id);
+                        onDeleteTeam(team);
                       }}
                       className="text-red-400 hover:text-red-300 transition-colors"
                       title="Delete Team"
@@ -520,6 +533,72 @@ const TeamPage = () => {
             ? "Adding..."
             : `Add ${selectedMembers.length} Member${selectedMembers.length !== 1 ? "s" : ""}`}
         </button>
+      </Modal>
+      <Modal
+        isOpen={showDeleteTeamModal}
+        onClose={() => {
+          if (!actionLoading) {
+            setShowDeleteTeamModal(false);
+            setTeamToDelete(null);
+          }
+        }}
+        title={
+          <>
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 shrink-0">
+              <AlertTriangle size={20} className="text-red-500" />
+            </div>
+            <span className="text-gray-800 font-semibold text-lg">
+              Delete Team
+            </span>
+          </>
+        }
+        maxWidth="max-w-md"
+      >
+        <div className="text-center pb-2">
+          <p className="text-gray-600 mb-1">
+            Anda yakin ingin menghapus tim{" "}
+            <span className="font-semibold text-gray-800">
+              "{teamToDelete?.name}"
+            </span>
+            ?
+          </p>
+          <p className="text-sm text-gray-400">
+            Semua data tim, anggota, dan{" "}
+            <span className="text-red-400 font-medium">seluruh tasks</span> yang
+            terkait dengan tim ini akan dihapus secara permanen. Tindakan ini
+            tidak dapat dibatalkan.
+          </p>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={() => {
+              setShowDeleteTeamModal(false);
+              setTeamToDelete(null);
+            }}
+            disabled={actionLoading}
+            className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Batal
+          </button>
+          <button
+            onClick={confirmDeleteTeam}
+            disabled={actionLoading}
+            className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {actionLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Menghapus...
+              </>
+            ) : (
+              <>
+                <Trash2 size={16} />
+                Hapus Tim
+              </>
+            )}
+          </button>
+        </div>
       </Modal>
     </DashboardLayout>
   );
