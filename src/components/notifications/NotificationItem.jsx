@@ -66,9 +66,16 @@ const NotificationItem = ({
 
   const handleClick = async () => {
     if (!notification.isRead) await onMarkAsRead(notification.id);
-    if (notification.taskId && notification.type !== "task_deleted") {
-      onClose?.();
-      const isAdmin = userRole === "super_admin" || userRole === "admin";
+    onClose?.();
+
+    const isAdmin = userRole === "super_admin" || userRole === "admin";
+
+    if (
+      notification.type === "member_added" ||
+      notification.type === "member_removed"
+    ) {
+      navigate("/team"); // ← satu route untuk semua role
+    } else if (notification.taskId && notification.type !== "task_deleted") {
       navigate(
         `${isAdmin ? "/admin/board" : "/user/kanban"}?taskId=${notification.taskId}`,
       );
@@ -81,7 +88,9 @@ const NotificationItem = ({
   };
 
   const isClickable =
-    notification.taskId && notification.type !== "task_deleted";
+    (notification.taskId && notification.type !== "task_deleted") ||
+    notification.type === "member_added" ||
+    notification.type === "member_removed";
 
   return (
     <div
@@ -119,7 +128,11 @@ const NotificationItem = ({
           </span>
           {isClickable && (
             <span className="text-[11px] text-violet-400 font-medium flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              View task <ArrowUpRight size={10} />
+              {notification.type === "member_added" ||
+              notification.type === "member_removed"
+                ? "View team"
+                : "View task"}{" "}
+              <ArrowUpRight size={10} />
             </span>
           )}
         </div>
