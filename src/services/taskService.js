@@ -75,8 +75,8 @@ export const updateTask = async (taskId, updates, context = {}) => {
     if (recipients.length > 0) {
       await createNotificationForMany(recipients, {
         type: "task_updated",
-        title: "Task Updated",
-        message: `"${taskTitle}" has been updated by ${actorName}`,
+        title: "Task Details Edited",
+        message: `"${taskTitle}" has been edited by ${actorName}`,
         taskId,
         taskTitle,
         teamId,
