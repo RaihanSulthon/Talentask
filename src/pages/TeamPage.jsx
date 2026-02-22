@@ -243,12 +243,12 @@ const TeamPage = () => {
 
       {/* Team Statistics */}
       <div className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        <h2 className="text-xl lg:text-2xl font-bold text-gray-800 mb-4 lg:mb-6">
           {selectedTeamId
             ? `${selectedTeamData?.name} Statistics`
             : "Statistics"}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 lg:gap-4 xl:gap-6">
           {[
             {
               Icon: Users,
@@ -281,7 +281,7 @@ const TeamPage = () => {
               gradient: "bg-purple-500",
             },
           ].map(({ Icon, value, label, gradient }, i) => (
-            <Card key={i} className="p-6">
+            <Card key={i} className="p-4 lg:p-6">
               <div className="flex items-center gap-4">
                 <div
                   className={`w-12 h-12 ${gradient} rounded-lg flex items-center justify-center`}
@@ -289,7 +289,7 @@ const TeamPage = () => {
                   <Icon size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-800">
+                  <div className="text-2xl lg:text-3xl font-bold text-gray-800">
                     {value}
                   </div>
                   <div className="text-gray-500 text-sm">{label}</div>

@@ -61,7 +61,7 @@ const KanbanColumn = ({
       <div
         onDragOver={onDragOver}
         onDrop={(e) => onDrop(e, column.status)}
-        className={`h-[calc(100vh-420px)] min-h-125 max-h- p-4 ${getColumnBgColor(column.status)} rounded-xl border-2 border-dashed transition-colors ${getColumnBorderColor(column.status, isDragging)} flex flex-col`}
+        className={`h-[calc(100vh-320px)] lg:h-[calc(100vh-370px)] xl:h-[calc(100vh-420px)] min-h-64 p-3 lg:p-4 ${getColumnBgColor(column.status)} rounded-xl border-2 border-dashed transition-colors ${getColumnBorderColor(column.status, isDragging)} flex flex-col`}
       >
         {tasks.length === 0 ? (
           <div className="flex items-center justify-center flex-1">

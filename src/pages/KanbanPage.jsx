@@ -265,7 +265,8 @@ const KanbanPage = () => {
       }
     >
       {/* Task Statistics */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 xl:gap-6 mb-5 lg:mb-8">
+        {" "}
         {columns.map((col) => {
           const count = filteredTasks.filter(
             (task) => task.status === col.status,
@@ -303,7 +304,8 @@ const KanbanPage = () => {
       </div>
 
       {/* Kanban Board */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 xl:gap-6">
+        {" "}
         {columns.map((column) => {
           const columnTasks = filteredTasks.filter(
             (task) => task.status === column.status,

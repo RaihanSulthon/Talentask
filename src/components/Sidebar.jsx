@@ -65,7 +65,7 @@ const Sidebar = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-sm transition-all duration-300 pt-16 z-40 ${
-        isExpanded ? "w-64 shadow-2xl shadow-black/50" : "w-20"
+        isExpanded ? "w-56 xl:w-64 shadow-2xl shadow-black/50" : "w-16 xl:w-20"
       }`}
     >
       <div className="flex items-center justify-center py-3 mb-2">
@@ -81,7 +81,7 @@ const Sidebar = ({
                 key={item.path}
                 to={item.path}
                 onClick={onAfterNavigate}
-                className={`flex items-center px-6 py-3 mb-1 transition-all duration-200 rounded-lg mx-2 ${
+                className={`flex items-center px-4 lg:px-5 xl:px-6 py-2.5 lg:py-3 mb-1 transition-all duration-200 rounded-lg mx-2 ${
                   isActive
                     ? "bg-violet-100 text-violet-700 border-l-2 border-violet-600"
                     : "text-gray-500 hover:bg-violet-50 hover:text-violet-600"
@@ -104,7 +104,7 @@ const Sidebar = ({
             <Link
               to="/landing"
               onClick={onAfterNavigate}
-              className="flex items-center px-6 py-3 mx-2 rounded-lg text-gray-400 hover:bg-violet-50 hover:text-violet-600 transition-all duration-200"
+              className="flex items-center px-4 lg:px-5 xl:px-6 py-2.5 lg:py-3 mx-2 rounded-lg text-gray-400 hover:bg-violet-50 hover:text-violet-600 transition-all duration-200"
             >
               <Home size={20} className="shrink-0" />
               <span

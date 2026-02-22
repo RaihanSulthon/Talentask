@@ -33,7 +33,11 @@ const LandingLayout = ({ children }) => {
         <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-lg border-b border-gray-200/80 shadow-sm">
           <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <img src={logoFull} alt="Talentask" className="h-28 w-auto" />
+              <img
+                src={logoFull}
+                alt="Talentask"
+                className="h-20 lg:h-24 xl:h-28 w-auto"
+              />{" "}
             </div>
 
             <div className="flex items-center space-x-6">

@@ -87,7 +87,11 @@ const Navbar = () => {
         <div className="flex-1" />
         {/* Center: Logo — CHANGED: hapus "absolute left-1/2 -translate-x-1/2" */}
         <div className="flex items-center gap-2">
-          <img src={logoFull} alt="Talentask" className="h-32 w-auto" />
+          <img
+            src={logoFull}
+            alt="Talentask"
+            className="h-20 lg:h-24 xl:h-32 w-auto"
+          />{" "}
         </div>
         {/* Right: Bell + Role Badge + Avatar — CHANGED: tambah "flex-1 justify-end" */}
         <div className="flex-1 flex items-center justify-end gap-3">

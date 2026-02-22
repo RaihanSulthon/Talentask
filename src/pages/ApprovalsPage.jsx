@@ -231,32 +231,32 @@ const ApprovalsPage = () => {
       }
     >
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 xl:gap-6 mb-5 lg:mb-8">
+        {" "}
         {/* Card 1: selalu tampil */}
-        <Card className="p-6 border border-violet-100">
+        <Card className="p-4 lg:p-6 border border-violet-100">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-linear-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
               <Clock size={24} className="text-white" />
             </div>
             <div>
-              <div className="text-3xl font-bold text-gray-800">
+              <div className="text-2xl lg:text-3xl font-bold text-gray-800">
                 {statistics.pending}
               </div>
               <div className="text-gray-500 text-sm">Pending Approval</div>
             </div>
           </div>
         </Card>
-
         {/* Card 2 & 3: hanya untuk admin */}
         {isAdmin && (
           <>
-            <Card className="p-6 border border-violet-100">
+            <Card className="p-4 lg:p-6 border border-violet-100">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-linear-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
                   <CheckCircle size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-800">
+                  <div className="text-2xl lg:text-3xl font-bold text-gray-800">
                     {statistics.approvedToday}
                   </div>
                   <div className="text-gray-500 text-sm">Approved Today</div>
@@ -264,13 +264,13 @@ const ApprovalsPage = () => {
               </div>
             </Card>
 
-            <Card className="p-6 border border-violet-100">
+            <Card className="p-4 lg:p-6 border border-violet-100">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-linear-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
                   <XCircle size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-gray-800">
+                  <div className="text-2xl lg:text-3xl font-bold text-gray-800">
                     {statistics.declinedToday}
                   </div>
                   <div className="text-gray-500 text-sm">Declined Today</div>
