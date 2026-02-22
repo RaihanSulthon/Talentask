@@ -49,10 +49,10 @@ const TaskDetailContent = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     onUpdate(task.id, formData, {
-      taskTitle: task.title,
+      taskTitle: formData.title,
       teamId: task.teamId,
       teamName: task.teamName || currentTeam?.name || "",
-      assignedTo: task.assignedTo || [],
+      assignedTo: formData.assignedTo || [],
       actorId: user?.uid || "",
       actorName: user?.displayName || "",
     });
@@ -371,7 +371,7 @@ const TaskDetailContent = ({
             Assigned To
           </label>
           <div className="flex flex-wrap gap-2">
-            {task.assignedTo?.map((memberId) => {
+            {formData.assignedTo?.map((memberId) => {
               const member = currentTeam.members?.find(
                 (m) => m.uid === memberId || m.id === memberId,
               );
