@@ -59,6 +59,21 @@ export const removeMemberFromTeam = async (teamId, memberId, context = {}) => {
     updatedAt: new Date(),
   });
 
+  // Hapus member dari assignedTo di semua tasks yang terkait team ini
+  const tasksQuery = query(
+    collection(db, "tasks"),
+    where("teamId", "==", teamId),
+    where("assignedTo", "array-contains", memberId),
+  );
+  const tasksSnapshot = await getDocs(tasksQuery);
+  const unassignPromises = tasksSnapshot.docs.map((taskDoc) =>
+    updateDoc(taskDoc.ref, {
+      assignedTo: arrayRemove(memberId),
+      updatedAt: new Date(),
+    }),
+  );
+  await Promise.all(unassignPromises);
+
   // Notif ke member yang diremove
   const { teamName = "", actorId = "", actorName = "" } = context;
   if (teamName) {
