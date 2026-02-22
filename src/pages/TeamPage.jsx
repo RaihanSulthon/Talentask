@@ -16,6 +16,7 @@ import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import { Search } from "lucide-react";
 import Modal from "../components/Modal";
+import { getTeamColor } from "../utils/teamColors";
 
 const TeamPage = () => {
   const {
@@ -128,11 +129,19 @@ const TeamPage = () => {
 
   const displayedMembers = selectedTeamId
     ? selectedTeamData?.members || []
-    : teams.flatMap(
-        (team) =>
-          team.members?.map((member) => ({ ...member, teamName: team.name })) ||
-          [],
-      );
+    : (() => {
+        const memberMap = new Map();
+        teams.forEach((team) => {
+          team.members?.forEach((member) => {
+            if (!memberMap.has(member.uid)) {
+              memberMap.set(member.uid, { ...member, teamNames: [team.name] });
+            } else {
+              memberMap.get(member.uid).teamNames.push(team.name);
+            }
+          });
+        });
+        return Array.from(memberMap.values());
+      })();
 
   if (loading || tasksLoading) {
     return (
@@ -314,68 +323,83 @@ const TeamPage = () => {
           {/* Members List */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedMembers.length > 0 ? (
-              displayedMembers
-                .filter(
-                  (member, index, self) =>
-                    index === self.findIndex((m) => m.uid === member.uid),
-                )
-                .map((member) => {
-                  const memberTeam = selectedTeamId
-                    ? selectedTeamData
-                    : teams.find((t) =>
-                        t.members?.some((m) => m.uid === member.uid),
-                      );
-
-                  return (
-                    <Card
-                      key={`${memberTeam?.id}-${member.uid}`}
-                      className="p-6"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
-                            {member.displayName
-                              ?.substring(0, 2)
-                              .toUpperCase() || "U"}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="text-gray-800 font-semibold">
-                                {member.displayName}
-                              </h3>
-                              {member.uid === memberTeam?.ownerId && (
-                                <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full font-medium">
-                                  Owner
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-gray-400 text-sm">
-                              {member.email}
-                            </p>
-                            {!selectedTeamId && (
-                              <p className="text-gray-500 text-xs mt-1">
-                                <span className="text-gray-600 font-medium">
-                                  Team:
-                                </span>{" "}
-                                {memberTeam?.name}
-                              </p>
+              displayedMembers.map((member) => {
+                const memberTeam = selectedTeamId ? selectedTeamData : null;
+                return (
+                  <Card key={`${memberTeam?.id}-${member.uid}`} className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                          {member.displayName?.substring(0, 2).toUpperCase() ||
+                            "U"}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-gray-800 font-semibold">
+                              {member.displayName}
+                            </h3>
+                            {member.uid === memberTeam?.ownerId && (
+                              <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-600 text-xs rounded-full font-medium border border-yellow-300">
+                                Owner
+                              </span>
+                            )}
+                            {member.role === "super_admin" ? (
+                              <span className="px-2 py-0.5 bg-purple-100 text-purple-600 text-xs rounded-full font-medium border border-purple-300">
+                                Super Admin
+                              </span>
+                            ) : member.role === "admin" ? (
+                              <span className="px-2 py-0.5 bg-blue-100 text-blue-600 text-xs rounded-full font-medium border border-blue-300">
+                                Admin
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full font-medium border border-gray-200">
+                                User
+                              </span>
                             )}
                           </div>
-                        </div>
-                        {memberTeam?.isOwner &&
-                          member.uid !== memberTeam?.ownerId && (
-                            <button
-                              onClick={() => onRemoveMember(memberTeam, member)}
-                              className="text-red-400 hover:text-red-300 transition-colors"
-                              title="Remove member"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                          <p className="text-gray-400 text-sm">
+                            {member.email}
+                          </p>
+                          {!selectedTeamId && member.teamNames && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {member.teamNames.map((teamName) => {
+                                const team = teams.find(
+                                  (t) => t.name === teamName,
+                                );
+                                const color = getTeamColor(team?.id);
+                                return (
+                                  <span
+                                    key={teamName}
+                                    style={{
+                                      backgroundColor: color.bg,
+                                      color: color.text,
+                                      border: `1px solid ${color.border}`,
+                                    }}
+                                    className="px-2 py-0.5 text-xs rounded-full font-medium whitespace-nowrap"
+                                  >
+                                    {teamName}
+                                  </span>
+                                );
+                              })}
+                            </div>
                           )}
+                        </div>
                       </div>
-                    </Card>
-                  );
-                })
+                      {selectedTeamId &&
+                        memberTeam?.isOwner &&
+                        member.uid !== memberTeam?.ownerId && (
+                          <button
+                            onClick={() => onRemoveMember(memberTeam, member)}
+                            className="text-red-400 hover:text-red-300 transition-colors"
+                            title="Remove member"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                    </div>
+                  </Card>
+                );
+              })
             ) : (
               <div className="col-span-full text-center text-gray-400 py-8">
                 No members found
