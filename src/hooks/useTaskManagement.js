@@ -45,9 +45,14 @@ export const useTaskManagement = (teams) => {
   }, [user, userRole, teams.length]);
 
   const handleCreateTask = async (teamId, taskData) => {
-    await createTask(teamId, user.uid, taskData);
+    await createTask(
+      teamId,
+      user.uid,
+      taskData,
+      user.displayName || user.email || "",
+    );
   };
-
+  
   const handleUpdateTask = async (taskId, updates, context = {}) => {
     await updateTask(taskId, updates, context);
   };

@@ -116,6 +116,7 @@ const TasksPage = () => {
     if (!formData.title.trim()) errors.title = "Title is required";
     if (!formData.description.trim())
       errors.description = "Description is required";
+    if (!formData.teamId) errors.teamId = "Team is required";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -819,7 +820,13 @@ const TasksPage = () => {
               if (!validateTaskForm()) return;
               try {
                 setActionLoading(true);
-                await handleCreateTask(formData);
+                await handleCreateTask(formData.teamId, {
+                  title: formData.title,
+                  description: formData.description,
+                  assignedTo: formData.assignedTo,
+                  teamName:
+                    teams.find((t) => t.id === formData.teamId)?.name || "",
+                });
                 setShowCreateModal(false);
                 setFormData({
                   title: "",
