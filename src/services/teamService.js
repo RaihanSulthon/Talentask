@@ -16,6 +16,7 @@ import {
   createNotification,
   createNotificationForMany,
 } from "./notificationService";
+import { deleteTasksByTeamIds } from "./taskService";
 
 export const createTeam = async (userId, userName, userEmail, teamName) => {
   return await addDoc(collection(db, "teams"), {
@@ -75,6 +76,8 @@ export const removeMemberFromTeam = async (teamId, memberId, context = {}) => {
 };
 
 export const deleteTeam = async (teamId) => {
+  // Hapus semua tasks yang terkait dengan team ini terlebih dahulu
+  await deleteTasksByTeamIds([teamId]);
   return await deleteDoc(doc(db, "teams", teamId));
 };
 
@@ -150,7 +153,13 @@ export const deleteTeamsByOwnerId = async (ownerId) => {
   );
   const teamsSnapshot = await getDocs(teamsQuery);
 
-  const deletePromises = teamsSnapshot.docs.map((doc) => deleteDoc(doc.ref));
+  const teamIds = teamsSnapshot.docs.map((doc) => doc.id);
 
+  // Hapus semua tasks dari team-team ini terlebih dahulu
+  if (teamIds.length > 0) {
+    await deleteTasksByTeamIds(teamIds);
+  }
+
+  const deletePromises = teamsSnapshot.docs.map((doc) => deleteDoc(doc.ref));
   return await Promise.all(deletePromises);
 };
