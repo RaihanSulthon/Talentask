@@ -8,6 +8,7 @@ import { useNotifications } from "../hooks/useNotifications";
 import NotificationDropdown from "./notifications/NotificationDropdown";
 import logoFull from "../assets/Talentask_full_logoremovebgpreview.png";
 import LogoIcon from "../assets/Talentask_Logoremovebgpreview.png";
+import { useToast } from "./Toast";
 
 const Navbar = () => {
   const { user, userRole } = useAuth();
@@ -27,6 +28,8 @@ const Navbar = () => {
     handleDeleteAllNotifications,
   } = useNotifications();
 
+  const toast = useToast();
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -41,14 +44,10 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate("/landing");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+    await signOut();
+    toast.info("Kamu telah berhasil keluar. Sampai jumpa!");
+    navigate("/auth");
   };
-
   const handleLogoutClick = () => {
     setShowProfile(false);
     setShowLogoutModal(true);
@@ -110,7 +109,10 @@ const Navbar = () => {
               unreadCount={unreadCount}
               loading={loading}
               onMarkAsRead={handleMarkAsRead}
-              onMarkAllAsRead={handleMarkAllAsRead}
+              onMarkAllAsRead={async () => {
+                await handleMarkAllAsRead();
+                toast.info("Semua notifikasi telah ditandai sebagai dibaca.");
+              }}
               onDelete={handleDeleteNotification}
               onDeleteAll={handleDeleteAllNotifications}
               onClose={() => setShowNotif(false)}
@@ -231,7 +233,6 @@ const Navbar = () => {
           </button>
         </div>
       </Modal>
-      ;
     </>
   );
 };

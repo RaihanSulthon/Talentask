@@ -10,6 +10,7 @@ import Modal from "../components/Modal";
 import { AlertTriangle, AlertCircle } from "lucide-react";
 import CustomSelect from "../components/CustomSelect";
 import TaskDetailContent from "../components/tasks/TaskDetailContent";
+import { useToast } from "../components/Toast";
 
 const KanbanPage = () => {
   const { user, userRole } = useAuth();
@@ -33,6 +34,7 @@ const KanbanPage = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
+  const toast = useToast();
 
   const columns = [
     { id: "todo", title: "To Do", status: "todo" },
@@ -57,9 +59,10 @@ const KanbanPage = () => {
       setActionLoading(true);
       await handleCreateTask(taskData.teamId, taskData);
       setShowCreateModal(false);
+      toast.success("Task berhasil dibuat! 🎉");
     } catch (error) {
       console.error("Error creating task:", error);
-      alert("Failed to create task");
+      toast.error("Gagal membuat task.");
     } finally {
       setActionLoading(false);
     }
@@ -108,7 +111,9 @@ const KanbanPage = () => {
 
     if (task.status === "inreview" && !isAdmin) {
       e.preventDefault();
-      alert("This task is awaiting approval and cannot be moved.");
+      toast.warning(
+        "Task ini sedang menunggu persetujuan dan tidak dapat dipindah.",
+      );
       return;
     }
 
@@ -123,22 +128,15 @@ const KanbanPage = () => {
     e.preventDefault();
     if (draggedTask && draggedTask.status !== newStatus) {
       if (newStatus === "done" && !isAdmin) {
-        alert(
-          "You cannot directly mark a task as Done. Please move it to 'In Review' for approval.",
+        toast.warning(
+          "Kamu tidak bisa langsung menyelesaikan task. Pindahkan ke 'In Review' terlebih dahulu.",
         );
         setDraggedTask(null);
         return;
       }
 
       if (newStatus === "inreview" && !isAdmin) {
-        if (
-          !window.confirm(
-            "Submit this task for approval? Your team owner will review it.",
-          )
-        ) {
-          setDraggedTask(null);
-          return;
-        }
+        toast.info("Task dikirim untuk direview oleh team owner.");
       }
 
       try {
@@ -153,9 +151,10 @@ const KanbanPage = () => {
           actorId: user.uid,
           actorName: user.displayName,
         });
+        toast.success(`Task dipindahkan ke "${newStatus}".`);
       } catch (error) {
         console.error("Error updating task status:", error);
-        alert("Failed to update task status");
+        toast.error("Gagal memperbarui status task.");
       }
     }
     setDraggedTask(null);
@@ -224,10 +223,11 @@ const KanbanPage = () => {
         actorName: user.displayName,
       });
       setShowDeleteModal(false);
+      toast.success("Task berhasil dihapus.");
       setSelectedTask(null);
     } catch (error) {
       console.error("Error deleting task:", error);
-      alert("Failed to delete task");
+      toast.error("Gagal menghapus task.");
     } finally {
       setActionLoading(false);
     }

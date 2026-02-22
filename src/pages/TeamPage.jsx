@@ -17,7 +17,7 @@ import { useTaskManagement } from "../hooks/useTaskManagement";
 import { Search } from "lucide-react";
 import Modal from "../components/Modal";
 import { getTeamColor } from "../utils/teamColors";
-
+import { useToast } from "../components/Toast";
 const TeamPage = () => {
   const {
     teams,
@@ -46,6 +46,7 @@ const TeamPage = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("Members");
   const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const availableUsers = selectedTeam
     ? getAvailableUsers(selectedTeam.members?.map((m) => m.uid) ?? [])
@@ -74,10 +75,13 @@ const TeamPage = () => {
         memberToRemove.member.uid,
       );
       setShowRemoveMemberModal(false);
+      toast.success(
+        `${memberToRemove.member.displayName} berhasil dihapus dari tim.`,
+      );
       setMemberToRemove(null);
     } catch (error) {
       console.error("Error removing member:", error);
-      alert("Failed to remove member");
+      toast.error("Gagal menghapus member.");
     } finally {
       setActionLoading(false);
     }
@@ -95,10 +99,11 @@ const TeamPage = () => {
       await handleDeleteTeam(teamToDelete.id);
       if (selectedTeamId === teamToDelete.id) setSelectedTeamId(null);
       setShowDeleteTeamModal(false);
+      toast.success(`Tim "${teamToDelete.name}" berhasil dihapus.`);
       setTeamToDelete(null);
     } catch (error) {
       console.error("Error deleting team:", error);
-      alert("Failed to delete team");
+      toast.error("Gagal menghapus tim.");
     } finally {
       setActionLoading(false);
     }
@@ -456,9 +461,10 @@ const TeamPage = () => {
               await handleCreateTeam(teamName);
               setTeamName("");
               setTeamNameError("");
+              toast.success("Tim berhasil dibuat! 🎉");
               setShowCreateModal(false);
             } catch (error) {
-              alert("Failed to create team");
+              toast.error("Gagal membuat tim.");
             } finally {
               setActionLoading(false);
             }
@@ -554,10 +560,13 @@ const TeamPage = () => {
             try {
               setActionLoading(true);
               await handleAddMembers(selectedTeam.id, selectedMembers);
+              toast.success(
+                `${selectedMembers.length} member berhasil ditambahkan.`,
+              );
               closeAddMemberModal();
               setSearchQuery("");
             } catch (error) {
-              alert("Failed to add members");
+              toast.error("Gagal menambahkan member.");
             } finally {
               setActionLoading(false);
             }

@@ -25,6 +25,7 @@ import TeamFilterDropdown from "../components/kanban/TeamFilterDropdown";
 import Modal from "../components/Modal";
 import CustomSelect from "../components/CustomSelect";
 import TaskDetailContent from "../components/tasks/TaskDetailContent";
+import { useToast } from "../components/Toast";
 
 const TasksPage = () => {
   const { user, userRole } = useAuth();
@@ -54,6 +55,7 @@ const TasksPage = () => {
   const [viewMode, setViewMode] = useState("list");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 4;
+  const toast = useToast();
 
   // Bungkus setiap setter filter agar reset page
   const handleStatusFilter = (v) => {
@@ -273,9 +275,10 @@ const TasksPage = () => {
         actorId: user.uid,
         actorName: user.displayName,
       });
+      toast.success(`Status task diperbarui ke "${newStatus}".`);
     } catch (error) {
       console.error("Error updating task status:", error);
-      alert("Failed to update task status");
+      toast.error("Gagal memperbarui status task.");
     }
   };
 
@@ -828,6 +831,7 @@ const TasksPage = () => {
                     teams.find((t) => t.id === formData.teamId)?.name || "",
                 });
                 setShowCreateModal(false);
+                toast.success("Task berhasil dibuat! 🎉");
                 setFormData({
                   title: "",
                   description: "",
@@ -836,7 +840,7 @@ const TasksPage = () => {
                 });
                 setFormErrors({});
               } catch (error) {
-                alert("Failed to create task");
+                toast.error("Gagal membuat task. Silakan coba lagi.");
               } finally {
                 setActionLoading(false);
               }
@@ -902,9 +906,10 @@ const TasksPage = () => {
                   actorName: user.displayName,
                 });
                 setShowDeleteModal(false);
+                toast.success("Task berhasil dihapus.");
                 setTaskToDelete(null);
               } catch (error) {
-                alert("Failed to delete task");
+                toast.error("Gagal menghapus task.");
               } finally {
                 setActionLoading(false);
               }

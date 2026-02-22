@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Modal from "../components/Modal";
 import ApprovalDetailContent from "../components/approvals/ApprovalDetailContent";
+import { useToast } from "../components/Toast";
 
 const ApprovalsPage = () => {
   const { user, userRole } = useAuth();
@@ -38,6 +39,7 @@ const ApprovalsPage = () => {
   });
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const toast = useToast();
 
   // Auto-buka task dari notif jika ada ?taskId= di URL
   useEffect(() => {
@@ -157,8 +159,10 @@ const ApprovalsPage = () => {
       });
       setSelectedTask(null);
       setConfirmModal({ open: false, type: null, task: null });
+      toast.success(`Task "${task.title}" berhasil disetujui! ✅`);
     } catch (error) {
       console.error("Error approving task:", error);
+      toast.error("Gagal menyetujui task. Silakan coba lagi.");
     } finally {
       setActionLoading(false);
     }
@@ -178,8 +182,10 @@ const ApprovalsPage = () => {
       });
       setSelectedTask(null);
       setConfirmModal({ open: false, type: null, task: null });
+      toast.warning(`Task "${task.title}" telah ditolak dan dikembalikan.`);
     } catch (error) {
       console.error("Error declining task:", error);
+      toast.error("Gagal menolak task. Silakan coba lagi.");
     } finally {
       setActionLoading(false);
     }

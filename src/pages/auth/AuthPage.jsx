@@ -4,6 +4,7 @@ import { Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import AuthLayout from "../../layouts/AuthLayout";
 import { signIn, signUp } from "../../services/authService";
 import { useAuthForm } from "../../hooks/useAuthForm";
+import { useToast } from "../../components/Toast";
 
 const AuthInput = ({
   type: initialType = "text",
@@ -28,7 +29,9 @@ const AuthInput = ({
   return (
     <div className="space-y-1.5">
       {label && (
-        <label className="block text-sm font-medium text-slate-700">{label}</label>
+        <label className="block text-sm font-medium text-slate-700">
+          {label}
+        </label>
       )}
       <div className="relative">
         <input
@@ -87,14 +90,25 @@ const AuthPage = () => {
     touchField,
     handleSubmit,
   } = useAuthForm();
+  const toast = useToast();
 
   const onSubmit = async (data) => {
-    if (isLogin) {
-      await signIn(data.email, data.password);
-      navigate("/landing");
-    } else {
-      await signUp(data.email, data.password, data.displayName);
-      navigate("/");
+    try {
+      if (isLogin) {
+        await signIn(data.email, data.password);
+        toast.success("Selamat datang kembali! 👋");
+        navigate("/landing");
+      } else {
+        await signUp(data.email, data.password, data.displayName);
+        toast.success("Akun berhasil dibuat! Selamat bergabung.");
+        navigate("/");
+      }
+    } catch (err) {
+      toast.error(
+        isLogin
+          ? "Email atau password salah. Silakan coba lagi."
+          : "Gagal membuat akun. Silakan coba lagi.",
+      );
     }
   };
 

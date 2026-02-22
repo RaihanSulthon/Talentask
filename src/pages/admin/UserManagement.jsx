@@ -21,6 +21,7 @@ import {
   Mail,
   Calendar,
 } from "lucide-react";
+import { useToast } from "../../components/Toast";
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -30,6 +31,7 @@ const UserManagement = () => {
   const [demoteLoading, setDemoteLoading] = useState(false);
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [promoteLoading, setPromoteLoading] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
@@ -90,10 +92,11 @@ const UserManagement = () => {
       await updateUserRole(selectedUser.id, "user");
 
       setShowDemoteModal(false);
+      toast.success(`${selectedUser.name} berhasil diturunkan menjadi User.`);
       setSelectedUser(null);
     } catch (error) {
       console.error("Error demoting admin:", error);
-      alert("Failed to demote admin. Please try again.");
+      toast.error("Gagal mengubah role user. Silakan coba lagi.");
     } finally {
       setDemoteLoading(false);
     }
@@ -104,10 +107,13 @@ const UserManagement = () => {
       setPromoteLoading(true);
       await updateUserRole(selectedUser.id, "admin");
       setShowPromoteModal(false);
+      toast.success(
+        `${selectedUser.name} berhasil dipromosikan menjadi Admin.`,
+      );
       setSelectedUser(null);
     } catch (error) {
       console.error("Error promoting user:", error);
-      alert("Failed to promote user. Please try again.");
+      toast.error("Gagal mempromosikan user. Silakan coba lagi.");
     } finally {
       setPromoteLoading(false);
     }
