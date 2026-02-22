@@ -36,6 +36,8 @@ const TeamPage = () => {
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showDeleteTeamModal, setShowDeleteTeamModal] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState(null);
+  const [showRemoveMemberModal, setShowRemoveMemberModal] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [teamName, setTeamName] = useState("");
   const [teamNameError, setTeamNameError] = useState("");
@@ -57,14 +59,26 @@ const TeamPage = () => {
 
   const displayedStats = getTeamStats(selectedTeamId, tasks);
 
-  const onRemoveMember = async (teamId, memberId) => {
-    if (!confirm("Are you sure you want to remove this member?")) return;
+  const onRemoveMember = (team, member) => {
+    setMemberToRemove({ team, member });
+    setShowRemoveMemberModal(true);
+  };
 
+  const confirmRemoveMember = async () => {
+    if (!memberToRemove) return;
     try {
-      await handleRemoveMember(teamId, memberId);
+      setActionLoading(true);
+      await handleRemoveMember(
+        memberToRemove.team.id,
+        memberToRemove.member.uid,
+      );
+      setShowRemoveMemberModal(false);
+      setMemberToRemove(null);
     } catch (error) {
       console.error("Error removing member:", error);
       alert("Failed to remove member");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -351,9 +365,7 @@ const TeamPage = () => {
                         {memberTeam?.isOwner &&
                           member.uid !== memberTeam?.ownerId && (
                             <button
-                              onClick={() =>
-                                onRemoveMember(memberTeam.id, member.uid)
-                              }
+                              onClick={() => onRemoveMember(memberTeam, member)}
                               className="text-red-400 hover:text-red-300 transition-colors"
                               title="Remove member"
                             >
@@ -595,6 +607,76 @@ const TeamPage = () => {
               <>
                 <Trash2 size={16} />
                 Hapus Tim
+              </>
+            )}
+          </button>
+        </div>
+      </Modal>
+      {/* Remove Member Confirmation Modal */}
+      <Modal
+        isOpen={showRemoveMemberModal}
+        onClose={() => {
+          if (!actionLoading) {
+            setShowRemoveMemberModal(false);
+            setMemberToRemove(null);
+          }
+        }}
+        title={
+          <>
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 shrink-0">
+              <AlertTriangle size={20} className="text-red-500" />
+            </div>
+            <span className="text-gray-800 font-semibold text-lg">
+              Hapus Anggota
+            </span>
+          </>
+        }
+        maxWidth="max-w-md"
+      >
+        <div className="text-center pb-2">
+          <p className="text-gray-600 mb-1">
+            Anda yakin ingin menghapus{" "}
+            <span className="font-semibold text-gray-800">
+              "{memberToRemove?.member?.displayName}"
+            </span>{" "}
+            dari tim{" "}
+            <span className="font-semibold text-gray-800">
+              "{memberToRemove?.team?.name}"
+            </span>
+            ?
+          </p>
+          <p className="text-sm text-gray-400">
+            Anggota ini akan kehilangan akses ke tim dan{" "}
+            <span className="text-red-400 font-medium">seluruh tasks</span> yang
+            terkait. Tindakan ini tidak dapat dibatalkan.
+          </p>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={() => {
+              setShowRemoveMemberModal(false);
+              setMemberToRemove(null);
+            }}
+            disabled={actionLoading}
+            className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Batal
+          </button>
+          <button
+            onClick={confirmRemoveMember}
+            disabled={actionLoading}
+            className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {actionLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Menghapus...
+              </>
+            ) : (
+              <>
+                <Trash2 size={16} />
+                Hapus Anggota
               </>
             )}
           </button>
