@@ -6,9 +6,10 @@ import {
   markAllAsRead,
   deleteNotification,
   deleteAllNotifications,
+  sendDeadlineReminders,
 } from "../services/notificationService";
 
-export const useNotifications = () => {
+export const useNotifications = (tasks = []) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,11 @@ export const useNotifications = () => {
     return () => unsubscribe();
   }, [user]);
 
+  useEffect(() => {
+    if (!user || tasks.length === 0) return;
+    sendDeadlineReminders(tasks, user.uid);
+  }, [user, tasks.length]);
+  
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const handleMarkAsRead = async (notifId) => {

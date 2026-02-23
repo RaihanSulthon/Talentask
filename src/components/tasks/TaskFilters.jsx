@@ -325,6 +325,8 @@ const TaskFilters = ({
   setSelectedStatusFilter,
   selectedMemberFilter,
   setSelectedMemberFilter,
+  selectedDeadlineFilter,
+  setSelectedDeadlineFilter,
   dateRange,
   setDateRange,
   availableMembers,
@@ -347,9 +349,19 @@ const TaskFilters = ({
     ...availableMembers.map((m) => ({ value: m.uid, label: m.displayName })),
   ];
 
+  const deadlineOptions = [
+    { value: "", label: "All Deadlines" },
+    { value: "overdue", label: "🚨 Overdue", dot: "bg-red-500" },
+    { value: "today", label: "⚠️ Due Today", dot: "bg-orange-400" },
+    { value: "3days", label: "⏰ Next 3 Days", dot: "bg-yellow-400" },
+    { value: "week", label: "📅 This Week", dot: "bg-blue-400" },
+    { value: "no-deadline", label: "No Deadline", dot: "bg-gray-300" },
+  ];
+
   const hasActiveFilters =
     selectedStatusFilter ||
     selectedMemberFilter ||
+    selectedDeadlineFilter ||
     dateRange.start ||
     dateRange.end;
 
@@ -366,6 +378,12 @@ const TaskFilters = ({
         onChange={setSelectedMemberFilter}
         options={memberOptions}
         placeholder="All Members"
+      />
+      <FilterDropdown
+        value={selectedDeadlineFilter}
+        onChange={setSelectedDeadlineFilter}
+        options={deadlineOptions}
+        placeholder="All Deadlines"
       />
       <DateRangePicker dateRange={dateRange} onChange={setDateRange} />
 

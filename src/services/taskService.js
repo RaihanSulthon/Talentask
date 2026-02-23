@@ -30,6 +30,8 @@ export const createTask = async (
     teamId,
     createdBy,
     assignedTo: taskData.assignedTo || [],
+    deadline: taskData.deadline || null,
+    deadlineReminder: taskData.deadlineReminder ?? 3,
     createdAt: new Date(),
     updatedAt: new Date(),
   });
@@ -95,8 +97,8 @@ export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
     taskTitle = "",
     teamId = "",
     teamName = "",
-    assignedTo = [],   // array uid member yang di-assign
-    ownerIds = [],     // array uid owner/admin team
+    assignedTo = [], // array uid member yang di-assign
+    ownerIds = [], // array uid owner/admin team
     actorId = "",
     actorName = "",
     isDecline = false,
@@ -104,24 +106,29 @@ export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
 
   // Semua pihak terlibat = assignee + owner, dikurangi actor sendiri
   const allInvolved = [...new Set([...assignedTo, ...ownerIds])].filter(
-    (id) => id !== actorId
+    (id) => id !== actorId,
   );
 
   // 1. Status berubah ke apapun → notif ke semua pihak terlibat (kecuali actor)
   if (allInvolved.length > 0 && taskTitle) {
-    const statusLabel = {
-      todo: "To Do",
-      inprogress: "In Progress",
-      inreview: "In Review",
-      done: "Done",
-    }[newStatus] || newStatus;
+    const statusLabel =
+      {
+        todo: "To Do",
+        inprogress: "In Progress",
+        inreview: "In Review",
+        done: "Done",
+      }[newStatus] || newStatus;
 
     await createNotificationForMany(allInvolved, {
       type: "task_status_changed",
       title: "Task Status Updated",
       message: `"${taskTitle}" status changed to ${statusLabel} by ${actorName}`,
-      taskId, taskTitle, teamId, teamName,
-      createdBy: actorId, createdByName: actorName,
+      taskId,
+      taskTitle,
+      teamId,
+      teamName,
+      createdBy: actorId,
+      createdByName: actorName,
     });
   }
 
@@ -133,8 +140,12 @@ export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
         type: "task_submitted_review",
         title: "Task Needs Approval ⏳",
         message: `"${taskTitle}" has been submitted for approval by ${actorName}`,
-        taskId, taskTitle, teamId, teamName,
-        createdBy: actorId, createdByName: actorName,
+        taskId,
+        taskTitle,
+        teamId,
+        teamName,
+        createdBy: actorId,
+        createdByName: actorName,
       });
     }
   }
@@ -147,8 +158,12 @@ export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
         type: "task_approved",
         title: "Task Approved ✓",
         message: `Your task "${taskTitle}" has been approved by ${actorName}`,
-        taskId, taskTitle, teamId, teamName,
-        createdBy: actorId, createdByName: actorName,
+        taskId,
+        taskTitle,
+        teamId,
+        teamName,
+        createdBy: actorId,
+        createdByName: actorName,
       });
     }
   }
@@ -161,8 +176,12 @@ export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
         type: "task_declined",
         title: "Task Declined ✗",
         message: `Your task "${taskTitle}" was declined by ${actorName} and needs revision`,
-        taskId, taskTitle, teamId, teamName,
-        createdBy: actorId, createdByName: actorName,
+        taskId,
+        taskTitle,
+        teamId,
+        teamName,
+        createdBy: actorId,
+        createdByName: actorName,
       });
     }
   }
@@ -184,7 +203,7 @@ export const deleteTask = async (taskId, context = {}) => {
 
   // Notif ke semua pihak terlibat
   const allInvolved = [...new Set([...assignedTo, ...ownerIds])].filter(
-    (id) => id !== actorId
+    (id) => id !== actorId,
   );
 
   if (allInvolved.length > 0 && taskTitle) {
@@ -192,8 +211,12 @@ export const deleteTask = async (taskId, context = {}) => {
       type: "task_deleted",
       title: "Task Deleted",
       message: `Task "${taskTitle}" has been deleted by ${actorName}`,
-      taskId, taskTitle, teamId, teamName,
-      createdBy: actorId, createdByName: actorName,
+      taskId,
+      taskTitle,
+      teamId,
+      teamName,
+      createdBy: actorId,
+      createdByName: actorName,
     });
   }
 };

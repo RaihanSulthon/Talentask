@@ -34,6 +34,35 @@ const TaskListItem = ({
     }
   };
 
+  const getDeadlineBadge = () => {
+    if (!task.deadline || task.status === "done") return null;
+    const deadline = task.deadline?.toDate
+      ? task.deadline.toDate()
+      : new Date(task.deadline);
+    const diffDays = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
+    const threshold = task.deadlineReminder ?? 3;
+    if (diffDays > threshold) return null; // Masih jauh, tidak perlu badge
+
+    if (diffDays < 0)
+      return {
+        label: `Overdue ${Math.abs(diffDays)}d`,
+        color: "bg-red-100 text-red-600 border-red-200",
+        icon: "🚨",
+      };
+    if (diffDays === 0)
+      return {
+        label: "Due today",
+        color: "bg-orange-100 text-orange-600 border-orange-200",
+        icon: "⚠️",
+      };
+    return {
+      label: `${diffDays}d left`,
+      color: "bg-amber-100 text-amber-600 border-amber-200",
+      icon: "⏰",
+    };
+  };
+  const deadlineBadge = getDeadlineBadge();
+
   const getStatusLabel = (status) => {
     switch (status) {
       case "todo":
@@ -173,6 +202,13 @@ const TaskListItem = ({
               <Calendar size={14} />
               <span>{formatDate(task.createdAt)}</span>
             </div>
+            {deadlineBadge && (
+              <span
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${deadlineBadge.color}`}
+              >
+                {deadlineBadge.icon} {deadlineBadge.label}
+              </span>
+            )}
           </>
         )}
         {compact && (

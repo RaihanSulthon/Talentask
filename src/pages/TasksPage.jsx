@@ -26,6 +26,8 @@ import Modal from "../components/Modal";
 import CustomSelect from "../components/CustomSelect";
 import TaskDetailContent from "../components/tasks/TaskDetailContent";
 import { useToast } from "../components/Toast";
+import { sendDeadlineReminders } from "../services/notificationService";
+import { useEffect } from "react";
 
 const TasksPage = () => {
   const { user, userRole } = useAuth();
@@ -38,8 +40,9 @@ const TasksPage = () => {
     handleUpdateTaskStatus,
     handleDeleteTask,
     canEditTask,
+    getDeadlineInfo,
+    urgentDeadlineTasks,
   } = useTaskManagement(teams);
-
   // State
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -51,6 +54,7 @@ const TasksPage = () => {
   const [selectedTeamFilter, setSelectedTeamFilter] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("");
   const [selectedMemberFilter, setSelectedMemberFilter] = useState("");
+  const [selectedDeadlineFilter, setSelectedDeadlineFilter] = useState("");
   const [dateRange, setDateRange] = useState({ start: null, end: null });
   const [viewMode, setViewMode] = useState("list");
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,6 +68,10 @@ const TasksPage = () => {
   };
   const handleMemberFilter = (v) => {
     setSelectedMemberFilter(v);
+    setCurrentPage(1);
+  };
+  const handleDeadlineFilter = (v) => {
+    setSelectedDeadlineFilter(v);
     setCurrentPage(1);
   };
   const handleDateRange = (v) => {
@@ -110,7 +118,10 @@ const TasksPage = () => {
     description: "",
     teamId: "",
     assignedTo: [],
+    deadline: null,
+    deadlineReminder: 3,
   });
+
   const [formErrors, setFormErrors] = useState({});
 
   const validateTaskForm = () => {
@@ -189,6 +200,26 @@ const TasksPage = () => {
       });
     }
 
+    // Filter by deadline
+    if (selectedDeadlineFilter) {
+      const now = new Date();
+      filtered = filtered.filter((task) => {
+        if (selectedDeadlineFilter === "no-deadline") return !task.deadline;
+        if (!task.deadline) return false;
+        const deadline = task.deadline?.toDate
+          ? task.deadline.toDate()
+          : new Date(task.deadline);
+        const diffDays = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+        if (selectedDeadlineFilter === "overdue") return diffDays < 0;
+        if (selectedDeadlineFilter === "today") return diffDays === 0;
+        if (selectedDeadlineFilter === "3days")
+          return diffDays >= 0 && diffDays <= 3;
+        if (selectedDeadlineFilter === "week")
+          return diffDays >= 0 && diffDays <= 7;
+        return true;
+      });
+    }
+
     // Default sort: most recent
     filtered.sort((a, b) => {
       const dateA = a.updatedAt?.toDate?.() || new Date(a.updatedAt);
@@ -204,6 +235,7 @@ const TasksPage = () => {
     selectedTeamFilter,
     selectedStatusFilter,
     selectedMemberFilter,
+    selectedDeadlineFilter,
     dateRange,
     user,
   ]);
@@ -287,8 +319,14 @@ const TasksPage = () => {
     setSelectedTeamFilter("");
     setSelectedStatusFilter("");
     setSelectedMemberFilter("");
+    setSelectedDeadlineFilter("");
     setDateRange({ start: null, end: null });
   };
+
+  useEffect(() => {
+    if (!user || tasks.length === 0) return;
+    sendDeadlineReminders(tasks, user.uid);
+  }, [user, tasks.length]);
 
   if (teamsLoading || tasksLoading) {
     return (
@@ -315,6 +353,52 @@ const TasksPage = () => {
         )
       }
     >
+      {/* Deadline Reminder Banner */}
+      {urgentDeadlineTasks.length > 0 && (
+        <div className="mb-4 p-4 bg-linear-to-r from-orange-50 to-red-50 border border-orange-200 rounded-2xl">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle size={16} className="text-orange-500" />
+            <h3 className="text-sm font-semibold text-orange-700">
+              {urgentDeadlineTasks.length} task
+              {urgentDeadlineTasks.length > 1 ? "s" : ""} need your attention
+            </h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {urgentDeadlineTasks.slice(0, 5).map((task) => {
+              const info = getDeadlineInfo(task);
+              return (
+                <button
+                  key={task.id}
+                  onClick={() => {
+                    setSelectedTask(task);
+                    setShowDetailModal(true);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all hover:shadow-sm
+              ${
+                info.isOverdue
+                  ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
+                  : info.isToday
+                    ? "bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200"
+                    : "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200"
+              }`}
+                >
+                  <span>
+                    {info.isOverdue ? "🚨" : info.isToday ? "⚠️" : "⏰"}
+                  </span>
+                  <span className="max-w-32 truncate">{task.title}</span>
+                  <span className="opacity-70">· {info.label}</span>
+                </button>
+              );
+            })}
+            {urgentDeadlineTasks.length > 5 && (
+              <span className="flex items-center px-3 py-1.5 text-xs text-orange-500">
+                +{urgentDeadlineTasks.length - 5} more
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Statistics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 lg:gap-4 mb-5 lg:mb-8">
         {" "}
@@ -436,6 +520,8 @@ const TasksPage = () => {
           setSelectedStatusFilter={setSelectedStatusFilter}
           selectedMemberFilter={selectedMemberFilter}
           setSelectedMemberFilter={setSelectedMemberFilter}
+          selectedDeadlineFilter={selectedDeadlineFilter}
+          setSelectedDeadlineFilter={handleDeadlineFilter}
           dateRange={dateRange}
           setDateRange={setDateRange}
           availableMembers={availableMembers}
@@ -774,6 +860,54 @@ const TasksPage = () => {
               </p>
             )}
           </div>
+
+          {/* Deadline field - tambah setelah field description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
+              Deadline{" "}
+              <span className="text-gray-400 text-xs font-normal">
+                (optional)
+              </span>
+            </label>
+            <input
+              type="date"
+              value={
+                formData.deadline
+                  ? new Date(formData.deadline).toISOString().split("T")[0]
+                  : ""
+              }
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  deadline: e.target.value ? new Date(e.target.value) : null,
+                })
+              }
+              min={new Date().toISOString().split("T")[0]}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-400 transition-all"
+            />
+            {formData.deadline && (
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <label className="text-xs text-gray-500">Remind me</label>
+                <select
+                  value={formData.deadlineReminder ?? 3}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      deadlineReminder: parseInt(e.target.value),
+                    })
+                  }
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-violet-300"
+                >
+                  <option value={1}>1 day before</option>
+                  <option value={2}>2 days before</option>
+                  <option value={3}>3 days before</option>
+                  <option value={5}>5 days before</option>
+                  <option value={7}>7 days before</option>
+                </select>
+              </div>
+            )}
+          </div>
+
           <CustomSelect
             options={teamOptions}
             value={formData.teamId}
@@ -830,6 +964,8 @@ const TasksPage = () => {
                   assignedTo: formData.assignedTo,
                   teamName:
                     teams.find((t) => t.id === formData.teamId)?.name || "",
+                  deadline: formData.deadline || null,
+                  deadlineReminder: formData.deadlineReminder ?? 3,
                 });
                 setShowCreateModal(false);
                 toast.success("Task berhasil dibuat! 🎉");
@@ -838,6 +974,8 @@ const TasksPage = () => {
                   description: "",
                   teamId: "",
                   assignedTo: [],
+                  deadline: null,
+                  deadlineReminder: 3,
                 });
                 setFormErrors({});
               } catch (error) {

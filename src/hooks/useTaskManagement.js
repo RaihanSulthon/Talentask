@@ -52,7 +52,7 @@ export const useTaskManagement = (teams) => {
       user.displayName || user.email || "",
     );
   };
-  
+
   const handleUpdateTask = async (taskId, updates, context = {}) => {
     await updateTask(taskId, updates, context);
   };
@@ -83,6 +83,37 @@ export const useTaskManagement = (teams) => {
     return tasks.filter((task) => task.status === status);
   };
 
+  // Helper: hitung sisa hari hingga deadline
+  const getDeadlineInfo = (task) => {
+    if (!task.deadline) return null;
+    const deadline = task.deadline?.toDate
+      ? task.deadline.toDate()
+      : new Date(task.deadline);
+    const now = new Date();
+    const diffMs = deadline - now;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    return {
+      deadline,
+      diffDays,
+      isOverdue: diffDays < 0,
+      isToday: diffDays === 0,
+      isUrgent: diffDays >= 0 && diffDays <= (task.deadlineReminder ?? 3),
+      label:
+        diffDays < 0
+          ? `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) > 1 ? "s" : ""}`
+          : diffDays === 0
+            ? "Due today"
+            : `${diffDays} day${diffDays > 1 ? "s" : ""} left`,
+    };
+  };
+
+  // Tasks yang mendekati/melewati deadline (untuk banner reminder)
+  const urgentDeadlineTasks = tasks.filter((task) => {
+    if (!task.deadline || task.status === "done") return false;
+    const info = getDeadlineInfo(task);
+    return info?.isUrgent || info?.isOverdue;
+  });
+
   return {
     tasks,
     loading,
@@ -94,5 +125,7 @@ export const useTaskManagement = (teams) => {
     handleRemoveAssignee,
     canEditTask,
     getTasksByStatus,
+    getDeadlineInfo,
+    urgentDeadlineTasks,
   };
 };

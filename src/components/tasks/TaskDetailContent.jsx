@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Edit2, Trash2, Clock } from "lucide-react";
+import { X, Edit2, Trash2, Clock, Calendar, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import CustomSelect from "../CustomSelect";
 
@@ -22,6 +22,8 @@ const TaskDetailContent = ({
     description: task.description,
     status: task.status,
     assignedTo: task.assignedTo || [],
+    deadline: task.deadline || null,
+    deadlineReminder: task.deadlineReminder ?? 3,
   });
   const [showAssignDropdown, setShowAssignDropdown] = useState(false);
   const currentTeam = teams.find((t) => t.id === task.teamId);
@@ -74,6 +76,33 @@ const TaskDetailContent = ({
     return date.toLocaleString("en-GB");
   };
 
+  const getDeadlineInfo = () => {
+    const dl = formData.deadline || task.deadline;
+    if (!dl) return null;
+    const deadline = dl?.toDate ? dl.toDate() : new Date(dl);
+    const now = new Date();
+    const diffDays = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+    return {
+      deadline,
+      diffDays,
+      isOverdue: diffDays < 0,
+      isToday: diffDays === 0,
+      isUrgent: diffDays >= 0 && diffDays <= (formData.deadlineReminder ?? 3),
+      label:
+        diffDays < 0
+          ? `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) > 1 ? "s" : ""}`
+          : diffDays === 0
+            ? "Due today"
+            : `${diffDays} day${diffDays > 1 ? "s" : ""} left`,
+      formatted: deadline.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }),
+    };
+  };
+  const deadlineInfo = getDeadlineInfo();
+
   if (isEditing && isAdmin) {
     return (
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -113,6 +142,54 @@ const TaskDetailContent = ({
           onChange={(value) => setFormData({ ...formData, status: value })}
           label="Status"
         />
+
+        {/* Deadline - di form edit, setelah CustomSelect status */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest">
+            Deadline
+          </label>
+          <input
+            type="date"
+            value={
+              formData.deadline
+                ? (formData.deadline?.toDate
+                    ? formData.deadline.toDate()
+                    : new Date(formData.deadline)
+                  )
+                    .toISOString()
+                    .split("T")[0]
+                : ""
+            }
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                deadline: e.target.value ? new Date(e.target.value) : null,
+              })
+            }
+            className="w-full px-4 py-3 bg-white text-slate-800 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent text-sm transition-all shadow-sm"
+          />
+          {formData.deadline && (
+            <div className="flex items-center gap-2 mt-1">
+              <label className="text-xs text-slate-500">Reminder:</label>
+              <select
+                value={formData.deadlineReminder ?? 3}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    deadlineReminder: parseInt(e.target.value),
+                  })
+                }
+                className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-300"
+              >
+                <option value={1}>1 day before</option>
+                <option value={2}>2 days before</option>
+                <option value={3}>3 days before</option>
+                <option value={5}>5 days before</option>
+                <option value={7}>7 days before</option>
+              </select>
+            </div>
+          )}
+        </div>
 
         {task.status === "inreview" && (
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
@@ -362,6 +439,66 @@ const TaskDetailContent = ({
           >
             {statusOptions.find((s) => s.value === task.status)?.label}
           </span>
+        )}
+      </div>
+
+      {/* Deadline display - di view mode, setelah status section */}
+      <div
+        className={`p-4 rounded-xl border ${
+          deadlineInfo?.isOverdue
+            ? "bg-red-50 border-red-200"
+            : deadlineInfo?.isToday
+              ? "bg-orange-50 border-orange-200"
+              : deadlineInfo?.isUrgent
+                ? "bg-amber-50 border-amber-200"
+                : "bg-slate-50 border-slate-100"
+        }`}
+      >
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
+          Deadline
+        </label>
+        {deadlineInfo ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar
+                size={15}
+                className={
+                  deadlineInfo.isOverdue
+                    ? "text-red-500"
+                    : deadlineInfo.isToday
+                      ? "text-orange-500"
+                      : deadlineInfo.isUrgent
+                        ? "text-amber-500"
+                        : "text-slate-400"
+                }
+              />
+              <span className="text-slate-700 font-medium text-sm">
+                {deadlineInfo.formatted}
+              </span>
+            </div>
+            <span
+              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                deadlineInfo.isOverdue
+                  ? "bg-red-100 text-red-600"
+                  : deadlineInfo.isToday
+                    ? "bg-orange-100 text-orange-600"
+                    : deadlineInfo.isUrgent
+                      ? "bg-amber-100 text-amber-600"
+                      : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {deadlineInfo.isOverdue
+                ? "🚨 "
+                : deadlineInfo.isToday
+                  ? "⚠️ "
+                  : deadlineInfo.isUrgent
+                    ? "⏰ "
+                    : ""}
+              {deadlineInfo.label}
+            </span>
+          </div>
+        ) : (
+          <p className="text-slate-400 text-sm italic">No deadline set</p>
         )}
       </div>
 
