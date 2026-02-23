@@ -13,6 +13,7 @@ const FilterDropdown = ({ value, onChange, options, placeholder }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const selected = options.find((o) => o.value === value);
+  const isActive = !!value;
 
   useEffect(() => {
     const handler = (e) => {
@@ -31,15 +32,22 @@ const FilterDropdown = ({ value, onChange, options, placeholder }) => {
           ${
             open
               ? "border-violet-400 ring-2 ring-violet-100 bg-white text-gray-800"
-              : "border-gray-200 bg-white text-gray-600 hover:border-violet-300 hover:text-gray-800"
+              : isActive
+                ? "border-violet-400 bg-violet-50 text-violet-700"
+                : "border-gray-200 bg-white text-gray-600 hover:border-violet-300 hover:text-gray-800"
           }`}
       >
-        <span className={selected?.value ? "text-gray-800" : "text-gray-400"}>
-          {selected?.label || placeholder}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {isActive && selected?.dot && (
+            <span className={`w-2 h-2 rounded-full shrink-0 ${selected.dot}`} />
+          )}
+          <span className={isActive ? "text-violet-700" : "text-gray-400"}>
+            {selected?.label || placeholder}
+          </span>
+        </div>
         <ChevronDown
           size={14}
-          className={`text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`transition-transform ${isActive ? "text-violet-400" : "text-gray-400"} ${open ? "rotate-180" : ""}`}
         />
       </button>
 

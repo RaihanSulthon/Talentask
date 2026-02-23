@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useTeamManagement } from "../hooks/useTeamManagement";
@@ -60,6 +60,19 @@ const TasksPage = () => {
   const ITEMS_PER_PAGE = 4;
   const toast = useToast();
   const navigate = useNavigate();
+  const taskListRef = useRef(null);
+
+  const handleShowMoreUrgent = () => {
+    setSelectedDeadlineFilter("3days");
+    setCurrentPage(1);
+    toast.info('Filter "Next 3 Days" diterapkan.');
+    setTimeout(() => {
+      taskListRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  };
 
   // Bungkus setiap setter filter agar reset page
   const handleStatusFilter = (v) => {
@@ -388,9 +401,12 @@ const TasksPage = () => {
               );
             })}
             {urgentDeadlineTasks.length > 5 && (
-              <span className="flex items-center px-3 py-1.5 text-xs text-orange-500">
+              <button
+                onClick={handleShowMoreUrgent}
+                className="flex items-center px-3 py-1.5 text-xs font-semibold text-orange-600 bg-orange-100 border border-orange-200 rounded-full hover:bg-orange-200 transition-all"
+              >
                 +{urgentDeadlineTasks.length - 5} more
-              </span>
+              </button>
             )}
           </div>
         </div>
@@ -532,7 +548,7 @@ const TasksPage = () => {
       <TaskViewToggle viewMode={viewMode} setViewMode={setViewMode} />
 
       {/* Tasks List */}
-      <div className="space-y-3">
+      <div ref={taskListRef} className="space-y-3">
         {viewMode === "list" &&
           (() => {
             const totalPages = Math.ceil(filteredTasks.length / ITEMS_PER_PAGE);
