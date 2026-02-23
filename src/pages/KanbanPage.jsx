@@ -111,15 +111,6 @@ const KanbanPage = () => {
       e.preventDefault();
       return;
     }
-
-    if (task.status === "inreview" && !isAdmin) {
-      e.preventDefault();
-      toast.warning(
-        "Task ini sedang menunggu persetujuan dan tidak dapat dipindah.",
-      );
-      return;
-    }
-
     setDraggedTask(task);
   };
 

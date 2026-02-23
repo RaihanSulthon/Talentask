@@ -417,9 +417,19 @@ const TaskDetailContent = ({
                     !window.confirm(
                       "Submit this task for approval? Your team owner will review it.",
                     )
-                  ) {
+                  )
                     return;
-                  }
+                }
+                if (
+                  task.status === "inreview" &&
+                  (value === "todo" || value === "inprogress")
+                ) {
+                  if (
+                    !window.confirm(
+                      "Tarik task ini dari review? Task akan kembali ke status sebelumnya.",
+                    )
+                  )
+                    return;
                 }
                 setFormData({ ...formData, status: value });
                 if (onUpdateStatus) {
