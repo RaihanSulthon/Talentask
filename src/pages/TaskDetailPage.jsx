@@ -621,7 +621,8 @@ const TaskDetailPage = () => {
                 actorId: user.uid,
                 actorName: user.displayName,
               });
-              navigate(-1);
+              toast.success("Task berhasil dihapus.");
+              navigate(isAdmin ? "/admin/tasks" : "/user/tasks");
             }}
             canEdit={canEditTask(task)}
             loading={false}

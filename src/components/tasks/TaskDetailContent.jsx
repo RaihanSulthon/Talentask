@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Edit2, Trash2, Clock, Calendar, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import CustomSelect from "../CustomSelect";
+import Modal from "../Modal";
 
 const TaskDetailContent = ({
   task,
@@ -27,6 +28,7 @@ const TaskDetailContent = ({
     deadlineReminder: task.deadlineReminder ?? 3,
   });
   const [showAssignDropdown, setShowAssignDropdown] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const currentTeam = teams.find((t) => t.id === task.teamId);
 
   const statusOptions = [
@@ -597,20 +599,58 @@ const TaskDetailContent = ({
 
         {/* Delete */}
         {isAdmin && (
-          <button
-            onClick={() => {
-              if (
-                window.confirm("Are you sure you want to delete this task?")
-              ) {
-                onDelete(task.id);
-                onClose();
-              }
-            }}
-            className="w-full py-3.5 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm shadow-red-100"
-          >
-            <Trash2 size={16} />
-            Delete Task
-          </button>
+          <>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="w-full py-3.5 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm shadow-red-100"
+            >
+              <Trash2 size={16} />
+              Delete Task
+            </button>
+
+            <Modal
+              isOpen={showDeleteModal}
+              onClose={() => setShowDeleteModal(false)}
+              title=""
+              size="sm"
+            >
+              <div className="flex flex-col items-center text-center px-2 py-2">
+                <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <AlertTriangle size={28} className="text-red-500" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">
+                  Delete Task
+                </h3>
+                <p className="text-sm text-slate-600 mb-1">
+                  Are you sure you want to delete{" "}
+                  <span className="font-semibold text-slate-800">
+                    "{task.title}"
+                  </span>
+                  ?
+                </p>
+                <p className="text-xs text-slate-400 mb-6">
+                  This action cannot be undone.
+                </p>
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold text-sm transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      onDelete(task.id);
+                      setShowDeleteModal(false);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold text-sm transition-colors"
+                  >
+                    Delete Task
+                  </button>
+                </div>
+              </div>
+            </Modal>
+          </>
         )}
       </div>
     </div>
