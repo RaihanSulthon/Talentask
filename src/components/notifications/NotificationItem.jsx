@@ -65,7 +65,7 @@ const NotificationItem = ({
   const { userRole } = useAuth();
 
   const handleClick = async () => {
-    if (!notification.isRead) await onMarkAsRead(notification.id);
+    onDelete(notification.id);
     onClose?.();
 
     const isAdmin = userRole === "super_admin" || userRole === "admin";
