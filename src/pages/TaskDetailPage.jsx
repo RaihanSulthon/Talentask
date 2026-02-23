@@ -5,7 +5,6 @@ import {
   FileText,
   Upload,
   CheckCircle,
-  Clock,
   AlertCircle,
   Trash2,
   RotateCcw,
@@ -15,6 +14,7 @@ import {
   Link as LinkIcon,
   ExternalLink,
   ChevronDown,
+  Users,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useTeamManagement } from "../hooks/useTeamManagement";
@@ -51,6 +51,27 @@ const SubmissionStatusBadge = ({ status }) => {
   );
 };
 
+// ── Helper: group submissions by assignedTo, sorted newest first within each group ──
+const groupSubmissionsByPerson = (subs) => {
+  const map = {};
+  subs.forEach((sub) => {
+    if (!map[sub.assignedTo]) map[sub.assignedTo] = [];
+    map[sub.assignedTo].push(sub);
+  });
+  Object.keys(map).forEach((uid) => {
+    map[uid].sort((a, b) => {
+      const tA = a.submittedAt?.toDate
+        ? a.submittedAt.toDate()
+        : new Date(a.submittedAt || 0);
+      const tB = b.submittedAt?.toDate
+        ? b.submittedAt.toDate()
+        : new Date(b.submittedAt || 0);
+      return tB - tA;
+    });
+  });
+  return map;
+};
+
 const TaskDetailPage = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
@@ -72,19 +93,21 @@ const TaskDetailPage = () => {
   const [submissions, setSubmissions] = useState([]);
   const [loadingSubs, setLoadingSubs] = useState(true);
 
-  // Submission form state
+  // Submission form
   const [subContent, setSubContent] = useState("");
   const [subFile, setSubFile] = useState(null);
   const [subLink, setSubLink] = useState("");
   const [submissionType, setSubmissionType] = useState("text");
   const [submitting, setSubmitting] = useState(false);
 
-  // Review state
+  // Review
   const [reviewingId, setReviewingId] = useState(null);
   const [reviewNote, setReviewNote] = useState("");
 
-  // Expand state for compact submission cards
-  const [expandedSub, setExpandedSub] = useState(null);
+  // Separate expand states per section to avoid cross-section conflicts
+  const [expandedAdminSub, setExpandedAdminSub] = useState(null);
+  const [expandedMySub, setExpandedMySub] = useState(null);
+  const [expandedTeammateSub, setExpandedTeammateSub] = useState(null);
 
   const task = tasks.find((t) => t.id === taskId);
   const taskWithTeam = task
@@ -97,14 +120,15 @@ const TaskDetailPage = () => {
 
   const currentTeam = teams.find((t) => t.id === task?.teamId);
   const ownerIds = currentTeam?.ownerId ? [currentTeam.ownerId] : [];
+  const taskAssignees = task?.assignedTo || [];
 
-  // Filter submissions: user hanya lihat miliknya, admin lihat semua
-  const visibleSubmissions = isAdmin
-    ? submissions
-    : submissions.filter((s) => s.assignedTo === user?.uid);
+  // Grouped submissions for admin view
+  const adminGrouped = groupSubmissionsByPerson(submissions);
 
+  // User's own submissions, newest first
   const mySubmissions = submissions
     .filter((s) => s.assignedTo === user?.uid)
+    .slice()
     .sort((a, b) => {
       const tA = a.submittedAt?.toDate
         ? a.submittedAt.toDate()
@@ -112,9 +136,18 @@ const TaskDetailPage = () => {
       const tB = b.submittedAt?.toDate
         ? b.submittedAt.toDate()
         : new Date(b.submittedAt || 0);
-      return tB - tA; // terbaru di atas
+      return tB - tA;
     });
-  const mySubmission = mySubmissions[0]; // submission terbaru untuk cek status form
+  const mySubmission = mySubmissions[0];
+
+  // Teammate submissions grouped — only for user role
+  const teammateSubmissions = isUser
+    ? submissions.filter(
+        (s) =>
+          s.assignedTo !== user?.uid && taskAssignees.includes(s.assignedTo),
+      )
+    : [];
+  const teammateGrouped = groupSubmissionsByPerson(teammateSubmissions);
 
   useEffect(() => {
     if (!taskId) return;
@@ -156,11 +189,7 @@ const TaskDetailPage = () => {
           linkUrl: submissionType === "link" ? subLink.trim() : "",
           submissionType,
         },
-        {
-          ownerIds,
-          taskTitle: task.title,
-          teamName: currentTeam?.name || "",
-        },
+        { ownerIds, taskTitle: task.title, teamName: currentTeam?.name || "" },
       );
       setSubContent("");
       setSubFile(null);
@@ -192,7 +221,7 @@ const TaskDetailPage = () => {
           ? "Submission disetujui! ✅"
           : "Revision request dikirim 🔄",
       );
-    } catch (err) {
+    } catch {
       toast.error("Gagal memperbarui review.");
     }
   };
@@ -218,6 +247,278 @@ const TaskDetailPage = () => {
       minute: "2-digit",
     });
   };
+
+  // ── Expanded detail panel ──
+  const renderExpandedDetail = (
+    sub,
+    { showReviewNote = true, showReviewActions = false } = {},
+  ) => (
+    <div className="px-4 pb-4 pt-2 border-t border-slate-100 bg-slate-50/50 space-y-3">
+      {sub.content && (
+        <p className="text-slate-600 text-sm leading-relaxed bg-white border border-slate-100 rounded-xl px-4 py-3">
+          {sub.content}
+        </p>
+      )}
+      {sub.linkUrl && (
+        <a
+          href={sub.linkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors group"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <LinkIcon size={14} className="shrink-0" />
+          <span className="truncate flex-1">{sub.linkUrl}</span>
+          <ExternalLink
+            size={13}
+            className="shrink-0 opacity-60 group-hover:opacity-100"
+          />
+        </a>
+      )}
+      {sub.fileName && (
+        <div className="flex items-center gap-2 text-sm text-slate-500 bg-white border border-slate-100 rounded-xl px-4 py-2.5">
+          <Paperclip size={14} className="text-slate-400 shrink-0" />
+          <span className="truncate">{sub.fileName}</span>
+        </div>
+      )}
+      {showReviewNote && sub.reviewNote && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5">
+          <AlertCircle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-amber-600 mb-0.5">
+              {isAdmin ? "Catatan Review" : "Catatan dari Admin"}
+            </p>
+            <p className="text-amber-700 text-sm">{sub.reviewNote}</p>
+          </div>
+        </div>
+      )}
+      {showReviewActions &&
+        sub.status === "submitted" &&
+        (reviewingId === sub.id ? (
+          <div className="space-y-2 pt-1">
+            <textarea
+              rows={2}
+              placeholder="Catatan untuk anggota (opsional)..."
+              value={reviewNote}
+              onChange={(e) => setReviewNote(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none bg-white"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleReview(sub, "reviewed");
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-semibold transition-colors"
+              >
+                <CheckCircle size={14} /> Approve
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleReview(sub, "revision");
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold transition-colors"
+              >
+                <RotateCcw size={14} /> Minta Revisi
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setReviewingId(null);
+                  setReviewNote("");
+                }}
+                className="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-xl text-sm font-medium transition-colors"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setReviewingId(sub.id);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-medium transition-all"
+          >
+            <CheckCircle size={14} /> Review Submission
+          </button>
+        ))}
+    </div>
+  );
+
+  // ── Compact submission row ──
+  const renderSubRow = (
+    sub,
+    {
+      idx,
+      totalCount,
+      avatarColor,
+      label,
+      sublabel,
+      badge,
+      isExpanded,
+      canExpand,
+      onToggle,
+      onDelete: onDel,
+    },
+  ) => (
+    <div key={sub.id} className={idx !== 0 ? "border-t border-slate-100" : ""}>
+      <div
+        className={`flex items-center gap-3 px-4 py-3 transition-colors ${canExpand ? "cursor-pointer hover:bg-slate-50" : ""}`}
+        onClick={() => canExpand && onToggle()}
+      >
+        {/* Index bubble */}
+        <div
+          className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0 ${
+            idx === 0 ? avatarColor : "bg-slate-200 text-slate-500"
+          }`}
+        >
+          {totalCount - idx}
+        </div>
+
+        {/* Label + sublabel */}
+        <div className="w-44 shrink-0 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p
+              className={`text-sm font-semibold truncate ${idx === 0 ? "text-slate-800" : "text-slate-500"}`}
+            >
+              {label}
+            </p>
+            {badge && (
+              <span className="text-xs bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                terbaru
+              </span>
+            )}
+          </div>
+          {sublabel && (
+            <p className="text-xs text-slate-400 mt-0.5 truncate">{sublabel}</p>
+          )}
+        </div>
+
+        {/* Inline preview */}
+        <div className="flex-1 min-w-0 hidden md:flex items-center gap-2">
+          {!isExpanded && sub.content && (
+            <p className="text-slate-400 text-xs truncate">{sub.content}</p>
+          )}
+          {!isExpanded && sub.linkUrl && (
+            <span className="flex items-center gap-1 text-blue-400 text-xs shrink-0">
+              <LinkIcon size={11} /> Link
+            </span>
+          )}
+          {!isExpanded && sub.fileName && (
+            <span className="flex items-center gap-1 text-slate-400 text-xs shrink-0">
+              <Paperclip size={11} />
+              <span className="truncate max-w-30">{sub.fileName}</span>
+            </span>
+          )}
+        </div>
+
+        {/* Status */}
+        <SubmissionStatusBadge status={sub.status} />
+
+        {/* Chevron */}
+        {canExpand && (
+          <ChevronDown
+            size={15}
+            className={`text-slate-300 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+          />
+        )}
+
+        {/* Delete */}
+        {onDel && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDel();
+            }}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all shrink-0"
+          >
+            <Trash2 size={13} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  // ── Grouped person section ──
+  const renderPersonGroup = ({
+    uid,
+    subs,
+    member,
+    avatarColor,
+    expandState,
+    setExpandState,
+    showReviewActions,
+    showDelete,
+    showReviewNote = true,
+  }) => (
+    <div key={uid}>
+      {/* Person label — floats above card as section title */}
+      <div className="flex items-center gap-3 mb-2">
+        <div
+          className={`w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0 ${avatarColor}`}
+        >
+          {(member?.displayName ||
+            subs[0]?.assignedToName ||
+            "?")[0].toUpperCase()}
+        </div>
+        <div className="flex-1 min-w-0 flex items-center gap-2">
+          <p className="text-slate-700 font-bold text-sm truncate">
+            {member?.displayName || subs[0]?.assignedToName}
+          </p>
+          <span className="text-xs text-slate-400 font-normal">
+            · {subs.length} submission
+          </span>
+        </div>
+        <SubmissionStatusBadge status={subs[0].status} />
+      </div>
+
+      {/* Submission rows inside their own card */}
+      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+        {subs.map((sub, idx) => {
+          const isExpanded = expandState === sub.id;
+          const hasDetail =
+            sub.content ||
+            sub.linkUrl ||
+            sub.fileName ||
+            (showReviewNote && sub.reviewNote);
+          const canExpand =
+            hasDetail || (showReviewActions && sub.status === "submitted");
+
+          return (
+            <div
+              key={sub.id}
+              className={idx !== 0 ? "border-t border-slate-100" : ""}
+            >
+              {renderSubRow(sub, {
+                idx,
+                totalCount: subs.length,
+                avatarColor,
+                label:
+                  idx === 0
+                    ? "Pengiriman Terbaru"
+                    : `Pengiriman #${subs.length - idx}`,
+                sublabel: formatDate(sub.submittedAt),
+                badge: idx === 0,
+                isExpanded,
+                canExpand,
+                onToggle: () => setExpandState(isExpanded ? null : sub.id),
+                onDelete: showDelete ? () => handleDelete(sub.id) : null,
+              })}
+              {isExpanded &&
+                renderExpandedDetail(sub, {
+                  showReviewNote,
+                  showReviewActions,
+                })}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   if (!task && tasks.length > 0) {
     return (
@@ -248,7 +549,6 @@ const TaskDetailPage = () => {
 
   return (
     <DashboardLayout title={task.title} subtitle={taskWithTeam?.teamName}>
-      {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
         className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-700 transition-colors mb-6 text-sm font-medium group"
@@ -262,36 +562,36 @@ const TaskDetailPage = () => {
 
       {/* Tab Header */}
       <div className="flex gap-1 mb-8 border-b border-slate-200">
-        <button
-          onClick={() => setActiveTab("detail")}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 -mb-px transition-all ${
-            activeTab === "detail"
-              ? "border-emerald-500 text-emerald-600 bg-emerald-50/50"
-              : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-          } rounded-t-lg`}
-        >
-          <FileText size={15} />
-          Task Detail
-        </button>
-        <button
-          onClick={() => setActiveTab("submission")}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 -mb-px transition-all ${
-            activeTab === "submission"
-              ? "border-emerald-500 text-emerald-600 bg-emerald-50/50"
-              : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-          } rounded-t-lg`}
-        >
-          <Upload size={15} />
-          Submission
-          {submissions.length > 0 && (
-            <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
-              {submissions.length}
-            </span>
-          )}
-        </button>
+        {[
+          { key: "detail", icon: <FileText size={15} />, label: "Task Detail" },
+          {
+            key: "submission",
+            icon: <Upload size={15} />,
+            label: "Submission",
+            count: submissions.length,
+          },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 -mb-px transition-all ${
+              activeTab === tab.key
+                ? "border-emerald-500 text-emerald-600 bg-emerald-50/50"
+                : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+            } rounded-t-lg`}
+          >
+            {tab.icon}
+            {tab.label}
+            {tab.count > 0 && (
+              <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Tab Content */}
+      {/* ── DETAIL TAB ── */}
       {activeTab === "detail" && taskWithTeam && (
         <div className="w-full">
           <TaskDetailContent
@@ -330,13 +630,13 @@ const TaskDetailPage = () => {
         </div>
       )}
 
+      {/* ── SUBMISSION TAB ── */}
       {activeTab === "submission" && (
         <div className="w-full space-y-6">
-          {/* ── ADMIN: daftar semua submission ── */}
+          {/* ══ ADMIN VIEW ══ */}
           {isAdmin && (
-            <div className="space-y-2">
-              {/* Header tabel */}
-              <div className="flex items-center justify-between mb-3">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                   Submissions ({submissions.length})
                 </h3>
@@ -359,383 +659,113 @@ const TaskDetailPage = () => {
                   </p>
                 </div>
               ) : (
-                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-                  {submissions.map((sub, idx) => {
-                    const member = currentTeam?.members?.find(
-                      (m) =>
-                        m.uid === sub.assignedTo || m.id === sub.assignedTo,
-                    );
-                    const isExpanded = expandedSub === sub.id;
-                    const hasDetail =
-                      sub.content ||
-                      sub.linkUrl ||
-                      sub.fileName ||
-                      sub.reviewNote;
-                    const canExpand = hasDetail || sub.status === "submitted";
-
-                    return (
-                      <div
-                        key={sub.id}
-                        className={`${idx !== 0 ? "border-t border-slate-100" : ""}`}
-                      >
-                        {/* ── Compact Row ── */}
-                        <div
-                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                            canExpand ? "cursor-pointer hover:bg-slate-50" : ""
-                          }`}
-                          onClick={() =>
-                            canExpand
-                              ? setExpandedSub(isExpanded ? null : sub.id)
-                              : null
-                          }
-                        >
-                          {/* Avatar */}
-                          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                            {(member?.displayName ||
-                              sub.assignedToName ||
-                              "?")[0].toUpperCase()}
-                          </div>
-
-                          {/* Nama */}
-                          <p className="text-slate-800 font-semibold text-sm w-36 shrink-0 truncate">
-                            {member?.displayName || sub.assignedToName}
-                          </p>
-
-                          {/* Preview konten — hanya saat collapsed */}
-                          <div className="flex-1 min-w-0 hidden md:flex items-center gap-2">
-                            {!isExpanded && sub.content && (
-                              <p className="text-slate-400 text-xs truncate">
-                                {sub.content}
-                              </p>
-                            )}
-                            {!isExpanded && sub.linkUrl && (
-                              <span className="flex items-center gap-1 text-blue-400 text-xs shrink-0">
-                                <LinkIcon size={11} /> Link
-                              </span>
-                            )}
-                            {!isExpanded && sub.fileName && (
-                              <span className="flex items-center gap-1 text-slate-400 text-xs shrink-0">
-                                <Paperclip size={11} />
-                                <span className="truncate max-w-30">
-                                  {sub.fileName}
-                                </span>
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Tanggal */}
-                          <p className="text-slate-400 text-xs shrink-0 hidden lg:block w-36 text-right">
-                            {formatDate(sub.submittedAt)}
-                          </p>
-
-                          {/* Status badge */}
-                          <SubmissionStatusBadge status={sub.status} />
-
-                          {/* Chevron */}
-                          {canExpand && (
-                            <ChevronDown
-                              size={15}
-                              className={`text-slate-300 shrink-0 transition-transform duration-200 ${
-                                isExpanded ? "rotate-180" : ""
-                              }`}
-                            />
-                          )}
-
-                          {/* Delete */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(sub.id);
-                            }}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all shrink-0"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-
-                        {/* ── Expanded Detail ── */}
-                        {isExpanded && (
-                          <div className="px-4 pb-4 pt-2 border-t border-slate-100 bg-slate-50/50 space-y-3">
-                            {sub.content && (
-                              <p className="text-slate-600 text-sm leading-relaxed bg-white border border-slate-100 rounded-xl px-4 py-3">
-                                {sub.content}
-                              </p>
-                            )}
-
-                            {sub.linkUrl && (
-                              <a
-                                href={sub.linkUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors group"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <LinkIcon size={14} className="shrink-0" />
-                                <span className="truncate flex-1">
-                                  {sub.linkUrl}
-                                </span>
-                                <ExternalLink
-                                  size={13}
-                                  className="shrink-0 opacity-60 group-hover:opacity-100"
-                                />
-                              </a>
-                            )}
-
-                            {sub.fileName && (
-                              <div className="flex items-center gap-2 text-sm text-slate-500 bg-white border border-slate-100 rounded-xl px-4 py-2.5">
-                                <Paperclip
-                                  size={14}
-                                  className="text-slate-400 shrink-0"
-                                />
-                                <span className="truncate">{sub.fileName}</span>
-                              </div>
-                            )}
-
-                            {sub.reviewNote && (
-                              <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5">
-                                <AlertCircle
-                                  size={14}
-                                  className="text-amber-500 mt-0.5 shrink-0"
-                                />
-                                <div>
-                                  <p className="text-xs font-semibold text-amber-600 mb-0.5">
-                                    Catatan Review
-                                  </p>
-                                  <p className="text-amber-700 text-sm">
-                                    {sub.reviewNote}
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Review actions */}
-                            {isAdmin &&
-                              sub.status === "submitted" &&
-                              (reviewingId === sub.id ? (
-                                <div className="space-y-2 pt-1">
-                                  <textarea
-                                    rows={2}
-                                    placeholder="Catatan untuk anggota (opsional)..."
-                                    value={reviewNote}
-                                    onChange={(e) =>
-                                      setReviewNote(e.target.value)
-                                    }
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none bg-white"
-                                  />
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleReview(sub, "reviewed");
-                                      }}
-                                      className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-semibold transition-colors"
-                                    >
-                                      <CheckCircle size={14} /> Approve
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleReview(sub, "revision");
-                                      }}
-                                      className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold transition-colors"
-                                    >
-                                      <RotateCcw size={14} /> Minta Revisi
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setReviewingId(null);
-                                        setReviewNote("");
-                                      }}
-                                      className="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-xl text-sm font-medium transition-colors"
-                                    >
-                                      Batal
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setReviewingId(sub.id);
-                                  }}
-                                  className="flex items-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-medium transition-all"
-                                >
-                                  <CheckCircle size={14} />
-                                  Review Submission
-                                </button>
-                              ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                // Render one card per person
+                Object.entries(adminGrouped).map(([uid, subs]) => {
+                  const member = currentTeam?.members?.find(
+                    (m) => m.uid === uid || m.id === uid,
+                  );
+                  return renderPersonGroup({
+                    uid,
+                    subs,
+                    member,
+                    avatarColor:
+                      "bg-gradient-to-br from-emerald-400 to-emerald-600",
+                    expandState: expandedAdminSub,
+                    setExpandState: setExpandedAdminSub,
+                    showReviewActions: true,
+                    showReviewNote: true,
+                    showDelete: true,
+                  });
+                })
               )}
             </div>
           )}
 
-          {/* ── USER: lihat submission miliknya + form submit baru ── */}
+          {/* ══ USER VIEW ══ */}
           {isUser && (
-            <div className="space-y-5">
-              {/* Semua submission milik user — terbaru di atas */}
-              {mySubmissions.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                    Submission Kamu ({mySubmissions.length})
-                  </h3>
-                  <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-                    {mySubmissions.map((sub, idx) => {
-                      const isExpanded = expandedSub === sub.id;
-                      const hasDetail =
-                        sub.content ||
-                        sub.linkUrl ||
-                        sub.fileName ||
-                        sub.reviewNote;
-                      const isLatest = idx === 0;
+            <div className="space-y-6">
+              {/* — Submission Kamu — */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  Submission Kamu ({mySubmissions.length})
+                </h3>
 
-                      return (
-                        <div
-                          key={sub.id}
-                          className={
-                            idx !== 0 ? "border-t border-slate-100" : ""
-                          }
-                        >
-                          {/* Compact Row */}
+                {loadingSubs ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="w-7 h-7 border-[3px] border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : mySubmissions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mb-3">
+                      <Send size={20} className="text-slate-300" />
+                    </div>
+                    <p className="text-slate-400 text-sm">
+                      Kamu belum mengumpulkan tugas
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0 bg-linear-to-br from-emerald-400 to-emerald-600">
+                        {(user?.displayName || "?")[0].toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-slate-700 font-bold text-sm truncate">
+                            {user?.displayName || "Kamu"}
+                          </p>
+                          <span className="text-xs text-slate-400 font-normal">
+                            · {mySubmissions.length} submission
+                          </span>
+                        </div>
+                      </div>
+                      <SubmissionStatusBadge status={mySubmissions[0].status} />
+                    </div>
+                    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+                      {mySubmissions.map((sub, idx) => {
+                        const isExpanded = expandedMySub === sub.id;
+                        const hasDetail =
+                          sub.content ||
+                          sub.linkUrl ||
+                          sub.fileName ||
+                          sub.reviewNote;
+                        return (
                           <div
-                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
-                              hasDetail
-                                ? "cursor-pointer hover:bg-slate-50"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              hasDetail
-                                ? setExpandedSub(isExpanded ? null : sub.id)
-                                : null
+                            key={sub.id}
+                            className={
+                              idx !== 0 ? "border-t border-slate-100" : ""
                             }
                           >
-                            {/* Icon */}
-                            <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
-                              <Send size={13} className="text-emerald-600" />
-                            </div>
-
-                            {/* Label */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="text-slate-700 font-semibold text-sm">
-                                  {isLatest
-                                    ? "Terbaru"
-                                    : `Pengiriman #${mySubmissions.length - idx}`}
-                                </p>
-                                {isLatest && (
-                                  <span className="text-xs bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">
-                                    latest
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-slate-400 mt-0.5">
-                                {formatDate(sub.submittedAt)}
-                              </p>
-                            </div>
-
-                            {/* Preview */}
-                            {!isExpanded && sub.content && (
-                              <p className="text-slate-400 text-xs truncate max-w-xs hidden md:block">
-                                {sub.content}
-                              </p>
-                            )}
-                            {!isExpanded && sub.linkUrl && (
-                              <span className="items-center gap-1 text-blue-400 text-xs hidden md:flex shrink-0">
-                                <LinkIcon size={11} /> Link
-                              </span>
-                            )}
-                            {!isExpanded && sub.fileName && (
-                              <span className="flex items-center gap-1 text-slate-400 text-xs md:flex shrink-0">
-                                <Paperclip size={11} />
-                                <span className="truncate max-w-25">
-                                  {sub.fileName}
-                                </span>
-                              </span>
-                            )}
-
-                            {/* Status */}
-                            <SubmissionStatusBadge status={sub.status} />
-
-                            {/* Chevron */}
-                            {hasDetail && (
-                              <ChevronDown
-                                size={15}
-                                className={`text-slate-300 shrink-0 transition-transform duration-200 ${
-                                  isExpanded ? "rotate-180" : ""
-                                }`}
-                              />
-                            )}
+                            {renderSubRow(sub, {
+                              idx,
+                              totalCount: mySubmissions.length,
+                              avatarColor:
+                                "bg-gradient-to-br from-emerald-400 to-emerald-600",
+                              label:
+                                idx === 0
+                                  ? "Pengiriman Terbaru"
+                                  : `Pengiriman #${mySubmissions.length - idx}`,
+                              sublabel: formatDate(sub.submittedAt),
+                              badge: idx === 0,
+                              isExpanded,
+                              canExpand: hasDetail,
+                              onToggle: () =>
+                                setExpandedMySub(isExpanded ? null : sub.id),
+                            })}
+                            {isExpanded &&
+                              renderExpandedDetail(sub, {
+                                showReviewNote: true,
+                                showReviewActions: false,
+                              })}
                           </div>
-
-                          {/* Expanded Detail */}
-                          {isExpanded && (
-                            <div className="px-4 pb-4 pt-2 border-t border-slate-100 bg-slate-50/50 space-y-3">
-                              {sub.content && (
-                                <p className="text-slate-600 text-sm leading-relaxed bg-white border border-slate-100 rounded-xl px-4 py-3">
-                                  {sub.content}
-                                </p>
-                              )}
-                              {sub.linkUrl && (
-                                <a
-                                  href={sub.linkUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors group"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <LinkIcon size={14} className="shrink-0" />
-                                  <span className="truncate flex-1">
-                                    {sub.linkUrl}
-                                  </span>
-                                  <ExternalLink
-                                    size={13}
-                                    className="shrink-0 opacity-60 group-hover:opacity-100"
-                                  />
-                                </a>
-                              )}
-                              {sub.fileName && (
-                                <div className="flex items-center gap-2 text-sm text-slate-500 bg-white border border-slate-100 rounded-xl px-4 py-2.5">
-                                  <Paperclip
-                                    size={14}
-                                    className="text-slate-400 shrink-0"
-                                  />
-                                  <span className="truncate">
-                                    {sub.fileName}
-                                  </span>
-                                </div>
-                              )}
-                              {sub.reviewNote && (
-                                <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5">
-                                  <AlertCircle
-                                    size={14}
-                                    className="text-amber-500 mt-0.5 shrink-0"
-                                  />
-                                  <div>
-                                    <p className="text-xs font-semibold text-amber-600 mb-0.5">
-                                      Catatan dari Admin
-                                    </p>
-                                    <p className="text-amber-700 text-sm">
-                                      {sub.reviewNote}
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
-              {/* Form submit baru / resubmit */}
+              {/* — Form Submit / Resubmit — */}
               {(!mySubmission || mySubmission.status === "revision") && (
                 <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
                   <div className="flex items-center gap-3 mb-6">
@@ -757,7 +787,6 @@ const TaskDetailPage = () => {
                   </div>
 
                   <div className="space-y-4">
-                    {/* Submission type selector */}
                     <div>
                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                         Tipe Submission
@@ -800,7 +829,6 @@ const TaskDetailPage = () => {
                       </div>
                     </div>
 
-                    {/* Deskripsi/Catatan — selalu tampil */}
                     <div>
                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">
                         Deskripsi / Catatan{" "}
@@ -819,7 +847,6 @@ const TaskDetailPage = () => {
                       />
                     </div>
 
-                    {/* File upload */}
                     {submissionType === "file" && (
                       <div>
                         <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">
@@ -877,7 +904,6 @@ const TaskDetailPage = () => {
                       </div>
                     )}
 
-                    {/* Link input */}
                     {submissionType === "link" && (
                       <div>
                         <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">
@@ -907,6 +933,33 @@ const TaskDetailPage = () => {
                       {submitting ? "Mengirim..." : "Kirim Submission"}
                     </button>
                   </div>
+                </div>
+              )}
+
+              {/* — Submission Rekan Tim — */}
+              {Object.keys(teammateGrouped).length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <Users size={13} />
+                    Submission Rekan Tim ({teammateSubmissions.length})
+                  </h3>
+                  {Object.entries(teammateGrouped).map(([uid, subs]) => {
+                    const member = currentTeam?.members?.find(
+                      (m) => m.uid === uid || m.id === uid,
+                    );
+                    return renderPersonGroup({
+                      uid,
+                      subs,
+                      member,
+                      avatarColor:
+                        "bg-gradient-to-br from-violet-400 to-violet-600",
+                      expandState: expandedTeammateSub,
+                      setExpandState: setExpandedTeammateSub,
+                      showReviewActions: false,
+                      showReviewNote: false,
+                      showDelete: false,
+                    });
+                  })}
                 </div>
               )}
             </div>
