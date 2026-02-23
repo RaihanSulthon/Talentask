@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -29,31 +29,23 @@ const ApprovalsPage = () => {
     handleUpdateTask,
   } = useTaskManagement(teams);
 
-  const [selectedTask, setSelectedTask] = useState(null);
   const [selectedTeamFilter, setSelectedTeamFilter] = useState("");
-  const [actionLoading, setActionLoading] = useState(false);
-  const [confirmModal, setConfirmModal] = useState({
-    open: false,
-    type: null,
-    task: null,
-  });
-
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const toast = useToast();
 
-  // Auto-buka task dari notif jika ada ?taskId= di URL
+  // Auto-redirect ke task detail dari notif jika ada ?taskId= di URL
   useEffect(() => {
     const taskIdFromUrl = searchParams.get("taskId");
     if (taskIdFromUrl && tasks.length > 0) {
       const task = tasks.find((t) => t.id === taskIdFromUrl);
       if (task) {
-        const taskWithTeamName = {
-          ...task,
-          teamName:
-            teams.find((t) => t.id === task.teamId)?.name || "Unknown Team",
-        };
-        setSelectedTask(taskWithTeamName);
-        setSearchParams({}, { replace: true }); // bersihkan URL setelah dibuka
+        const teamName =
+          teams.find((t) => t.id === task.teamId)?.name || "Unknown Team";
+        setSearchParams({}, { replace: true });
+        navigate(`/task/${task.id}`, {
+          state: { fromApproval: true, taskTitle: task.title, teamName },
+        });
       }
     }
   }, [searchParams, tasks, teams]);
@@ -146,59 +138,14 @@ const ApprovalsPage = () => {
     };
   }, [tasks, pendingApprovals, ownedTeams, isAdmin, isSuperAdmin]);
 
-  const handleApprove = async (task) => {
-    try {
-      setActionLoading(true);
-      await handleUpdateTaskStatus(task.id, "done", {
-        taskTitle: task.title,
-        teamId: task.teamId,
-        teamName: task.teamName,
-        assignedTo: task.assignedTo || [],
-        actorId: user.uid,
-        actorName: user.displayName,
-      });
-      setSelectedTask(null);
-      setConfirmModal({ open: false, type: null, task: null });
-      toast.success(`Task "${task.title}" berhasil disetujui! ✅`);
-    } catch (error) {
-      console.error("Error approving task:", error);
-      toast.error("Gagal menyetujui task. Silakan coba lagi.");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleDecline = async (task) => {
-    try {
-      setActionLoading(true);
-      await handleUpdateTaskStatus(task.id, "inprogress", {
-        taskTitle: task.title,
-        teamId: task.teamId,
-        teamName: task.teamName,
-        assignedTo: task.assignedTo || [],
-        actorId: user.uid,
-        actorName: user.displayName,
-        isDecline: true,
-      });
-      setSelectedTask(null);
-      setConfirmModal({ open: false, type: null, task: null });
-      toast.warning(`Task "${task.title}" telah ditolak dan dikembalikan.`);
-    } catch (error) {
-      console.error("Error declining task:", error);
-      toast.error("Gagal menolak task. Silakan coba lagi.");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  // Helper untuk buka confirm modal
-  const openConfirm = (type, task, e) => {
-    e?.stopPropagation();
-    setConfirmModal({ open: true, type, task });
-  };
-
   const handleTaskClick = (task) => {
-    setSelectedTask(task);
+    navigate(`/task/${task.id}`, {
+      state: {
+        fromApproval: true,
+        taskTitle: task.title,
+        teamName: task.teamName,
+      },
+    });
   };
 
   const formatDate = (timestamp) => {
@@ -391,116 +338,6 @@ const ApprovalsPage = () => {
           </div>
         )}
       </div>
-
-      {/* Detail Modal */}
-      <Modal
-        isOpen={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
-        maxWidth="max-w-2xl"
-        title={
-          <>
-            <span className="text-2xl font-bold text-gray-800">
-              Task Review
-            </span>
-            <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full text-xs font-medium">
-              Pending Approval
-            </span>
-          </>
-        }
-      >
-        {selectedTask && (
-          <ApprovalDetailContent
-            task={selectedTask}
-            teams={teams}
-            isAdmin={isAdmin}
-            actionLoading={actionLoading}
-            onApprove={() => openConfirm("approve", selectedTask)}
-            onDecline={() => openConfirm("decline", selectedTask)}
-          />
-        )}
-      </Modal>
-      {/* Confirmation Modal */}
-      <Modal
-        isOpen={confirmModal.open}
-        onClose={() => setConfirmModal({ open: false, type: null, task: null })}
-        maxWidth="max-w-md"
-        title={
-          confirmModal.type === "approve" ? (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                <CheckCircle size={18} className="text-emerald-600" />
-              </div>
-              <span className="text-lg font-semibold text-gray-800">
-                Approve Task
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                <XCircle size={18} className="text-red-500" />
-              </div>
-              <span className="text-lg font-semibold text-gray-800">
-                Decline Task
-              </span>
-            </div>
-          )
-        }
-      >
-        <div className="space-y-5">
-          <p className="text-gray-600 text-sm leading-relaxed">
-            {confirmModal.type === "approve"
-              ? `Apakah kamu yakin ingin menyetujui task `
-              : `Apakah kamu yakin ingin menolak task `}
-            <span className="font-semibold text-gray-800">
-              "{confirmModal.task?.title}"
-            </span>
-            {confirmModal.type === "decline" && (
-              <span className="text-gray-600">
-                ? Task akan dikembalikan ke{" "}
-                <span className="font-medium text-orange-600">In Progress</span>
-                .
-              </span>
-            )}
-          </p>
-
-          <div className="flex gap-3 justify-end">
-            <button
-              onClick={() =>
-                setConfirmModal({ open: false, type: null, task: null })
-              }
-              className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              onClick={() =>
-                confirmModal.type === "approve"
-                  ? handleApprove(confirmModal.task)
-                  : handleDecline(confirmModal.task)
-              }
-              disabled={actionLoading}
-              className={`px-5 py-2 text-sm font-semibold text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-60 ${
-                confirmModal.type === "approve"
-                  ? "bg-emerald-500 hover:bg-emerald-600"
-                  : "bg-red-500 hover:bg-red-600"
-              }`}
-            >
-              {actionLoading ? (
-                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              ) : confirmModal.type === "approve" ? (
-                <CheckCircle size={16} />
-              ) : (
-                <XCircle size={16} />
-              )}
-              {actionLoading
-                ? "Processing..."
-                : confirmModal.type === "approve"
-                  ? "Ya, Approve"
-                  : "Ya, Decline"}
-            </button>
-          </div>
-        </div>
-      </Modal>
     </DashboardLayout>
   );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   FileText,
@@ -15,6 +15,7 @@ import {
   ExternalLink,
   ChevronDown,
   Users,
+  XCircle,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useTeamManagement } from "../hooks/useTeamManagement";
@@ -75,7 +76,10 @@ const groupSubmissionsByPerson = (subs) => {
 const TaskDetailPage = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, userRole } = useAuth();
+  const fromApproval = location.state?.fromApproval === true;
+  const [approvalLoading, setApprovalLoading] = useState(false);
   const { teams } = useTeamManagement();
   const {
     tasks,
@@ -108,6 +112,53 @@ const TaskDetailPage = () => {
   const [expandedAdminSub, setExpandedAdminSub] = useState(null);
   const [expandedMySub, setExpandedMySub] = useState(null);
   const [expandedTeammateSub, setExpandedTeammateSub] = useState(null);
+
+  const handleApprove = async () => {
+    if (!task) return;
+    try {
+      setApprovalLoading(true);
+      await handleUpdateTaskStatus(task.id, "done", {
+        taskTitle: task.title,
+        teamId: task.teamId,
+        teamName: taskWithTeam?.teamName || "",
+        assignedTo: task.assignedTo || [],
+        ownerIds,
+        actorId: user.uid,
+        actorName: user.displayName,
+      });
+      toast.success(`Task "${task.title}" berhasil disetujui! ✅`);
+      navigate(isAdmin ? "/admin/approvals" : "/user/approvals");
+    } catch {
+      toast.error("Gagal menyetujui task.");
+    } finally {
+      setApprovalLoading(false);
+    }
+  };
+
+  const handleDecline = async () => {
+    if (!task) return;
+    try {
+      setApprovalLoading(true);
+      await handleUpdateTaskStatus(task.id, "inprogress", {
+        taskTitle: task.title,
+        teamId: task.teamId,
+        teamName: taskWithTeam?.teamName || "",
+        assignedTo: task.assignedTo || [],
+        ownerIds,
+        actorId: user.uid,
+        actorName: user.displayName,
+        isDecline: true,
+      });
+      toast.warning(
+        `Task "${task.title}" ditolak dan dikembalikan ke In Progress.`,
+      );
+      navigate(isAdmin ? "/admin/approvals" : "/user/approvals");
+    } catch {
+      toast.error("Gagal menolak task.");
+    } finally {
+      setApprovalLoading(false);
+    }
+  };
 
   const task = tasks.find((t) => t.id === taskId);
   const taskWithTeam = task
@@ -561,34 +612,66 @@ const TaskDetailPage = () => {
       </button>
 
       {/* Tab Header */}
-      <div className="flex gap-1 mb-8 border-b border-slate-200">
-        {[
-          { key: "detail", icon: <FileText size={15} />, label: "Task Detail" },
-          {
-            key: "submission",
-            icon: <Upload size={15} />,
-            label: "Submission",
-            count: submissions.length,
-          },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 -mb-px transition-all ${
-              activeTab === tab.key
-                ? "border-emerald-500 text-emerald-600 bg-emerald-50/50"
-                : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-            } rounded-t-lg`}
-          >
-            {tab.icon}
-            {tab.label}
-            {tab.count > 0 && (
-              <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
+      <div className="flex items-center justify-between mb-8 border-b border-slate-200">
+        <div className="flex gap-1">
+          {[
+            {
+              key: "detail",
+              icon: <FileText size={15} />,
+              label: "Task Detail",
+            },
+            {
+              key: "submission",
+              icon: <Upload size={15} />,
+              label: "Submission",
+              count: submissions.length,
+            },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 -mb-px transition-all ${
+                activeTab === tab.key
+                  ? "border-emerald-500 text-emerald-600 bg-emerald-50/50"
+                  : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+              } rounded-t-lg`}
+            >
+              {tab.icon}
+              {tab.label}
+              {tab.count > 0 && (
+                <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Approve / Decline — hanya muncul jika masuk dari halaman Approvals */}
+        {fromApproval && isAdmin && task?.status === "inreview" && (
+          <div className="flex gap-2 pb-px">
+            <button
+              onClick={handleDecline}
+              disabled={approvalLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-semibold text-sm transition-all disabled:opacity-50"
+            >
+              <XCircle size={16} />
+              Decline
+            </button>
+            <button
+              onClick={handleApprove}
+              disabled={approvalLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all shadow-sm shadow-emerald-200 disabled:opacity-50"
+            >
+              {approvalLoading ? (
+                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              ) : (
+                <CheckCircle size={16} />
+              )}
+              Approve
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── DETAIL TAB ── */}
