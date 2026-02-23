@@ -78,7 +78,6 @@ const TaskDetailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userRole } = useAuth();
-  const fromApproval = location.state?.fromApproval === true;
   const [approvalLoading, setApprovalLoading] = useState(false);
   const { teams } = useTeamManagement();
   const {
@@ -648,7 +647,7 @@ const TaskDetailPage = () => {
         </div>
 
         {/* Approve / Decline — hanya muncul jika masuk dari halaman Approvals */}
-        {fromApproval && isAdmin && task?.status === "inreview" && (
+        {isAdmin && task?.status === "inreview" && (
           <div className="flex gap-2 pb-px">
             <button
               onClick={handleDecline}
