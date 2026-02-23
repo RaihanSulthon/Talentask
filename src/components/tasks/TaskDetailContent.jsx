@@ -8,6 +8,7 @@ const TaskDetailContent = ({
   teams,
   onClose,
   onUpdate,
+  onUpdateStatus,
   onDelete,
   canEdit,
   loading,
@@ -421,7 +422,11 @@ const TaskDetailContent = ({
                   }
                 }
                 setFormData({ ...formData, status: value });
-                onUpdate(task.id, { status: value });
+                if (onUpdateStatus) {
+                  onUpdateStatus(task.id, value);
+                } else {
+                  onUpdate(task.id, { status: value });
+                }
               }}
             />
           )

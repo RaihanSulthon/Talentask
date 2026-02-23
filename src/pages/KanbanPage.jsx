@@ -590,6 +590,19 @@ const KanbanPage = () => {
               setIsEditMode(false);
             }}
             onUpdate={handleUpdateTask}
+            onUpdateStatus={async (taskId, newStatus) => {
+              const taskTeam = teams.find((t) => t.id === selectedTask.teamId);
+              const ownerIds = taskTeam?.ownerId ? [taskTeam.ownerId] : [];
+              await handleUpdateTaskStatus(taskId, newStatus, {
+                taskTitle: selectedTask.title,
+                teamId: selectedTask.teamId,
+                teamName: taskTeam?.name || "",
+                assignedTo: selectedTask.assignedTo || [],
+                ownerIds,
+                actorId: user.uid,
+                actorName: user.displayName,
+              });
+            }}
             onDelete={handleDeleteTask}
             canEdit={canEditTask(selectedTask)}
             loading={actionLoading}
