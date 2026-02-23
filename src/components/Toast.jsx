@@ -6,6 +6,7 @@ import {
   useEffect,
 } from "react";
 import { CheckCircle2, XCircle, Info, AlertTriangle, X } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 // ─── Context ──────────────────────────────────────────────
 const ToastContext = createContext(null);
@@ -142,17 +143,23 @@ const ToastItem = ({ toast, onRemove }) => {
   );
 };
 
+
 // ─── Container (portal-like, fixed) ──────────────────────
-const ToastContainer = ({ toasts, removeToast }) => (
-  <div className="fixed top-20 right-6 z-9999 flex flex-col gap-3 items-end pointer-events-none">
-    {" "}
-    {toasts.map((t) => (
-      <div key={t.id} className="pointer-events-auto">
-        <ToastItem toast={t} onRemove={removeToast} />
-      </div>
-    ))}
-  </div>
-);
+const ToastContainer = ({ toasts, removeToast }) => {
+  const isAuthPage = window.location.pathname === "/auth";
+
+  return (
+    <div
+      className={`fixed ${isAuthPage ? "top-5" : "top-20"} right-6 z-9999 flex flex-col gap-3 items-end pointer-events-none`}
+    >
+      {toasts.map((t) => (
+        <div key={t.id} className="pointer-events-auto">
+          <ToastItem toast={t} onRemove={removeToast} />
+        </div>
+      ))}
+    </div>
+  );
+};
 
 // ─── Provider ─────────────────────────────────────────────
 export const ToastProvider = ({ children }) => {
