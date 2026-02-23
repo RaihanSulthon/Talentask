@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -47,8 +48,6 @@ const TasksPage = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTeamFilter, setSelectedTeamFilter] = useState("");
@@ -60,6 +59,7 @@ const TasksPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 4;
   const toast = useToast();
+  const navigate = useNavigate();
 
   // Bungkus setiap setter filter agar reset page
   const handleStatusFilter = (v) => {
@@ -288,8 +288,7 @@ const TasksPage = () => {
   );
 
   const onTaskClick = (task) => {
-    setSelectedTask(task);
-    setShowDetailModal(true);
+    navigate(`/task/${task.id}`);
   };
 
   const onStatusChange = async (taskId, newStatus) => {
@@ -370,10 +369,7 @@ const TasksPage = () => {
               return (
                 <button
                   key={task.id}
-                  onClick={() => {
-                    setSelectedTask(task);
-                    setShowDetailModal(true);
-                  }}
+                  onClick={() => navigate(`/task/${task.id}`)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all hover:shadow-sm
               ${
                 info.isOverdue
@@ -1057,44 +1053,6 @@ const TasksPage = () => {
             {actionLoading ? "Deleting..." : "Delete Task"}
           </button>
         </div>
-      </Modal>
-
-      <Modal
-        isOpen={showDetailModal && !!selectedTask}
-        onClose={() => {
-          setShowDetailModal(false);
-          setSelectedTask(null);
-        }}
-        title="Task Details"
-        maxWidth="max-w-2xl"
-      >
-        {selectedTask && (
-          <TaskDetailContent
-            task={selectedTask}
-            teams={teams}
-            onClose={() => {
-              setShowDetailModal(false);
-              setSelectedTask(null);
-            }}
-            onUpdate={handleUpdateTask}
-            onUpdateStatus={async (taskId, newStatus) => {
-              const taskTeam = teams.find((t) => t.id === selectedTask.teamId);
-              const ownerIds = taskTeam?.ownerId ? [taskTeam.ownerId] : [];
-              await handleUpdateTaskStatus(taskId, newStatus, {
-                taskTitle: selectedTask.title,
-                teamId: selectedTask.teamId,
-                teamName: taskTeam?.name || "",
-                assignedTo: selectedTask.assignedTo || [],
-                ownerIds,
-                actorId: user.uid,
-                actorName: user.displayName,
-              });
-            }}
-            onDelete={handleDeleteTask}
-            canEdit={canEditTask(selectedTask)}
-            loading={actionLoading}
-          />
-        )}
       </Modal>
     </DashboardLayout>
   );

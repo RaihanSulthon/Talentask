@@ -353,96 +353,75 @@ const TaskDetailContent = ({
   }
 
   return (
-    <div className="space-y-5">
-      <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
-          Title
-        </label>
-        <div className="flex items-center justify-between">
-          <p className="text-xl font-bold text-slate-800">{task.title}</p>
-          {isAdmin && canEdit && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="text-slate-400 hover:text-emerald-400"
-            >
-              <Edit2 size={18} />
-            </button>
-          )}
+    <div className="space-y-4">
+      {/* Title Header */}
+      <div className="flex justify-between items-start pb-4 border-b border-slate-100">
+        <div className="flex-1 pr-4">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Title</p>
+          <h2 className="text-2xl font-bold text-slate-800 leading-tight">{task.title}</h2>
         </div>
+        {isAdmin && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="flex items-center gap-1.5 px-3 py-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 rounded-xl transition-all text-xs font-semibold shrink-0"
+          >
+            <Edit2 size={14} />
+            Edit
+          </button>
+        )}
       </div>
 
-      <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">
-          Description
-        </label>
+      {/* Description */}
+      <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Description</p>
         <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
           {task.description || (
-            <span className="italic text-slate-400">
-              No description provided.
-            </span>
+            <span className="italic text-slate-400">No description provided.</span>
           )}
         </p>
       </div>
 
-      <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
-          Team
-        </label>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-          <p className="text-slate-700 font-medium">
-            {task.teamName || currentTeam?.name || "Unknown Team"}
-          </p>
+      {/* Team & Status row */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Team</p>
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shrink-0"></div>
+            <p className="text-slate-700 font-semibold text-sm truncate">
+              {task.teamName || currentTeam?.name || "Unknown Team"}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
-          Status
-        </label>
-        {isUser ? (
-          task.status === "done" ? (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700">
-              ✅ Done
-            </span>
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Status</p>
+          {isUser ? (
+            task.status === "done" ? (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+                ✅ Done
+              </span>
+            ) : (
+              <CustomSelect
+                options={statusSelectOptions.filter((opt) => opt.value !== "done")}
+                value={formData.status}
+                onChange={(value) => {
+                  if (value === "inreview") {
+                    if (!window.confirm("Submit this task for approval? Your team owner will review it.")) return;
+                  }
+                  if (task.status === "inreview" && (value === "todo" || value === "inprogress")) {
+                    if (!window.confirm("Tarik task ini dari review? Task akan kembali ke status sebelumnya.")) return;
+                  }
+                  setFormData({ ...formData, status: value });
+                  if (onUpdateStatus) {
+                    onUpdateStatus(task.id, value);
+                  } else {
+                    onUpdate(task.id, { status: value });
+                  }
+                }}
+              />
+            )
           ) : (
-            <CustomSelect
-              options={statusSelectOptions.filter(
-                (opt) => opt.value !== "done",
-              )}
-              value={formData.status}
-              onChange={(value) => {
-                if (value === "inreview") {
-                  if (
-                    !window.confirm(
-                      "Submit this task for approval? Your team owner will review it.",
-                    )
-                  )
-                    return;
-                }
-                if (
-                  task.status === "inreview" &&
-                  (value === "todo" || value === "inprogress")
-                ) {
-                  if (
-                    !window.confirm(
-                      "Tarik task ini dari review? Task akan kembali ke status sebelumnya.",
-                    )
-                  )
-                    return;
-                }
-                setFormData({ ...formData, status: value });
-                if (onUpdateStatus) {
-                  onUpdateStatus(task.id, value);
-                } else {
-                  onUpdate(task.id, { status: value });
-                }
-              }}
-            />
-          )
-        ) : (
-          <span
-            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
               task.status === "todo"
                 ? "bg-slate-100 text-slate-600"
                 : task.status === "inprogress"
@@ -450,65 +429,42 @@ const TaskDetailContent = ({
                   : task.status === "inreview"
                     ? "bg-yellow-100 text-yellow-700"
                     : "bg-emerald-100 text-emerald-700"
-            }`}
-          >
-            {statusOptions.find((s) => s.value === task.status)?.label}
-          </span>
-        )}
+            }`}>
+              {statusOptions.find((s) => s.value === task.status)?.label}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Deadline display - di view mode, setelah status section */}
-      <div
-        className={`p-4 rounded-xl border ${
-          deadlineInfo?.isOverdue
-            ? "bg-red-50 border-red-200"
-            : deadlineInfo?.isToday
-              ? "bg-orange-50 border-orange-200"
-              : deadlineInfo?.isUrgent
-                ? "bg-amber-50 border-amber-200"
-                : "bg-slate-50 border-slate-100"
-        }`}
-      >
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
-          Deadline
-        </label>
+      {/* Deadline */}
+      <div className={`rounded-2xl p-4 border ${
+        deadlineInfo?.isOverdue
+          ? "bg-red-50 border-red-200"
+          : deadlineInfo?.isToday
+            ? "bg-orange-50 border-orange-200"
+            : deadlineInfo?.isUrgent
+              ? "bg-amber-50 border-amber-200"
+              : "bg-slate-50 border-slate-100"
+      }`}>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Deadline</p>
         {deadlineInfo ? (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Calendar
-                size={15}
-                className={
-                  deadlineInfo.isOverdue
-                    ? "text-red-500"
-                    : deadlineInfo.isToday
-                      ? "text-orange-500"
-                      : deadlineInfo.isUrgent
-                        ? "text-amber-500"
-                        : "text-slate-400"
-                }
-              />
-              <span className="text-slate-700 font-medium text-sm">
-                {deadlineInfo.formatted}
-              </span>
+              <Calendar size={15} className={
+                deadlineInfo.isOverdue ? "text-red-500"
+                : deadlineInfo.isToday ? "text-orange-500"
+                : deadlineInfo.isUrgent ? "text-amber-500"
+                : "text-slate-400"
+              } />
+              <span className="text-slate-700 font-semibold text-sm">{deadlineInfo.formatted}</span>
             </div>
-            <span
-              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                deadlineInfo.isOverdue
-                  ? "bg-red-100 text-red-600"
-                  : deadlineInfo.isToday
-                    ? "bg-orange-100 text-orange-600"
-                    : deadlineInfo.isUrgent
-                      ? "bg-amber-100 text-amber-600"
-                      : "bg-slate-100 text-slate-500"
-              }`}
-            >
-              {deadlineInfo.isOverdue
-                ? "🚨 "
-                : deadlineInfo.isToday
-                  ? "⚠️ "
-                  : deadlineInfo.isUrgent
-                    ? "⏰ "
-                    : ""}
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+              deadlineInfo.isOverdue ? "bg-red-100 text-red-600"
+              : deadlineInfo.isToday ? "bg-orange-100 text-orange-600"
+              : deadlineInfo.isUrgent ? "bg-amber-100 text-amber-600"
+              : "bg-slate-100 text-slate-500"
+            }`}>
+              {deadlineInfo.isOverdue ? "🚨 " : deadlineInfo.isToday ? "⚠️ " : deadlineInfo.isUrgent ? "⏰ " : ""}
               {deadlineInfo.label}
             </span>
           </div>
@@ -517,53 +473,53 @@ const TaskDetailContent = ({
         )}
       </div>
 
+      {/* Assigned To */}
       {currentTeam && (
-        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
-            Assigned To
-          </label>
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Assigned To</p>
           <div className="flex flex-wrap gap-2">
-            {formData.assignedTo?.map((memberId) => {
-              const member = currentTeam.members?.find(
-                (m) => m.uid === memberId || m.id === memberId,
-              );
+            {formData.assignedTo?.length === 0 ? (
+              <p className="text-slate-400 text-sm italic">No assignees</p>
+            ) : formData.assignedTo?.map((memberId) => {
+              const member = currentTeam.members?.find((m) => m.uid === memberId || m.id === memberId);
               return member ? (
-                <span
-                  key={memberId}
-                  className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-sm font-medium"
-                >
-                  {member.displayName}
-                </span>
+                <div key={memberId} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+                  <div className="w-6 h-6 bg-linear-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    {member.displayName?.[0]?.toUpperCase() || "?"}
+                  </div>
+                  <span className="text-slate-700 text-sm font-medium">{member.displayName}</span>
+                </div>
               ) : null;
             })}
           </div>
         </div>
       )}
 
+      {/* Timestamps */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
-            Created
-          </label>
-          <p className="text-slate-700 text-sm">{formatDate(task.createdAt)}</p>
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Created</p>
+          <p className="text-slate-600 text-sm font-medium">{formatDate(task.createdAt)}</p>
         </div>
-        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
-            Last Updated
-          </label>
-          <p className="text-slate-700 text-sm">{formatDate(task.updatedAt)}</p>
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Last Updated</p>
+          <p className="text-slate-600 text-sm font-medium">{formatDate(task.updatedAt)}</p>
         </div>
       </div>
 
+      {/* Info user */}
       {isUser && (
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-          <p className="text-blue-700 text-sm font-medium">
-            ℹ️ You can only change the status of this task. Contact your team
-            admin to edit title or description.
+        <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+          <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+            <Clock size={14} className="text-blue-500" />
+          </div>
+          <p className="text-blue-600 text-sm leading-relaxed">
+            Kamu hanya bisa mengubah status task ini. Hubungi admin untuk mengubah judul atau deskripsi.
           </p>
         </div>
       )}
 
+      {/* Delete */}
       {isAdmin && (
         <button
           onClick={() => {
@@ -572,9 +528,9 @@ const TaskDetailContent = ({
               onClose();
             }
           }}
-          className="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+          className="w-full py-3.5 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm shadow-red-100 mt-2"
         >
-          <Trash2 size={18} />
+          <Trash2 size={16} />
           Delete Task
         </button>
       )}

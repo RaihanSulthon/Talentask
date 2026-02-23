@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTeamManagement } from "../hooks/useTeamManagement";
 import { useTaskManagement } from "../hooks/useTaskManagement";
@@ -26,6 +26,7 @@ const KanbanPage = () => {
   } = useTaskManagement(teams);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const navigate = useNavigate();
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -163,36 +164,17 @@ const KanbanPage = () => {
 
     const found = tasks.find((t) => t.id === taskId);
     if (found) {
-      const taskWithTeam = {
-        ...found,
-        teamName:
-          teams.find((t) => t.id === found.teamId)?.name || "Unknown Team",
-      };
-      setSelectedTask(taskWithTeam);
-      setIsEditMode(false);
-      setShowDetailModal(true);
-      setSearchParams({}); // bersihkan URL
+      setSearchParams({});
+      navigate(`/task/${found.id}`);
     }
   }, [tasks, searchParams]);
 
   const onTaskClick = (task) => {
-    const taskWithTeam = {
-      ...task,
-      teamName: teams.find((t) => t.id === task.teamId)?.name || "Unknown Team",
-    };
-    setSelectedTask(taskWithTeam);
-    setIsEditMode(false);
-    setShowDetailModal(true);
+    navigate(`/task/${task.id}`);
   };
 
   const handleEditTask = (task) => {
-    const taskWithTeam = {
-      ...task,
-      teamName: teams.find((t) => t.id === task.teamId)?.name || "Unknown Team",
-    };
-    setSelectedTask(taskWithTeam);
-    setIsEditMode(true);
-    setShowDetailModal(true);
+    navigate(`/task/${task.id}`);
   };
 
   const handleDeleteTaskClick = (task) => {
