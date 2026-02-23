@@ -129,6 +129,7 @@ const TasksPage = () => {
     if (!formData.title.trim()) errors.title = "Title is required";
     if (!formData.description.trim())
       errors.description = "Description is required";
+    if (!formData.deadline) errors.deadline = "Deadline is required";
     if (!formData.teamId) errors.teamId = "Team is required";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -864,10 +865,7 @@ const TasksPage = () => {
           {/* Deadline field - tambah setelah field description */}
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1.5">
-              Deadline{" "}
-              <span className="text-gray-400 text-xs font-normal">
-                (optional)
-              </span>
+              Deadline <span className="text-rose-400">*</span>
             </label>
             <input
               type="date"

@@ -68,13 +68,15 @@ const KanbanPage = () => {
     }
   };
 
-  // HARUS DITAMBAHKAN setelah deklarasi state yang ada
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     teamId: "",
     assignedTo: [],
+    deadline: null,
+    deadlineReminder: 3,
   });
+
   const [formErrors, setFormErrors] = useState({});
 
   const validateTaskForm = () => {
@@ -82,6 +84,7 @@ const KanbanPage = () => {
     if (!formData.title.trim()) errors.title = "Title is required";
     if (!formData.description.trim())
       errors.description = "Description is required";
+    if (!formData.deadline) errors.deadline = "Deadline is required";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -338,6 +341,8 @@ const KanbanPage = () => {
             description: "",
             teamId: "",
             assignedTo: [],
+            deadline: null,
+            deadlineReminder: 3,
           });
           setFormErrors({});
         }}
@@ -397,6 +402,62 @@ const KanbanPage = () => {
               </p>
             )}
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
+              Deadline <span className="text-rose-400">*</span>
+            </label>
+            <input
+              type="date"
+              value={
+                formData.deadline
+                  ? new Date(formData.deadline).toISOString().split("T")[0]
+                  : ""
+              }
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  deadline: e.target.value ? new Date(e.target.value) : null,
+                });
+                if (formErrors.deadline)
+                  setFormErrors((prev) => ({ ...prev, deadline: "" }));
+              }}
+              min={new Date().toISOString().split("T")[0]}
+              className={`w-full px-4 py-2.5 border rounded-xl text-gray-800 focus:outline-none focus:ring-2 transition-all ${
+                formErrors.deadline
+                  ? "bg-red-50 border-red-400 focus:ring-red-100"
+                  : "bg-gray-50 border-gray-200 focus:ring-violet-100 focus:border-violet-400"
+              }`}
+            />
+            {formErrors.deadline && (
+              <p className="flex items-center gap-1.5 mt-1.5 text-xs text-red-500">
+                <AlertCircle size={12} className="shrink-0" />
+                {formErrors.deadline}
+              </p>
+            )}
+            {formData.deadline && (
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <label className="text-xs text-gray-500">Remind me</label>
+                <select
+                  value={formData.deadlineReminder ?? 3}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      deadlineReminder: parseInt(e.target.value),
+                    })
+                  }
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-violet-300"
+                >
+                  <option value={1}>1 day before</option>
+                  <option value={2}>2 days before</option>
+                  <option value={3}>3 days before</option>
+                  <option value={5}>5 days before</option>
+                  <option value={7}>7 days before</option>
+                </select>
+              </div>
+            )}
+          </div>
+
           <CustomSelect
             options={teamOptions}
             value={formData.teamId}
