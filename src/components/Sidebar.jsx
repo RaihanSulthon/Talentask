@@ -20,6 +20,7 @@ const Sidebar = ({
 }) => {
   const { userRole } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const getMenuItems = () => {
     if (userRole === "super_admin" || userRole === "admin") {

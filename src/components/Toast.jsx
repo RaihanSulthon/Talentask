@@ -6,7 +6,6 @@ import {
   useEffect,
 } from "react";
 import { CheckCircle2, XCircle, Info, AlertTriangle, X } from "lucide-react";
-import { useLocation } from "react-router-dom";
 
 // ─── Context ──────────────────────────────────────────────
 const ToastContext = createContext(null);

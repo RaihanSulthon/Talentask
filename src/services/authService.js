@@ -3,9 +3,8 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, getDocs, collection } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
-import { updateDoc } from "firebase/firestore";
 
 export const signUp = async (email, password, displayName) => {
   // Auto-detect role based on email
