@@ -91,18 +91,26 @@ export const updateTask = async (taskId, updates, context = {}) => {
 };
 
 export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
-  await updateTask(taskId, { status: newStatus }, { skipNotif: true });
-
   const {
     taskTitle = "",
     teamId = "",
     teamName = "",
-    assignedTo = [], // array uid member yang di-assign
-    ownerIds = [], // array uid owner/admin team
+    assignedTo = [],
+    ownerIds = [],
     actorId = "",
     actorName = "",
     isDecline = false,
+    declineComment = "",
   } = context;
+
+  const taskUpdates = { status: newStatus };
+  if (isDecline) {
+    taskUpdates.declineComment = declineComment || "";
+    taskUpdates.declinedAt = new Date();
+  } else if (newStatus === "done") {
+    taskUpdates.declineComment = "";
+  }
+  await updateTask(taskId, taskUpdates, { skipNotif: true });
 
   // Semua pihak terlibat = assignee + owner, dikurangi actor sendiri
   const allInvolved = [...new Set([...assignedTo, ...ownerIds])].filter(
@@ -175,7 +183,7 @@ export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
       await createNotificationForMany(assigneeRecipients, {
         type: "task_declined",
         title: "Task Declined ✗",
-        message: `Your task "${taskTitle}" was declined by ${actorName} and needs revision`,
+        message: `Your task "${taskTitle}" was declined by ${actorName}${declineComment ? `: "${declineComment}"` : " and needs revision"}`,
         taskId,
         taskTitle,
         teamId,
