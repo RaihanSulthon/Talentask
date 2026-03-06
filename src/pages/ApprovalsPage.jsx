@@ -16,7 +16,6 @@ import {
   Filter,
 } from "lucide-react";
 import Modal from "../components/Modal";
-import ApprovalDetailContent from "../components/approvals/ApprovalDetailContent";
 import { useToast } from "../components/Toast";
 
 const ApprovalsPage = () => {
@@ -30,6 +29,13 @@ const ApprovalsPage = () => {
   } = useTaskManagement(teams);
 
   const [selectedTeamFilter, setSelectedTeamFilter] = useState("");
+  const [declineComment, setDeclineComment] = useState("");
+  const [confirmModal, setConfirmModal] = useState({
+    open: false,
+    type: null,
+    task: null,
+  });
+  const [actionLoading, setActionLoading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
@@ -160,6 +166,79 @@ const ApprovalsPage = () => {
     });
   };
 
+  const openConfirm = (type, task, e) => {
+    e?.stopPropagation();
+    setDeclineComment("");
+    setConfirmModal({ open: true, type, task });
+  };
+
+  const closeConfirm = () => {
+    setConfirmModal({ open: false, type: null, task: null });
+    setDeclineComment("");
+  };
+
+  const handleApprove = async (task) => {
+    if (!task) return;
+    setActionLoading(true);
+    try {
+      const currentTeam = teams.find((t) => t.id === task.teamId);
+      const ownerIds =
+        currentTeam?.members
+          ?.filter((m) => m.role === "owner" || m.role === "admin")
+          .map((m) => m.uid || m.id) || [];
+
+      await handleUpdateTaskStatus(task.id, "done", {
+        taskTitle: task.title,
+        teamId: task.teamId,
+        teamName: task.teamName,
+        assignedTo: task.assignedTo || [],
+        ownerIds,
+        actorId: user.uid,
+        actorName: user.displayName || user.email,
+        isDecline: false,
+      });
+      toast.success("Task approved successfully!");
+    } catch {
+      toast.error("Failed to approve task.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDecline = async () => {
+    const { task } = confirmModal;
+    if (!task || !declineComment.trim()) {
+      toast.error("Please provide a decline reason.");
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const currentTeam = teams.find((t) => t.id === task.teamId);
+      const ownerIds =
+        currentTeam?.members
+          ?.filter((m) => m.role === "owner" || m.role === "admin")
+          .map((m) => m.uid || m.id) || [];
+
+      await handleUpdateTaskStatus(task.id, "inprogress", {
+        taskTitle: task.title,
+        teamId: task.teamId,
+        teamName: task.teamName,
+        assignedTo: task.assignedTo || [],
+        ownerIds,
+        actorId: user.uid,
+        actorName: user.displayName || user.email,
+        isDecline: true,
+        declineComment: declineComment.trim(),
+      });
+      toast.success("Task declined with comment.");
+      closeConfirm();
+    } catch {
+      toast.error("Failed to decline task.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (teamsLoading || tasksLoading) {
     return (
       <DashboardLayout title="Approvals">
@@ -175,8 +254,7 @@ const ApprovalsPage = () => {
         isAdmin
           ? "Review and approve tasks submitted by team members"
           : "Track your tasks awaiting approval"
-      }
-    >
+      }>
       {/* Statistics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 xl:gap-6 mb-5 lg:mb-8">
         {" "}
@@ -266,8 +344,7 @@ const ApprovalsPage = () => {
               <Card
                 key={task.id}
                 onClick={() => handleTaskClick(task)}
-                className="p-6 rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500/50 transition-all hover:shadow-lg hover:shadow-yellow-500/10"
-              >
+                className="p-6 rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500/50 transition-all hover:shadow-lg hover:shadow-yellow-500/10">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -307,16 +384,19 @@ const ApprovalsPage = () => {
                   {isAdmin && (
                     <div className="flex gap-2 ml-4">
                       <button
-                        onClick={(e) => openConfirm("approve", task, e)}
-                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                      >
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleApprove(task);
+                        }}
+                        disabled={actionLoading}
+                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
                         <CheckCircle size={18} />
                         Approve
                       </button>
                       <button
                         onClick={(e) => openConfirm("decline", task, e)}
-                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                      >
+                        disabled={actionLoading}
+                        className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
                         <XCircle size={18} />
                         Decline
                       </button>
@@ -338,6 +418,58 @@ const ApprovalsPage = () => {
           </div>
         )}
       </div>
+      {/* Decline Modal */}
+      <Modal
+        isOpen={confirmModal.open && confirmModal.type === "decline"}
+        onClose={closeConfirm}
+        title={
+          <>
+            <XCircle size={20} className="text-red-500" />
+            <span className="text-gray-800 font-semibold">Alasan Decline</span>
+          </>
+        }
+        maxWidth="max-w-md">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500 leading-relaxed">
+            Berikan alasan mengapa task{" "}
+            <span className="font-semibold text-gray-700">
+              "{confirmModal.task?.title}"
+            </span>{" "}
+            ditolak, agar anggota tim dapat melakukan perbaikan yang tepat.
+          </p>
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+              Alasan Decline{" "}
+              <span className="text-red-400 normal-case font-normal">
+                (wajib diisi)
+              </span>
+            </label>
+            <textarea
+              value={declineComment}
+              onChange={(e) => setDeclineComment(e.target.value)}
+              placeholder="Contoh: Hasil kerja belum sesuai kriteria. Mohon perbaiki bagian X dan Y..."
+              rows={4}
+              autoFocus
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 resize-none transition-colors"
+            />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={closeConfirm}
+              disabled={actionLoading}
+              className="flex-1 py-2.5 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl text-sm font-semibold transition-colors">
+              Batal
+            </button>
+            <button
+              onClick={handleDecline}
+              disabled={actionLoading || !declineComment.trim()}
+              className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+              <XCircle size={16} />
+              {actionLoading ? "Menolak..." : "Konfirmasi Decline"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 };

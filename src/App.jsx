@@ -17,6 +17,7 @@ import KanbanPage from "./pages/KanbanPage";
 import TasksPage from "./pages/TasksPage";
 import ApprovalsPage from "./pages/ApprovalsPage";
 import TaskDetailPage from "./pages/TaskDetailPage";
+import RepositoryPage from "./pages/RepositoryPage";
 
 const DashboardRouter = () => {
   const { user, userRole, loading } = useAuth();
@@ -70,8 +71,7 @@ function App() {
                 path="/team"
                 element={
                   <ProtectedRoute
-                    allowedRoles={["super_admin", "admin", "user"]}
-                  >
+                    allowedRoles={["super_admin", "admin", "user"]}>
                     <TeamPage />
                   </ProtectedRoute>
                 }
@@ -104,8 +104,7 @@ function App() {
                 path="/task/:taskId"
                 element={
                   <ProtectedRoute
-                    allowedRoles={["super_admin", "admin", "user"]}
-                  >
+                    allowedRoles={["super_admin", "admin", "user"]}>
                     <TaskDetailPage />
                   </ProtectedRoute>
                 }
@@ -123,6 +122,15 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={["user"]}>
                     <ApprovalsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/repository"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["super_admin", "admin", "user"]}>
+                    <RepositoryPage />
                   </ProtectedRoute>
                 }
               />

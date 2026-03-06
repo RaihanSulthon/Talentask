@@ -29,6 +29,7 @@ import {
   reviewSubmission,
   deleteSubmission,
 } from "../services/submissionService";
+import Modal from "../components/Modal";
 
 const SubmissionStatusBadge = ({ status }) => {
   const map = {
@@ -45,8 +46,7 @@ const SubmissionStatusBadge = ({ status }) => {
   const s = map[status] || map.submitted;
   return (
     <span
-      className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${s.className}`}
-    >
+      className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${s.className}`}>
       {s.label}
     </span>
   );
@@ -79,6 +79,8 @@ const TaskDetailPage = () => {
   const location = useLocation();
   const { user, userRole } = useAuth();
   const [approvalLoading, setApprovalLoading] = useState(false);
+  const [declineModalOpen, setDeclineModalOpen] = useState(false);
+  const [declineComment, setDeclineComment] = useState("");
   const { teams } = useTeamManagement();
   const {
     tasks,
@@ -134,8 +136,17 @@ const TaskDetailPage = () => {
     }
   };
 
+  const openDeclineModal = () => {
+    setDeclineComment("");
+    setDeclineModalOpen(true);
+  };
+
   const handleDecline = async () => {
     if (!task) return;
+    if (!declineComment.trim()) {
+      toast.error("Alasan decline tidak boleh kosong.");
+      return;
+    }
     try {
       setApprovalLoading(true);
       await handleUpdateTaskStatus(task.id, "inprogress", {
@@ -147,7 +158,9 @@ const TaskDetailPage = () => {
         actorId: user.uid,
         actorName: user.displayName,
         isDecline: true,
+        declineComment: declineComment.trim(),
       });
+      setDeclineModalOpen(false);
       toast.warning(
         `Task "${task.title}" ditolak dan dikembalikan ke In Progress.`,
       );
@@ -315,8 +328,7 @@ const TaskDetailPage = () => {
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors group"
-          onClick={(e) => e.stopPropagation()}
-        >
+          onClick={(e) => e.stopPropagation()}>
           <LinkIcon size={14} className="shrink-0" />
           <span className="truncate flex-1">{sub.linkUrl}</span>
           <ExternalLink
@@ -360,8 +372,7 @@ const TaskDetailPage = () => {
                   e.stopPropagation();
                   handleReview(sub, "reviewed");
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-semibold transition-colors"
-              >
+                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-semibold transition-colors">
                 <CheckCircle size={14} /> Approve
               </button>
               <button
@@ -369,8 +380,7 @@ const TaskDetailPage = () => {
                   e.stopPropagation();
                   handleReview(sub, "revision");
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold transition-colors"
-              >
+                className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold transition-colors">
                 <RotateCcw size={14} /> Minta Revisi
               </button>
               <button
@@ -379,8 +389,7 @@ const TaskDetailPage = () => {
                   setReviewingId(null);
                   setReviewNote("");
                 }}
-                className="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-xl text-sm font-medium transition-colors"
-              >
+                className="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-xl text-sm font-medium transition-colors">
                 Batal
               </button>
             </div>
@@ -391,8 +400,7 @@ const TaskDetailPage = () => {
               e.stopPropagation();
               setReviewingId(sub.id);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-medium transition-all"
-          >
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-medium transition-all">
             <CheckCircle size={14} /> Review Submission
           </button>
         ))}
@@ -418,14 +426,12 @@ const TaskDetailPage = () => {
     <div key={sub.id} className={idx !== 0 ? "border-t border-slate-100" : ""}>
       <div
         className={`flex items-center gap-3 px-4 py-3 transition-colors ${canExpand ? "cursor-pointer hover:bg-slate-50" : ""}`}
-        onClick={() => canExpand && onToggle()}
-      >
+        onClick={() => canExpand && onToggle()}>
         {/* Index bubble */}
         <div
           className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0 ${
             idx === 0 ? avatarColor : "bg-slate-200 text-slate-500"
-          }`}
-        >
+          }`}>
           {totalCount - idx}
         </div>
 
@@ -433,8 +439,7 @@ const TaskDetailPage = () => {
         <div className="w-44 shrink-0 min-w-0">
           <div className="flex items-center gap-1.5">
             <p
-              className={`text-sm font-semibold truncate ${idx === 0 ? "text-slate-800" : "text-slate-500"}`}
-            >
+              className={`text-sm font-semibold truncate ${idx === 0 ? "text-slate-800" : "text-slate-500"}`}>
               {label}
             </p>
             {badge && (
@@ -484,8 +489,7 @@ const TaskDetailPage = () => {
               e.stopPropagation();
               onDel();
             }}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all shrink-0"
-          >
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all shrink-0">
             <Trash2 size={13} />
           </button>
         )}
@@ -509,8 +513,7 @@ const TaskDetailPage = () => {
       {/* Person label — floats above card as section title */}
       <div className="flex items-center gap-3 mb-2">
         <div
-          className={`w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0 ${avatarColor}`}
-        >
+          className={`w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0 ${avatarColor}`}>
           {(member?.displayName ||
             subs[0]?.assignedToName ||
             "?")[0].toUpperCase()}
@@ -541,8 +544,7 @@ const TaskDetailPage = () => {
           return (
             <div
               key={sub.id}
-              className={idx !== 0 ? "border-t border-slate-100" : ""}
-            >
+              className={idx !== 0 ? "border-t border-slate-100" : ""}>
               {renderSubRow(sub, {
                 idx,
                 totalCount: subs.length,
@@ -578,8 +580,7 @@ const TaskDetailPage = () => {
           <p className="text-lg font-medium">Task tidak ditemukan</p>
           <button
             onClick={() => navigate(-1)}
-            className="mt-4 text-emerald-600 hover:underline text-sm"
-          >
+            className="mt-4 text-emerald-600 hover:underline text-sm">
             ← Kembali
           </button>
         </div>
@@ -601,8 +602,7 @@ const TaskDetailPage = () => {
     <DashboardLayout title={task.title} subtitle={taskWithTeam?.teamName}>
       <button
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-700 transition-colors mb-6 text-sm font-medium group"
-      >
+        className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-700 transition-colors mb-6 text-sm font-medium group">
         <ArrowLeft
           size={15}
           className="group-hover:-translate-x-0.5 transition-transform"
@@ -633,8 +633,7 @@ const TaskDetailPage = () => {
                 activeTab === tab.key
                   ? "border-emerald-500 text-emerald-600 bg-emerald-50/50"
                   : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-              } rounded-t-lg`}
-            >
+              } rounded-t-lg`}>
               {tab.icon}
               {tab.label}
               {tab.count > 0 && (
@@ -650,18 +649,16 @@ const TaskDetailPage = () => {
         {isAdmin && task?.status === "inreview" && (
           <div className="flex gap-2 pb-px">
             <button
-              onClick={handleDecline}
+              onClick={openDeclineModal}
               disabled={approvalLoading}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-semibold text-sm transition-all disabled:opacity-50"
-            >
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-semibold text-sm transition-all disabled:opacity-50">
               <XCircle size={16} />
               Decline
             </button>
             <button
               onClick={handleApprove}
               disabled={approvalLoading}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all shadow-sm shadow-emerald-200 disabled:opacity-50"
-            >
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all shadow-sm shadow-emerald-200 disabled:opacity-50">
               {approvalLoading ? (
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
               ) : (
@@ -817,8 +814,7 @@ const TaskDetailPage = () => {
                             key={sub.id}
                             className={
                               idx !== 0 ? "border-t border-slate-100" : ""
-                            }
-                          >
+                            }>
                             {renderSubRow(sub, {
                               idx,
                               totalCount: mySubmissions.length,
@@ -903,8 +899,7 @@ const TaskDetailPage = () => {
                               submissionType === type.value
                                 ? "border-emerald-500 bg-emerald-50 text-emerald-700"
                                 : "border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200 hover:text-slate-700"
-                            }`}
-                          >
+                            }`}>
                             {type.icon}
                             {type.label}
                           </button>
@@ -953,8 +948,7 @@ const TaskDetailPage = () => {
                             </div>
                             <button
                               onClick={() => setSubFile(null)}
-                              className="text-emerald-400 hover:text-red-400 transition-colors"
-                            >
+                              className="text-emerald-400 hover:text-red-400 transition-colors">
                               <X size={15} />
                             </button>
                           </div>
@@ -1010,8 +1004,7 @@ const TaskDetailPage = () => {
                     <button
                       onClick={handleSubmit}
                       disabled={submitting}
-                      className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-xl font-semibold text-sm transition-all shadow-sm shadow-emerald-200 hover:shadow-emerald-300"
-                    >
+                      className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-xl font-semibold text-sm transition-all shadow-sm shadow-emerald-200 hover:shadow-emerald-300">
                       <Send size={16} />
                       {submitting ? "Mengirim..." : "Kirim Submission"}
                     </button>
@@ -1049,6 +1042,55 @@ const TaskDetailPage = () => {
           )}
         </div>
       )}
+      {/* Decline Modal */}
+      <Modal
+        isOpen={declineModalOpen}
+        onClose={() => setDeclineModalOpen(false)}
+        title={
+          <>
+            <XCircle size={20} className="text-red-500" />
+            <span className="text-gray-800 font-semibold">Alasan Decline</span>
+          </>
+        }
+        maxWidth="max-w-md">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Berikan alasan mengapa task ini ditolak, agar anggota tim dapat
+            melakukan perbaikan yang tepat.
+          </p>
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+              Alasan Decline{" "}
+              <span className="text-red-400 normal-case font-normal">
+                (wajib diisi)
+              </span>
+            </label>
+            <textarea
+              value={declineComment}
+              onChange={(e) => setDeclineComment(e.target.value)}
+              placeholder="Contoh: Hasil kerja belum sesuai kriteria. Mohon perbaiki bagian X dan Y..."
+              rows={4}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 resize-none transition-colors"
+              autoFocus
+            />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={() => setDeclineModalOpen(false)}
+              disabled={approvalLoading}
+              className="flex-1 py-2.5 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl text-sm font-semibold transition-colors">
+              Batal
+            </button>
+            <button
+              onClick={handleDecline}
+              disabled={approvalLoading || !declineComment.trim()}
+              className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+              <XCircle size={16} />
+              {approvalLoading ? "Menolak..." : "Konfirmasi Decline"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 };

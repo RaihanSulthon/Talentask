@@ -91,8 +91,9 @@ export const removeMemberFromTeam = async (teamId, memberId, context = {}) => {
 };
 
 export const deleteTeam = async (teamId) => {
-  // Hapus semua tasks yang terkait dengan team ini terlebih dahulu
   await deleteTasksByTeamIds([teamId]);
+  const { deleteRepositoryByTeamId } = await import("./repositoryService");
+  await deleteRepositoryByTeamId(teamId);
   return await deleteDoc(doc(db, "teams", teamId));
 };
 
