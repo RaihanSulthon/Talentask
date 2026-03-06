@@ -3,7 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
 } from "firebase/auth";
-import { doc, setDoc, getDoc, updateDoc, getDocs, collection } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, getDocs, collection, deleteDoc } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
 
 export const signUp = async (email, password, displayName) => {
@@ -88,4 +88,9 @@ export const getAllUsers = async () => {
     id: doc.id,
     ...doc.data(),
   }));
+};
+
+export const deleteUserById = async (userId) => {
+  const userRef = doc(db, "users", userId);
+  await deleteDoc(userRef);
 };

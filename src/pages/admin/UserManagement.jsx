@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { getAllUsers, updateUserRole } from "../../services/authService";
+import {
+  getAllUsers,
+  updateUserRole,
+  deleteUserById,
+} from "../../services/authService";
 import {
   collection,
   onSnapshot,
@@ -20,6 +24,7 @@ import {
   Users,
   Mail,
   Calendar,
+  Trash2,
 } from "lucide-react";
 import { useToast } from "../../components/Toast";
 
@@ -31,6 +36,9 @@ const UserManagement = () => {
   const [demoteLoading, setDemoteLoading] = useState(false);
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [promoteLoading, setPromoteLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -116,6 +124,38 @@ const UserManagement = () => {
       toast.error("Gagal mempromosikan user. Silakan coba lagi.");
     } finally {
       setPromoteLoading(false);
+    }
+  };
+
+  const handleDeleteUser = (user) => {
+    setDeleteTarget(user);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      setDeleteLoading(true);
+
+      // Hapus teams & tasks milik user jika dia admin
+      if (deleteTarget.role === "admin") {
+        const { teamIds } = await getTeamCountByOwnerId(deleteTarget.id);
+        if (teamIds.length > 0) {
+          await deleteTasksByTeamIds(teamIds);
+        }
+        await deleteTeamsByOwnerId(deleteTarget.id);
+      }
+
+      await deleteUserById(deleteTarget.id);
+      setShowDeleteModal(false);
+      toast.success(
+        `Akun ${deleteTarget.displayName} telah dihapus secara permanen.`,
+      );
+      setDeleteTarget(null);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Gagal menghapus user. Silakan coba lagi.");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -279,28 +319,37 @@ const UserManagement = () => {
                 </div>
 
                 {/* Action */}
-                <div>
+                <div className="flex items-center gap-2">
                   {user.role !== "super_admin" ? (
-                    <button
-                      onClick={() =>
-                        handleRoleChange(user.id, user.role, user.displayName)
-                      }
-                      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 border ${
-                        user.role === "admin"
-                          ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
-                          : "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100"
-                      }`}
-                    >
-                      {user.role === "admin" ? (
-                        <>
-                          <UserX size={13} /> Demote to User
-                        </>
-                      ) : (
-                        <>
-                          <UserCheck size={13} /> Promote to Admin
-                        </>
-                      )}
-                    </button>
+                    <>
+                      <button
+                        onClick={() =>
+                          handleRoleChange(user.id, user.role, user.displayName)
+                        }
+                        className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 border ${
+                          user.role === "admin"
+                            ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                            : "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100"
+                        }`}
+                      >
+                        {user.role === "admin" ? (
+                          <>
+                            <UserX size={13} /> Demote to User
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck size={13} /> Promote to Admin
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(user)}
+                        className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-gray-400 border border-gray-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all duration-150"
+                        title="Hapus user"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </>
                   ) : (
                     <span className="text-xs text-gray-300">—</span>
                   )}
@@ -455,6 +504,120 @@ const UserManagement = () => {
               </span>
             ) : (
               "Confirm Promotion"
+            )}
+          </button>
+        </div>
+      </Modal>
+      {/* Delete Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => !deleteLoading && setShowDeleteModal(false)}
+        maxWidth="max-w-md"
+        title={
+          <>
+            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+              <Trash2 className="text-red-500" size={20} />
+            </div>
+            <span className="text-lg font-bold text-gray-800">
+              Hapus Akun Pengguna
+            </span>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {/* User preview */}
+          {deleteTarget && (
+            <div className="flex items-center gap-3 p-3.5 bg-gray-50 rounded-xl border border-gray-200">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                style={{
+                  background: "linear-gradient(135deg, #667eea, #764ba2)",
+                }}
+              >
+                {(deleteTarget.displayName || "?")
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2)}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">
+                  {deleteTarget.displayName}
+                </p>
+                <p className="text-xs text-gray-400 truncate">
+                  {deleteTarget.email}
+                </p>
+              </div>
+              <span
+                className={`ml-auto shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                  deleteTarget.role === "admin"
+                    ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                    : "bg-gray-100 text-gray-600 border-gray-200"
+                }`}
+              >
+                {deleteTarget.role === "admin" ? "Admin" : "User"}
+              </span>
+            </div>
+          )}
+
+          <p className="text-gray-600 text-sm leading-relaxed">
+            Akun ini akan{" "}
+            <span className="font-semibold text-red-600">
+              dihapus selamanya
+            </span>{" "}
+            dari sistem Talentask.
+          </p>
+
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl space-y-1.5">
+            <p className="text-red-700 text-sm font-semibold flex items-center gap-2">
+              🗑️ Data yang akan ikut terhapus:
+            </p>
+            <ul className="text-red-600 text-sm list-disc list-inside space-y-1">
+              <li>Profil & informasi akun pengguna</li>
+              {deleteTarget?.role === "admin" && (
+                <>
+                  <li>Semua tim yang dimiliki oleh user ini</li>
+                  <li>Semua task dalam tim-tim tersebut</li>
+                </>
+              )}
+              <li>Seluruh riwayat aktivitas di platform</li>
+            </ul>
+          </div>
+
+          <div className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+            <AlertTriangle
+              size={15}
+              className="text-amber-500 shrink-0 mt-0.5"
+            />
+            <p className="text-amber-700 text-xs font-medium leading-relaxed">
+              Tindakan ini{" "}
+              <span className="font-bold">tidak dapat dibatalkan</span>.
+              Pastikan Anda sudah yakin sebelum melanjutkan.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={() => setShowDeleteModal(false)}
+            disabled={deleteLoading}
+            className="flex-1 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Batalkan
+          </button>
+          <button
+            onClick={handleConfirmDelete}
+            disabled={deleteLoading}
+            className="flex-1 px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-red-200"
+          >
+            {deleteLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Menghapus...
+              </span>
+            ) : (
+              "Ya, Hapus Sekarang"
             )}
           </button>
         </div>
