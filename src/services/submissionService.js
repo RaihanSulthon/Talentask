@@ -82,3 +82,23 @@ export const subscribeToTaskSubmissions = (taskId, callback) => {
   const q = query(collection(db, "submissions"), where("taskId", "==", taskId));
   return onSnapshot(q, callback);
 };
+
+export const subscribeToSubmissionsByTaskIds = (taskIds, callback) => {
+  if (!taskIds || taskIds.length === 0) {
+    callback({});
+    return () => {};
+  }
+  // Firestore "in" max 30 items, ambil batch pertama saja (cukup untuk use case ini)
+  const q = query(
+    collection(db, "submissions"),
+    where("taskId", "in", taskIds.slice(0, 30)),
+  );
+  return onSnapshot(q, (snap) => {
+    // Return map: { [taskId]: true } untuk task yang punya submission
+    const map = {};
+    snap.docs.forEach((d) => {
+      map[d.data().taskId] = true;
+    });
+    callback(map);
+  });
+};

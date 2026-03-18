@@ -11,6 +11,7 @@ import { AlertTriangle, AlertCircle } from "lucide-react";
 import CustomSelect from "../components/CustomSelect";
 import TaskDetailContent from "../components/tasks/TaskDetailContent";
 import { useToast } from "../components/Toast";
+import { subscribetoSubmissionsByTaskIds } from "../services/submissionService";
 
 const KanbanPage = () => {
   const { user, userRole } = useAuth();
@@ -36,6 +37,20 @@ const KanbanPage = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const toast = useToast();
+  const [taskSubmissionMap, setTaskSubmissionMap] = useState({});
+  const taskIdsKey = tasks
+    .map((t) => t.id)
+    .sort()
+    .join(",");
+
+  useEffect(() => {
+    const ids = tasks.map((t) => t.id);
+    if (ids.length === 0) return;
+    const unsub = subscribeToSubmissionsByTaskIds(ids, (map) => {
+      setTaskSubmissionMap((prev) => ({ ...prev, ...map }));
+    });
+    return () => unsub();
+  }, [taskIdsKey]);
 
   const columns = [
     { id: "todo", title: "To Do", status: "todo" },
@@ -130,8 +145,17 @@ const KanbanPage = () => {
         return;
       }
 
-      if (newStatus === "inreview" && !isAdmin) {
-        toast.info("Task dikirim untuk direview oleh team owner.");
+      if (newStatus === "inreview") {
+        if (!taskSubmissionMap[draggedTask.id]) {
+          toast.warning(
+            "Belum ada submission. Kumpulkan hasil kerja dulu sebelum minta review.",
+          );
+          setDraggedTask(null);
+          return;
+        }
+        if (!isAdmin) {
+          toast.info("Task dikirim untuk direview oleh team owner.");
+        }
       }
 
       try {
@@ -232,14 +256,12 @@ const KanbanPage = () => {
           {isAdmin && ownedTeams.length > 0 && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors"
-            >
+              className="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors">
               Create Task
             </button>
           )}
         </div>
-      }
-    >
+      }>
       {/* Task Statistics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 xl:gap-6 mb-5 lg:mb-8">
         {" "}
@@ -266,8 +288,7 @@ const KanbanPage = () => {
           return (
             <div
               key={col.id}
-              className={`p-6 rounded-xl ${getStatBgColor(col.status)}`}
-            >
+              className={`p-6 rounded-xl ${getStatBgColor(col.status)}`}>
               <div className="flex items-center gap-4">
                 <div className="text-3xl font-bold text-white">{count}</div>
                 <div className="text-white font-semibold text-md">
@@ -320,8 +341,7 @@ const KanbanPage = () => {
           setFormErrors({});
         }}
         title="Create New Task"
-        maxWidth="max-w-lg"
-      >
+        maxWidth="max-w-lg">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1.5">
@@ -419,8 +439,7 @@ const KanbanPage = () => {
                       deadlineReminder: parseInt(e.target.value),
                     })
                   }
-                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-violet-300"
-                >
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-violet-300">
                   <option value={1}>1 day before</option>
                   <option value={2}>2 days before</option>
                   <option value={3}>3 days before</option>
@@ -453,8 +472,7 @@ const KanbanPage = () => {
                   .map((member) => (
                     <label
                       key={member.uid || member.id}
-                      className="flex items-center gap-3 p-2.5 hover:bg-white rounded-lg cursor-pointer transition-colors"
-                    >
+                      className="flex items-center gap-3 p-2.5 hover:bg-white rounded-lg cursor-pointer transition-colors">
                       <input
                         type="checkbox"
                         checked={formData.assignedTo.includes(
@@ -489,8 +507,7 @@ const KanbanPage = () => {
               setFormErrors({});
             }}
             disabled={actionLoading}
-            className="w-full py-3 bg-violet-500 hover:bg-violet-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-xl font-medium transition-all shadow-sm shadow-violet-200"
-          >
+            className="w-full py-3 bg-violet-500 hover:bg-violet-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-xl font-medium transition-all shadow-sm shadow-violet-200">
             {actionLoading ? "Creating..." : "Create Task"}
           </button>
         </div>
@@ -510,8 +527,7 @@ const KanbanPage = () => {
               Delete Task
             </span>
           </>
-        }
-      >
+        }>
         <div className="mb-6">
           <p className="text-gray-500 text-center">
             Are you sure you want to delete{" "}
@@ -528,15 +544,13 @@ const KanbanPage = () => {
           <button
             onClick={() => setShowDeleteModal(false)}
             disabled={actionLoading}
-            className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+            className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             Cancel
           </button>
           <button
             onClick={confirmDelete}
             disabled={actionLoading}
-            className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+            className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             {actionLoading ? "Deleting..." : "Delete Task"}
           </button>
         </div>
@@ -551,8 +565,7 @@ const KanbanPage = () => {
           setIsEditMode(false);
         }}
         title="Task Details"
-        maxWidth="max-w-2xl"
-      >
+        maxWidth="max-w-2xl">
         {selectedTask && (
           <TaskDetailContent
             task={selectedTask}

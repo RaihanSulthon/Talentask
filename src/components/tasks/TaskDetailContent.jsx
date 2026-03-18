@@ -3,6 +3,7 @@ import { X, Edit2, Trash2, Clock, Calendar, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import CustomSelect from "../CustomSelect";
 import Modal from "../Modal";
+import { useToast } from "../Toast";
 
 const TaskDetailContent = ({
   task,
@@ -14,6 +15,7 @@ const TaskDetailContent = ({
   canEdit,
   loading,
   initialEditMode = false,
+  hasSubmission = false,
 }) => {
   const { user, userRole } = useAuth();
   const [isEditing, setIsEditing] = useState(initialEditMode);
@@ -30,6 +32,7 @@ const TaskDetailContent = ({
   const [showAssignDropdown, setShowAssignDropdown] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const currentTeam = teams.find((t) => t.id === task.teamId);
+  const toast = useToast();
 
   const statusOptions = [
     { value: "todo", label: "To Do" },
@@ -550,6 +553,12 @@ const TaskDetailContent = ({
                 value={formData.status}
                 onChange={(value) => {
                   if (value === "inreview") {
+                    if (!hasSubmission) {
+                      toast.warning(
+                        "Belum ada submission. Kumpulkan hasil kerja dulu sebelum minta review.",
+                      );
+                      return;
+                    }
                     if (
                       !window.confirm(
                         "Submit this task for approval? Your team owner will review it.",

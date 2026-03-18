@@ -683,6 +683,7 @@ const TaskDetailPage = () => {
           <TaskDetailContent
             task={taskWithTeam}
             teams={teams}
+            hasSubmission={submissions.length > 0}
             onClose={() => navigate(-1)}
             onUpdate={handleUpdateTask}
             onUpdateStatus={async (tId, newStatus) => {
