@@ -81,6 +81,7 @@ const TaskDetailPage = () => {
   const [approvalLoading, setApprovalLoading] = useState(false);
   const [declineModalOpen, setDeclineModalOpen] = useState(false);
   const [declineComment, setDeclineComment] = useState("");
+  const [newDeadline, setNewDeadline] = useState(null);
   const { teams } = useTeamManagement();
   const {
     tasks,
@@ -138,6 +139,7 @@ const TaskDetailPage = () => {
 
   const openDeclineModal = () => {
     setDeclineComment("");
+    setNewDeadline("");
     setDeclineModalOpen(true);
   };
 
@@ -145,6 +147,10 @@ const TaskDetailPage = () => {
     if (!task) return;
     if (!declineComment.trim()) {
       toast.error("Alasan decline tidak boleh kosong.");
+      return;
+    }
+    if (!newDeadline) {
+      toast.error("Deadline revisi baru wajib diisi.");
       return;
     }
     try {
@@ -159,6 +165,7 @@ const TaskDetailPage = () => {
         actorName: user.displayName,
         isDecline: true,
         declineComment: declineComment.trim(),
+        newDeadline: newDeadline,
       });
       setDeclineModalOpen(false);
       toast.warning(
@@ -1074,6 +1081,36 @@ const TaskDetailPage = () => {
               autoFocus
             />
           </div>
+
+          {/* New Deadline */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+              Deadline Revisi Baru{" "}
+              <span className="text-red-400 normal-case font-normal">
+                (wajib diisi)
+              </span>
+            </label>
+            <input
+              type="date"
+              value={newDeadline}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) => setNewDeadline(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-colors"
+            />
+            {task?.deadline && (
+              <p className="text-xs text-gray-400 mt-1.5">
+                Deadline sebelumnya:{" "}
+                <span className="font-medium text-gray-500">
+                  {new Date(
+                    task.deadline?.toDate
+                      ? task.deadline.toDate()
+                      : task.deadline,
+                  ).toLocaleDateString("en-GB")}
+                </span>
+              </p>
+            )}
+          </div>
+
           <div className="flex gap-3 pt-1">
             <button
               onClick={() => setDeclineModalOpen(false)}
@@ -1083,7 +1120,9 @@ const TaskDetailPage = () => {
             </button>
             <button
               onClick={handleDecline}
-              disabled={approvalLoading || !declineComment.trim()}
+              disabled={
+                approvalLoading || !declineComment.trim() || !newDeadline
+              }
               className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
               <XCircle size={16} />
               {approvalLoading ? "Menolak..." : "Konfirmasi Decline"}

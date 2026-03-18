@@ -101,12 +101,16 @@ export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
     actorName = "",
     isDecline = false,
     declineComment = "",
+    newDeadline = null,
   } = context;
 
   const taskUpdates = { status: newStatus };
   if (isDecline) {
     taskUpdates.declineComment = declineComment || "";
     taskUpdates.declinedAt = new Date();
+    if (context.newDeadline) {
+      taskUpdates.deadline = context.newDeadline;
+    }
   } else if (newStatus === "done") {
     taskUpdates.declineComment = "";
   }
@@ -183,7 +187,7 @@ export const updateTaskStatus = async (taskId, newStatus, context = {}) => {
       await createNotificationForMany(assigneeRecipients, {
         type: "task_declined",
         title: "Task Declined ✗",
-        message: `Your task "${taskTitle}" was declined by ${actorName}${declineComment ? `: "${declineComment}"` : " and needs revision"}`,
+        message: `Your task "${taskTitle}" was declined by ${actorName}${declineComment ? `: "${declineComment}"` : " and needs revision"}${newDeadline ? `. New deadline: ${new Date(newDeadline).toLocaleDateString("en-GB")}` : ""}`,
         taskId,
         taskTitle,
         teamId,

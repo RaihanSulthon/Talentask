@@ -17,6 +17,8 @@ const ApprovalDetailContent = ({
   onDecline,
   declineComment,
   onDeclineCommentChange,
+  newDeadline,
+  onNewDeadlineChange,
 }) => {
   const currentTeam = teams.find((t) => t.id === task.teamId);
   const assignedMembers = task.assignedTo
@@ -117,7 +119,6 @@ const ApprovalDetailContent = ({
       </div>
 
       {/* Previous Decline Reason — tampil ke semua (admin & member) jika ada */}
-      {/* Previous Decline Reason — tampil ke semua (admin & member) jika ada */}
       {task.declineComment && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex gap-3">
           <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
@@ -127,6 +128,20 @@ const ApprovalDetailContent = ({
             </p>
             <p className="text-red-700 text-sm leading-relaxed">
               {task.declineComment}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {task.declinedAt && task.deadline && (
+        <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl flex items-center gap-3">
+          <Calendar size={16} className="text-orange-500 shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-orange-500 uppercase tracking-wider">
+              Revision Deadline
+            </p>
+            <p className="text-orange-700 text-sm font-medium">
+              {formatDate(task.deadline)}
             </p>
           </div>
         </div>
@@ -153,6 +168,36 @@ const ApprovalDetailContent = ({
             />
           </div>
 
+          {/* New Deadline for Revision */}
+          <div>
+            <label className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+              <Calendar size={13} />
+              Deadline Revisi Baru
+              <span className="text-red-400 normal-case font-normal">
+                (wajib diisi)
+              </span>
+            </label>
+            <input
+              type="date"
+              value={newDeadline || ""}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) => onNewDeadlineChange(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-colors"
+            />
+            {task.deadline && (
+              <p className="text-xs text-gray-400 mt-1.5">
+                Deadline sebelumnya:{" "}
+                <span className="font-medium text-gray-500">
+                  {new Date(
+                    task.deadline?.toDate
+                      ? task.deadline.toDate()
+                      : task.deadline,
+                  ).toLocaleDateString("en-GB")}
+                </span>
+              </p>
+            )}
+          </div>
+
           <div className="flex gap-3">
             <button
               onClick={onApprove}
@@ -163,7 +208,9 @@ const ApprovalDetailContent = ({
             </button>
             <button
               onClick={onDecline}
-              disabled={actionLoading || !declineComment?.trim()}
+              disabled={
+                actionLoading || !declineComment?.trim() || !newDeadline
+              }
               className="flex-1 py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm shadow-red-200">
               <XCircle size={18} />
               {actionLoading ? "Declining..." : "Decline Task"}

@@ -30,6 +30,7 @@ const ApprovalsPage = () => {
 
   const [selectedTeamFilter, setSelectedTeamFilter] = useState("");
   const [declineComment, setDeclineComment] = useState("");
+  const [newDeadline, setNewDeadline] = useState(null);
   const [confirmModal, setConfirmModal] = useState({
     open: false,
     type: null,
@@ -169,12 +170,14 @@ const ApprovalsPage = () => {
   const openConfirm = (type, task, e) => {
     e?.stopPropagation();
     setDeclineComment("");
+    setNewDeadline("");
     setConfirmModal({ open: true, type, task });
   };
 
   const closeConfirm = () => {
     setConfirmModal({ open: false, type: null, task: null });
     setDeclineComment("");
+    setNewDeadline("");
   };
 
   const handleApprove = async (task) => {
@@ -211,6 +214,10 @@ const ApprovalsPage = () => {
       toast.error("Please provide a decline reason.");
       return;
     }
+    if (!newDeadline) {
+      toast.error("Please provide a new deadline.");
+      return;
+    }
     setActionLoading(true);
     try {
       const currentTeam = teams.find((t) => t.id === task.teamId);
@@ -229,6 +236,7 @@ const ApprovalsPage = () => {
         actorName: user.displayName || user.email,
         isDecline: true,
         declineComment: declineComment.trim(),
+        newDeadline: newDeadline,
       });
       toast.success("Task declined with comment.");
       closeConfirm();
@@ -453,6 +461,35 @@ const ApprovalsPage = () => {
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 resize-none transition-colors"
             />
           </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+              Deadline Revisi Baru{" "}
+              <span className="text-red-400 normal-case font-normal">
+                (wajib diisi)
+              </span>
+            </label>
+            <input
+              type="date"
+              value={newDeadline}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) => setNewDeadline(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-colors"
+            />
+            {confirmModal.task?.deadline && (
+              <p className="text-xs text-gray-400 mt-1.5">
+                Deadline sebelumnya:{" "}
+                <span className="font-medium text-gray-500">
+                  {new Date(
+                    confirmModal.task.deadline?.toDate
+                      ? confirmModal.task.deadline.toDate()
+                      : confirmModal.task.deadline,
+                  ).toLocaleDateString("en-GB")}
+                </span>
+              </p>
+            )}
+          </div>
+
           <div className="flex gap-3 pt-1">
             <button
               onClick={closeConfirm}
@@ -462,7 +499,7 @@ const ApprovalsPage = () => {
             </button>
             <button
               onClick={handleDecline}
-              disabled={actionLoading || !declineComment.trim()}
+              disabled={actionLoading || !declineComment.trim() || !newDeadline}
               className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
               <XCircle size={16} />
               {actionLoading ? "Menolak..." : "Konfirmasi Decline"}
