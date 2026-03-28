@@ -26,30 +26,27 @@ const Sidebar = ({
   const getMenuItems = () => {
     if (userRole === "super_admin" || userRole === "admin") {
       const items = [
-        { icon: LayoutDashboard, label: "Kanban", path: "/admin/board" },
-        { icon: Users, label: "Team", path: "/team" },
-        { icon: CheckSquare, label: "Tasks", path: "/admin/tasks" },
-        { icon: FileCheck, label: "Approvals", path: "/admin/approvals" },
-        { icon: BookOpen, label: "Repository", path: "/repository" },
+        { icon: LayoutDashboard, label: "Kanban",   path: "/admin/board" },
+        { icon: Users,           label: "Tim",       path: "/team" },
+        { icon: CheckSquare,     label: "Tasks",     path: "/admin/tasks" },
+        { icon: FileCheck,       label: "Approvals", path: "/admin/approvals" },
+        { icon: BookOpen,        label: "Repository",path: "/repository" },
       ];
-
       if (userRole === "super_admin") {
         items.push({
           icon: UserCog,
-          label: "User Management",
+          label: "Users",
           path: "/admin/user-management",
         });
       }
-
       return items;
     }
-
     return [
-      { icon: LayoutDashboard, label: "Kanban", path: "/user/kanban" },
-      { icon: Users, label: "Team", path: "/team" },
-      { icon: CheckSquare, label: "Tasks", path: "/user/tasks" },
-      { icon: FileCheck, label: "Approvals", path: "/user/approvals" },
-      { icon: BookOpen, label: "Repository", path: "/repository" },
+      { icon: LayoutDashboard, label: "Kanban",    path: "/user/kanban" },
+      { icon: Users,           label: "Tim",        path: "/team" },
+      { icon: CheckSquare,     label: "Tasks",      path: "/user/tasks" },
+      { icon: FileCheck,       label: "Approvals",  path: "/user/approvals" },
+      { icon: BookOpen,        label: "Repository", path: "/repository" },
     ];
   };
 
@@ -68,56 +65,108 @@ const Sidebar = ({
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-sm transition-all duration-300 pt-16 z-40 ${
-        isExpanded ? "w-56 xl:w-64 shadow-2xl shadow-black/50" : "w-16 xl:w-20"
-      }`}>
-      <div className="flex items-center justify-center py-3 mb-2">
-        <img src={logoIcon} alt="Talentask" className="w-auto h-12" />
+      className={`
+        fixed left-0 top-0 h-full z-40
+        pt-16
+        transition-all duration-300
+        flex flex-col
+        bg-gray-50 border-r border-gray-200/80
+        shadow-[1px_0_8px_0_rgba(0,0,0,0.04)]
+        ${isExpanded ? "w-56 xl:w-64" : "w-16 xl:w-20"}
+      `}
+    >
+      {/* Logo icon (collapsed state) */}
+      <div className="flex items-center justify-center py-3 mb-1">
+        <img
+          src={logoIcon}
+          alt="Talentask"
+          className={`w-auto transition-all duration-300 ${
+            isExpanded ? "h-10" : "h-9"
+          }`}
+        />
       </div>
-      <div className="flex flex-col h-full">
-        <nav className="flex-1 py-6">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={onAfterNavigate}
-                className={`flex items-center px-4 lg:px-5 xl:px-6 py-2.5 lg:py-3 mb-1 transition-all duration-200 rounded-lg mx-2 ${
-                  isActive
-                    ? "bg-violet-100 text-violet-700 border-l-2 border-violet-600"
-                    : "text-gray-500 hover:bg-violet-50 hover:text-violet-600"
-                }`}>
-                <Icon size={20} className="shrink-0" />
-                <span
-                  className={`ml-4 font-medium whitespace-nowrap transition-all duration-300 ${
-                    isExpanded
-                      ? "opacity-100 w-auto"
-                      : "opacity-0 w-0 overflow-hidden"
-                  }`}>
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
-          <div className="py-4 border-t border-gray-100">
+
+      {/* Divider */}
+      <div className="mx-3 h-px bg-gray-200 mb-2" />
+
+      {/* Nav items */}
+      <nav className="flex-1 px-2 py-2 space-y-0.5 overflow-y-auto">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+
+          return (
             <Link
-              to="/landing"
+              key={item.path}
+              to={item.path}
               onClick={onAfterNavigate}
-              className="flex items-center px-4 lg:px-5 xl:px-6 py-2.5 lg:py-3 mx-2 rounded-lg text-gray-400 hover:bg-violet-50 hover:text-violet-600 transition-all duration-200">
-              <Home size={20} className="shrink-0" />
+              title={!isExpanded ? item.label : undefined}
+              className={`
+                group flex items-center gap-3
+                px-3 py-2.5 rounded-xl
+                transition-all duration-200
+                ${isActive
+                  ? "bg-violet-600 text-white shadow-sm shadow-violet-300"
+                  : "text-gray-500 hover:bg-white hover:text-violet-600 hover:shadow-sm"
+                }
+              `}
+            >
+              <Icon
+                size={19}
+                className={`shrink-0 transition-transform duration-200 ${
+                  isActive ? "text-white" : "text-gray-400 group-hover:text-violet-600"
+                }`}
+              />
               <span
-                className={`ml-4 font-medium whitespace-nowrap transition-all duration-300 ${
-                  isExpanded
-                    ? "opacity-100 w-auto"
-                    : "opacity-0 w-0 overflow-hidden"
-                }`}>
-                Back to Home
+                className={`
+                  text-sm font-semibold whitespace-nowrap
+                  transition-all duration-300
+                  ${isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"}
+                  ${isActive ? "text-white" : ""}
+                `}
+              >
+                {item.label}
               </span>
+
+              {/* Active indicator dot — hanya saat collapsed */}
+              {isActive && !isExpanded && (
+                <span className="absolute left-1 w-1 h-5 bg-violet-600 rounded-full" />
+              )}
             </Link>
-          </div>
-        </nav>
+          );
+        })}
+      </nav>
+
+      {/* Divider */}
+      <div className="mx-3 h-px bg-gray-200 mb-2" />
+
+      {/* Back to Home */}
+      <div className="px-2 pb-4">
+        <Link
+          to="/landing"
+          onClick={onAfterNavigate}
+          title={!isExpanded ? "Beranda" : undefined}
+          className="
+            group flex items-center gap-3
+            px-3 py-2.5 rounded-xl
+            text-gray-400 hover:bg-white hover:text-violet-600 hover:shadow-sm
+            transition-all duration-200
+          "
+        >
+          <Home
+            size={19}
+            className="shrink-0 text-gray-400 group-hover:text-violet-600 transition-colors"
+          />
+          <span
+            className={`
+              text-sm font-semibold whitespace-nowrap
+              transition-all duration-300
+              ${isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"}
+            `}
+          >
+            Beranda
+          </span>
+        </Link>
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ const DashboardLayout = ({ children, title, subtitle, actions }) => {
   } = useSidebar();
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-[#F4F5F7]">
       <Navbar />
       <Sidebar
         isExpanded={isExpanded}
@@ -19,17 +19,41 @@ const DashboardLayout = ({ children, title, subtitle, actions }) => {
         onMouseLeave={handleMouseLeave}
         onAfterNavigate={handleAfterNavigate}
       />
+
+      {/* Main content area */}
       <div
-        className={`flex-1 p-4 lg:p-6 xl:p-8 pt-20 lg:pt-22 xl:pt-24 transition-all duration-300 ${isExpanded ? "lg:ml-56 xl:ml-64" : "lg:ml-16 xl:ml-20"} ml-16`}
+        className={`
+          flex-1
+          min-h-screen
+          pt-16
+          transition-all duration-300
+          ${isExpanded ? "lg:ml-56 xl:ml-64" : "lg:ml-16 xl:ml-20"}
+          ml-16
+        `}
       >
-        <div className="mb-5 lg:mb-8">
-          <h1 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2">
-            {title}
-          </h1>
-          {subtitle && <p className="text-gray-500">{subtitle}</p>}
-          {actions && <div className="mt-4">{actions}</div>}
+        {/* Page header strip */}
+        <div className="bg-white border-b border-gray-200/80 px-6 lg:px-8 xl:px-10 py-5 lg:py-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+                {title}
+              </h1>
+              {subtitle && (
+                <p className="text-gray-500 text-sm mt-1">{subtitle}</p>
+              )}
+            </div>
+            {actions && (
+              <div className="shrink-0 flex items-center gap-3 mt-0.5">
+                {actions}
+              </div>
+            )}
+          </div>
         </div>
-        {children}
+
+        {/* Page content */}
+        <div className="p-6 lg:p-8 xl:p-10">
+          {children}
+        </div>
       </div>
     </div>
   );

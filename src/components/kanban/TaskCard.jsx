@@ -1,4 +1,4 @@
-import { Clock, User, MoreVertical, Edit2, Trash2 } from "lucide-react";
+import { Clock, Users, MoreVertical, Edit2, Trash2, AlertCircle } from "lucide-react";
 import { getTeamColor } from "../../utils/teamColors";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -15,7 +15,6 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
         setShowMenu(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -23,21 +22,36 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
   const formatDate = (timestamp) => {
     if (!timestamp) return "";
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString("en-GB");
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
-  const getBorderColor = (status) => {
+  // Cek apakah deadline sudah lewat
+  const getDeadlineStatus = () => {
+    if (!task.deadline) return null;
+    const deadline = task.deadline.toDate
+      ? task.deadline.toDate()
+      : new Date(task.deadline);
+    const now = new Date();
+    const diffDays = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return "overdue";
+    if (diffDays <= 3) return "urgent";
+    return null;
+  };
+
+  const deadlineStatus = getDeadlineStatus();
+
+  // Accent border kiri per status
+  const getAccentBorder = (status) => {
     switch (status) {
-      case "todo":
-        return "border-t-4 border-t-gray-400";
-      case "inprogress":
-        return "border-t-4 border-t-amber-500";
-      case "inreview":
-        return "border-t-4 border-t-blue-500";
-      case "done":
-        return "border-t-4 border-t-emerald-500";
-      default:
-        return "";
+      case "todo":        return "border-l-slate-400";
+      case "inprogress":  return "border-l-amber-400";
+      case "inreview":    return "border-l-blue-400";
+      case "done":        return "border-l-emerald-400";
+      default:            return "border-l-gray-300";
     }
   };
 
@@ -45,13 +59,11 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
     e.stopPropagation();
     setShowMenu(!showMenu);
   };
-
   const handleEdit = (e) => {
     e.stopPropagation();
     setShowMenu(false);
     onEdit(task);
   };
-
   const handleDelete = (e) => {
     e.stopPropagation();
     setShowMenu(false);
@@ -65,74 +77,106 @@ const TaskCard = ({ task, onDragStart, onClick, onEdit, onDelete }) => {
       draggable
       onDragStart={(e) => onDragStart(e, task)}
       onClick={onClick}
-      className={`p-4 bg-white rounded-lg border border-gray-200 shadow-sm cursor-move transition-all 
-    hover:shadow-md hover:border-violet-200 hover:-translate-y-1 hover:scale-90
-    ${getBorderColor(task.status)}`}
+      className={`
+        relative
+        bg-white rounded-xl
+        border border-gray-100
+        border-l-4 ${getAccentBorder(task.status)}
+        shadow-sm
+        cursor-grab active:cursor-grabbing
+        transition-all duration-200
+        hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5
+        select-none
+      `}
     >
-      {/* Header with three dots */}
-      <div className="flex items-start justify-between mb-3">
-        <h4 className="font-semibold text-gray-900 flex-1 pr-2">
-          {task.title}
-        </h4>
+      {/* Overdue/Urgent strip di atas */}
+      {deadlineStatus === "overdue" && (
+        <div className="absolute top-0 left-4 right-4 h-0.5 bg-red-400 rounded-full" />
+      )}
+      {deadlineStatus === "urgent" && (
+        <div className="absolute top-0 left-4 right-4 h-0.5 bg-amber-400 rounded-full" />
+      )}
 
-        {/* Three dots menu */}
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={handleMenuClick}
-            className="p-1 hover:bg-gray-100 rounded transition-colors"
-          >
-            <MoreVertical size={16} className="text-gray-400" />
-          </button>
+      <div className="p-4">
+        {/* Header: title + menu */}
+        <div className="flex items-start justify-between gap-2 mb-2.5">
+          <h4 className="font-bold text-gray-800 text-sm leading-snug flex-1 line-clamp-2">
+            {task.title}
+          </h4>
 
-          {/* Dropdown menu */}
-          {showMenu && (
-            <div className="absolute right-0 top-8 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-              <button
-                onClick={handleEdit}
-                className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-              >
-                <Edit2 size={14} />
-                <span>Edit</span>
-              </button>
-              {isAdmin && (
+          {/* Three-dot menu */}
+          <div className="relative shrink-0" ref={menuRef}>
+            <button
+              onClick={handleMenuClick}
+              className="p-1 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              <MoreVertical size={15} />
+            </button>
+            {showMenu && (
+              <div className="absolute right-0 top-7 w-36 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden py-1">
                 <button
-                  onClick={handleDelete}
-                  className="w-full px-4 py-2 text-left text-red-500 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  onClick={handleEdit}
+                  className="w-full px-3 py-2 text-left text-gray-600 hover:bg-gray-50 hover:text-violet-600 text-sm flex items-center gap-2 transition-colors"
                 >
-                  <Trash2 size={14} />
-                  <span>Delete</span>
+                  <Edit2 size={13} />
+                  Edit Task
                 </button>
-              )}
-            </div>
-          )}
+                {isAdmin && (
+                  <button
+                    onClick={handleDelete}
+                    className="w-full px-3 py-2 text-left text-red-500 hover:bg-red-50 text-sm flex items-center gap-2 transition-colors"
+                  >
+                    <Trash2 size={13} />
+                    Hapus Task
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Description and Team badge side by side */}
-      <div className="flex items-start gap-2 mb-3">
-        <p className="text-sm text-gray-500 line-clamp-2 flex-1">
-          {task.description}
-        </p>
-        <span
-          style={{
-            backgroundColor: teamColor.bg,
-            color: teamColor.text,
-            border: `1px solid ${teamColor.border}`,
-          }}
-          className="shrink-0 px-2 py-1 text-xs rounded-full font-medium whitespace-nowrap"
-        >
-          {task.teamName || "Team"}
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between text-xs text-gray-400">
-        <div className="flex items-center gap-1">
-          <User size={14} />
-          <span>{task.assignedTo?.length || 0} assigned</span>
+        {/* Description + Team badge */}
+        <div className="flex items-start gap-2 mb-3">
+          <p className="text-xs text-gray-400 line-clamp-2 flex-1 leading-relaxed">
+            {task.description}
+          </p>
+          <span
+            style={{
+              backgroundColor: teamColor.bg,
+              color: teamColor.text,
+              border: `1px solid ${teamColor.border}`,
+            }}
+            className="shrink-0 px-2 py-0.5 text-xs rounded-full font-semibold whitespace-nowrap"
+          >
+            {task.teamName || "Tim"}
+          </span>
         </div>
-        <div className="flex items-center gap-1">
-          <Clock size={14} />
-          <span>{formatDate(task.createdAt)}</span>
+
+        {/* Footer: assignees + date/deadline */}
+        <div className="flex items-center justify-between pt-2.5 border-t border-gray-50">
+          <div className="flex items-center gap-1 text-xs text-gray-400">
+            <Users size={12} />
+            <span>{task.assignedTo?.length || 0} assigned</span>
+          </div>
+
+          <div className="flex items-center gap-1 text-xs">
+            {deadlineStatus === "overdue" ? (
+              <span className="flex items-center gap-1 text-red-500 font-semibold">
+                <AlertCircle size={11} />
+                Overdue
+              </span>
+            ) : deadlineStatus === "urgent" ? (
+              <span className="flex items-center gap-1 text-amber-500 font-semibold">
+                <Clock size={11} />
+                Segera
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-gray-400">
+                <Clock size={11} />
+                {formatDate(task.createdAt)}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

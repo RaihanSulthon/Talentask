@@ -221,8 +221,8 @@ const TeamPage = () => {
               onClick={() => setSelectedTeamId(isSelected ? null : team.id)}
               className={`relative overflow-hidden cursor-pointer rounded-2xl border-2 transition-all duration-300 p-5 ${
                 isSelected
-                  ? `${palette.soft} ${palette.border} shadow-lg ring-2 ring-offset-1 ${palette.border.replace("border-", "ring-")}`
-                  : "bg-white border-gray-100 hover:border-gray-200 hover:shadow-md"
+                  ? `${palette.soft} ${palette.border} shadow-lg shadow-current -translate-y-1`
+                  : "bg-white border-gray-100 hover:border-gray-200 hover:shadow-md hover:-translate-y-0.5"
               }`}
             >
               {/* Top color bar */}
