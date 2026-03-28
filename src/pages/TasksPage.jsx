@@ -412,9 +412,8 @@ const TasksPage = () => {
         </div>
       )}
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 lg:gap-4 mb-5 lg:mb-8">
-        {" "}
+      {/* Statistics Cards — 2 baris: row atas summary, row bawah detail */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         {[
           {
             icon: CheckCircle2,
@@ -476,23 +475,22 @@ const TasksPage = () => {
           return (
             <Card
               key={i}
-              className={`p-5 border ${stat.border} hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden relative`}
+              className={`p-4 border ${stat.border} hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden relative cursor-default`}
             >
-              {/* Accent bar top */}
               <div
                 className={`absolute top-0 left-0 right-0 h-1 ${stat.accent} rounded-t-xl`}
               />
               <div className="flex items-center gap-3 mt-1">
                 <div
-                  className={`w-10 h-10 ${stat.bg} rounded-xl flex items-center justify-center shrink-0`}
+                  className={`w-9 h-9 ${stat.bg} rounded-xl flex items-center justify-center shrink-0`}
                 >
-                  <Icon size={20} className={stat.color} />
+                  <Icon size={18} className={stat.color} />
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-gray-800 leading-none">
                     {stat.value}
                   </div>
-                  <div className="text-gray-400 text-xs mt-1 font-medium">
+                  <div className="text-gray-400 text-xs mt-0.5 font-medium">
                     {stat.label}
                   </div>
                 </div>
@@ -502,32 +500,28 @@ const TasksPage = () => {
         })}
       </div>
 
-      {/* Filters and Search */}
-      <div className="mb-6">
-        <div className="flex flex-col lg:flex-row gap-3 mb-4">
-          {/* Search */}
+      {/* Search + Filter Bar — digabung dalam 1 baris yang bersih */}
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 mb-4">
+        <div className="flex flex-col lg:flex-row gap-3 mb-3">
           <div className="relative flex-1">
             <Search
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
+              size={18}
             />
             <input
               type="text"
-              placeholder="Search tasks..."
+              placeholder="Cari task berdasarkan judul..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-400"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:bg-white transition-all"
             />
           </div>
-
-          {/* Team Filter Dropdown */}
           <TeamFilterDropdown
             teams={availableTeams}
             selectedTeam={selectedTeamFilter}
             onSelectTeam={setSelectedTeamFilter}
           />
         </div>
-
         <TaskFilters
           selectedStatusFilter={selectedStatusFilter}
           setSelectedStatusFilter={setSelectedStatusFilter}
@@ -544,8 +538,17 @@ const TasksPage = () => {
         />
       </div>
 
-      {/* View Toggle */}
-      <TaskViewToggle viewMode={viewMode} setViewMode={setViewMode} />
+      {/* View Toggle — gabung dengan label hasil filter */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-gray-500">
+          Menampilkan{" "}
+          <span className="font-semibold text-gray-800">
+            {filteredTasks.length}
+          </span>{" "}
+          task
+        </p>
+        <TaskViewToggle viewMode={viewMode} setViewMode={setViewMode} />
+      </div>
 
       {/* Tasks List */}
       <div ref={taskListRef} className="space-y-3">

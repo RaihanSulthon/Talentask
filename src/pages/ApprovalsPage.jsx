@@ -14,6 +14,7 @@ import {
   Clock,
   XCircle,
   Filter,
+  FileCheck,
 } from "lucide-react";
 import Modal from "../components/Modal";
 import { useToast } from "../components/Toast";
@@ -262,51 +263,103 @@ const ApprovalsPage = () => {
         isAdmin
           ? "Review and approve tasks submitted by team members"
           : "Track your tasks awaiting approval"
-      }>
-      {/* Statistics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 xl:gap-6 mb-5 lg:mb-8">
-        {" "}
-        {/* Card 1: selalu tampil */}
-        <Card className="p-4 lg:p-6 border border-violet-100">
+      }
+    >
+      {/* Statistics — full 3 card untuk semua role, konten disesuaikan */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <Card className="p-5 border border-amber-100 bg-linear-to-br from-amber-50 to-white">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-linear-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
-              <Clock size={24} className="text-white" />
+            <div className="w-12 h-12 bg-linear-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-sm shadow-amber-200">
+              <Clock size={22} className="text-white" />
             </div>
             <div>
-              <div className="text-2xl lg:text-3xl font-bold text-gray-800">
+              <div className="text-3xl font-extrabold text-gray-800 leading-none">
                 {statistics.pending}
               </div>
-              <div className="text-gray-500 text-sm">Pending Approval</div>
+              <div className="text-gray-500 text-sm mt-0.5">
+                Menunggu Approval
+              </div>
             </div>
           </div>
+          {statistics.pending > 0 && (
+            <p className="text-xs text-amber-600 mt-3 bg-amber-100 px-2.5 py-1 rounded-full w-fit">
+              {isAdmin ? "Butuh perhatianmu" : "Admin sedang meninjau"}
+            </p>
+          )}
         </Card>
-        {/* Card 2 & 3: hanya untuk admin */}
-        {isAdmin && (
+
+        {isAdmin ? (
           <>
-            <Card className="p-4 lg:p-6 border border-violet-100">
+            <Card className="p-5 border border-emerald-100 bg-linear-to-br from-emerald-50 to-white">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-linear-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
-                  <CheckCircle size={24} className="text-white" />
+                <div className="w-12 h-12 bg-linear-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-sm shadow-emerald-200">
+                  <CheckCircle size={22} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-2xl lg:text-3xl font-bold text-gray-800">
+                  <div className="text-3xl font-extrabold text-gray-800 leading-none">
                     {statistics.approvedToday}
                   </div>
-                  <div className="text-gray-500 text-sm">Approved Today</div>
+                  <div className="text-gray-500 text-sm mt-0.5">
+                    Disetujui Hari Ini
+                  </div>
                 </div>
               </div>
             </Card>
-
-            <Card className="p-4 lg:p-6 border border-violet-100">
+            <Card className="p-5 border border-red-100 bg-linear-to-br from-red-50 to-white">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-linear-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <XCircle size={24} className="text-white" />
+                <div className="w-12 h-12 bg-linear-to-br from-red-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-sm shadow-red-200">
+                  <XCircle size={22} className="text-white" />
                 </div>
                 <div>
-                  <div className="text-2xl lg:text-3xl font-bold text-gray-800">
+                  <div className="text-3xl font-extrabold text-gray-800 leading-none">
                     {statistics.declinedToday}
                   </div>
-                  <div className="text-gray-500 text-sm">Declined Today</div>
+                  <div className="text-gray-500 text-sm mt-0.5">
+                    Ditolak Hari Ini
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </>
+        ) : (
+          <>
+            {/* Untuk user: total tasks dan tasks done */}
+            <Card className="p-5 border border-blue-100 bg-linear-to-br from-blue-50 to-white">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-linear-to-br from-blue-400 to-violet-500 rounded-2xl flex items-center justify-center shadow-sm shadow-blue-200">
+                  <FileCheck size={22} className="text-white" />
+                </div>
+                <div>
+                  <div className="text-3xl font-extrabold text-gray-800 leading-none">
+                    {
+                      tasks.filter(
+                        (t) =>
+                          t.assignedTo?.includes(user?.uid) &&
+                          t.status === "done",
+                      ).length
+                    }
+                  </div>
+                  <div className="text-gray-500 text-sm mt-0.5">
+                    Task Selesai
+                  </div>
+                </div>
+              </div>
+            </Card>
+            <Card className="p-5 border border-violet-100 bg-linear-to-br from-violet-50 to-white">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-linear-to-br from-violet-400 to-purple-500 rounded-2xl flex items-center justify-center shadow-sm shadow-violet-200">
+                  <User size={22} className="text-white" />
+                </div>
+                <div>
+                  <div className="text-3xl font-extrabold text-gray-800 leading-none">
+                    {
+                      tasks.filter((t) => t.assignedTo?.includes(user?.uid))
+                        .length
+                    }
+                  </div>
+                  <div className="text-gray-500 text-sm mt-0.5">
+                    Total Task Saya
+                  </div>
                 </div>
               </div>
             </Card>
@@ -352,7 +405,8 @@ const ApprovalsPage = () => {
               <Card
                 key={task.id}
                 onClick={() => handleTaskClick(task)}
-                className="p-6 rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500/50 transition-all hover:shadow-lg hover:shadow-yellow-500/10">
+                className="p-6 rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500/50 transition-all hover:shadow-lg hover:shadow-yellow-500/10"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -397,14 +451,16 @@ const ApprovalsPage = () => {
                           handleApprove(task);
                         }}
                         disabled={actionLoading}
-                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      >
                         <CheckCircle size={18} />
                         Approve
                       </button>
                       <button
                         onClick={(e) => openConfirm("decline", task, e)}
                         disabled={actionLoading}
-                        className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                        className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      >
                         <XCircle size={18} />
                         Decline
                       </button>
@@ -436,7 +492,8 @@ const ApprovalsPage = () => {
             <span className="text-gray-800 font-semibold">Alasan Decline</span>
           </>
         }
-        maxWidth="max-w-md">
+        maxWidth="max-w-md"
+      >
         <div className="space-y-4">
           <p className="text-sm text-gray-500 leading-relaxed">
             Berikan alasan mengapa task{" "}
@@ -494,13 +551,15 @@ const ApprovalsPage = () => {
             <button
               onClick={closeConfirm}
               disabled={actionLoading}
-              className="flex-1 py-2.5 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl text-sm font-semibold transition-colors">
+              className="flex-1 py-2.5 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl text-sm font-semibold transition-colors"
+            >
               Batal
             </button>
             <button
               onClick={handleDecline}
               disabled={actionLoading || !declineComment.trim() || !newDeadline}
-              className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+              className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+            >
               <XCircle size={16} />
               {actionLoading ? "Menolak..." : "Konfirmasi Decline"}
             </button>

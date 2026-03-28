@@ -173,72 +173,133 @@ const TeamPage = () => {
         )
       }
     >
-      {/* Teams Grid */}
-      <div className="flex gap-4 mb-12 overflow-x-auto pb-4">
-        {teams.map((team) => (
-          <Card
-            key={team.id}
-            onClick={() =>
-              setSelectedTeamId(selectedTeamId === team.id ? null : team.id)
-            }
-            className={`shrink-0 p-6 rounded-2xl border-2 transition-all duration-300 min-w-62.5 cursor-pointer ${
-              selectedTeamId === team.id
-                ? "bg-violet-50 border-violet-500 shadow-lg shadow-violet-200 ring-2 ring-violet-200"
-                : team.isOwner
-                  ? "bg-white border-violet-200 hover:border-violet-400 hover:shadow-md hover:bg-violet-50/50"
-                  : "bg-white border-gray-200 hover:border-violet-300 hover:shadow-md hover:bg-violet-50/30"
-            }`}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <h3
-                className={`text-xl font-bold transition-colors ${
-                  selectedTeamId === team.id
-                    ? "text-violet-700"
-                    : "text-gray-800"
-                }`}
-              >
-                {team.name}
-              </h3>
-              <div className="flex gap-2">
-                {team.isOwner && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openAddMemberModal(team);
-                      }}
-                      className="text-emerald-400 hover:text-emerald-300 transition-colors"
-                      title="Add Members"
-                    >
-                      <UserPlus size={18} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteTeam(team);
-                      }}
-                      className="text-red-400 hover:text-red-300 transition-colors"
-                      title="Delete Team"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </>
-                )}
-                {team.isOwner && (
-                  <Crown size={18} className="text-yellow-400" />
-                )}
-              </div>
-            </div>
-            <div
-              className={`flex items-center gap-2 text-sm transition-colors ${
-                selectedTeamId === team.id ? "text-violet-500" : "text-gray-400"
+      {/* Teams Grid — card dengan color bar dan info lebih kaya */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+        {teams.map((team, idx) => {
+          const teamColorPalette = [
+            {
+              bar: "bg-violet-500",
+              soft: "bg-violet-50",
+              text: "text-violet-700",
+              border: "border-violet-300",
+            },
+            {
+              bar: "bg-blue-500",
+              soft: "bg-blue-50",
+              text: "text-blue-700",
+              border: "border-blue-300",
+            },
+            {
+              bar: "bg-emerald-500",
+              soft: "bg-emerald-50",
+              text: "text-emerald-700",
+              border: "border-emerald-300",
+            },
+            {
+              bar: "bg-amber-500",
+              soft: "bg-amber-50",
+              text: "text-amber-700",
+              border: "border-amber-300",
+            },
+            {
+              bar: "bg-pink-500",
+              soft: "bg-pink-50",
+              text: "text-pink-700",
+              border: "border-pink-300",
+            },
+          ];
+          const palette = teamColorPalette[idx % teamColorPalette.length];
+          const isSelected = selectedTeamId === team.id;
+          const taskCount = tasks.filter((t) => t.teamId === team.id).length;
+          const doneCount = tasks.filter(
+            (t) => t.teamId === team.id && t.status === "done",
+          ).length;
+
+          return (
+            <Card
+              key={team.id}
+              onClick={() => setSelectedTeamId(isSelected ? null : team.id)}
+              className={`relative overflow-hidden cursor-pointer rounded-2xl border-2 transition-all duration-300 p-5 ${
+                isSelected
+                  ? `${palette.soft} ${palette.border} shadow-lg ring-2 ring-offset-1 ${palette.border.replace("border-", "ring-")}`
+                  : "bg-white border-gray-100 hover:border-gray-200 hover:shadow-md"
               }`}
             >
-              <Users size={16} />
-              <span>{team.members?.length || 0} members</span>
-            </div>
-          </Card>
-        ))}
+              {/* Top color bar */}
+              <div
+                className={`absolute top-0 left-0 right-0 h-1 ${palette.bar}`}
+              />
+
+              <div className="mt-1">
+                <div className="flex items-start justify-between mb-3">
+                  <div
+                    className={`w-10 h-10 ${palette.bar} rounded-xl flex items-center justify-center text-white font-bold text-sm`}
+                  >
+                    {team.name.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex gap-1.5 items-center">
+                    {team.isOwner && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openAddMemberModal(team);
+                          }}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                          title="Add Members"
+                        >
+                          <UserPlus size={15} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteTeam(team);
+                          }}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          title="Delete Team"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                        <Crown size={14} className="text-yellow-400 ml-0.5" />
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <h3
+                  className={`font-bold text-base mb-1 ${isSelected ? palette.text : "text-gray-800"}`}
+                >
+                  {team.name}
+                </h3>
+
+                <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
+                  <span className="flex items-center gap-1">
+                    <Users size={12} />
+                    {team.members?.length || 0} members
+                  </span>
+                  <span>{taskCount} tasks</span>
+                </div>
+
+                {/* Mini progress bar */}
+                {taskCount > 0 && (
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${palette.bar} rounded-full transition-all`}
+                      style={{
+                        width: `${Math.round((doneCount / taskCount) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                )}
+                {taskCount > 0 && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    {doneCount}/{taskCount} selesai
+                  </p>
+                )}
+              </div>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Team Statistics */}

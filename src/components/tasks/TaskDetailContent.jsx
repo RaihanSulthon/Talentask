@@ -521,14 +521,15 @@ const TaskDetailContent = ({
       </div>
 
       {/* Kolom Kanan — Metadata & Action */}
-      <div className="lg:w-72 xl:w-80 shrink-0 space-y-4">
+      <div className="lg:w-72 xl:w-80 shrink-0">
+      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
         {/* Team */}
-        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-            Team
-          </p>
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shrink-0"></div>
+        <div className="px-5 py-4 border-b border-slate-50">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Tim</p>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-linear-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0">
+              {(task.teamName || currentTeam?.name || "?")[0].toUpperCase()}
+            </div>
             <p className="text-slate-700 font-semibold text-sm truncate">
               {task.teamName || currentTeam?.name || "Unknown Team"}
             </p>
@@ -536,10 +537,8 @@ const TaskDetailContent = ({
         </div>
 
         {/* Status */}
-        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-            Status
-          </p>
+        <div className="px-5 py-4 border-b border-slate-50">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Status</p>
           {isUser ? (
             task.status === "done" ? (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
@@ -547,35 +546,18 @@ const TaskDetailContent = ({
               </span>
             ) : (
               <CustomSelect
-                options={statusSelectOptions.filter(
-                  (opt) => opt.value !== "done",
-                )}
+                options={statusSelectOptions.filter((opt) => opt.value !== "done")}
                 value={formData.status}
                 onChange={(value) => {
                   if (value === "inreview") {
                     if (!hasSubmission) {
-                      toast.warning(
-                        "Belum ada submission. Kumpulkan hasil kerja dulu sebelum minta review.",
-                      );
+                      toast.warning("Belum ada submission. Kumpulkan hasil kerja dulu sebelum minta review.");
                       return;
                     }
-                    if (
-                      !window.confirm(
-                        "Submit this task for approval? Your team owner will review it.",
-                      )
-                    )
-                      return;
+                    if (!window.confirm("Submit this task for approval? Your team owner will review it.")) return;
                   }
-                  if (
-                    task.status === "inreview" &&
-                    (value === "todo" || value === "inprogress")
-                  ) {
-                    if (
-                      !window.confirm(
-                        "Tarik task ini dari review? Task akan kembali ke status sebelumnya.",
-                      )
-                    )
-                      return;
+                  if (task.status === "inreview" && (value === "todo" || value === "inprogress")) {
+                    if (!window.confirm("Tarik task ini dari review? Task akan kembali ke status sebelumnya.")) return;
                   }
                   setFormData({ ...formData, status: value });
                   if (onUpdateStatus) {
@@ -603,33 +585,26 @@ const TaskDetailContent = ({
         </div>
 
         {/* Timestamps */}
-        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
-              Created
-            </p>
-            <p className="text-slate-600 text-sm font-medium">
-              {formatDate(task.createdAt)}
-            </p>
+        <div className="px-5 py-4">
+          <div className="mb-3">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Dibuat</p>
+            <p className="text-slate-600 text-sm font-medium">{formatDate(task.createdAt)}</p>
           </div>
-          <div className="border-t border-slate-100 pt-3">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
-              Last Updated
-            </p>
-            <p className="text-slate-600 text-sm font-medium">
-              {formatDate(task.updatedAt)}
-            </p>
+          <div className="pt-3 border-t border-slate-50">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Terakhir Diperbarui</p>
+            <p className="text-slate-600 text-sm font-medium">{formatDate(task.updatedAt)}</p>
           </div>
         </div>
 
-        {/* Delete */}
+        {/* Delete — tidak full width, ada di dalam card, tertata */}
         {isAdmin && (
-          <>
+          <div className="px-5 pb-4 pt-1 border-t border-slate-50">
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="w-full py-3.5 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm shadow-red-100">
-              <Trash2 size={16} />
-              Delete Task
+              className="w-full py-2.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+            >
+              <Trash2 size={14} />
+              Hapus Task
             </button>
 
             <Modal
@@ -671,11 +646,12 @@ const TaskDetailContent = ({
                 </div>
               </div>
             </Modal>
-          </>
+          </div>
         )}
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default TaskDetailContent;
