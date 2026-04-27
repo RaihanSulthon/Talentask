@@ -251,7 +251,12 @@ const ApprovalsPage = () => {
   if (teamsLoading || tasksLoading) {
     return (
       <DashboardLayout title="Approvals">
-        <div className="text-white">Loading...</div>
+        <div className="flex items-center justify-center h-64">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-gray-400 font-medium">Memuat approvals...</p>
+          </div>
+        </div>
       </DashboardLayout>
     );
   }
@@ -405,7 +410,7 @@ const ApprovalsPage = () => {
               <Card
                 key={task.id}
                 onClick={() => handleTaskClick(task)}
-                className="p-6 rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500/50 transition-all hover:shadow-lg hover:shadow-yellow-500/10"
+                className="p-6 rounded-xl border-2 border-amber-200/70 hover:border-amber-300 transition-all hover:shadow-lg hover:shadow-amber-100/60"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
@@ -413,7 +418,7 @@ const ApprovalsPage = () => {
                       <h4 className="text-lg font-semibold text-gray-800">
                         {task.title}
                       </h4>
-                      <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full text-xs font-medium flex items-center gap-1">
+                      <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-semibold flex items-center gap-1">
                         <Clock size={12} />
                         Pending Approval
                       </span>

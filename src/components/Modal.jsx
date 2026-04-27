@@ -5,10 +5,10 @@ const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-lg" }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 overflow-y-auto p-4"
+      className="overlay-animate fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 overflow-y-auto p-4"
       onClick={onClose}
     >
-      <div className={`bg-white rounded-2xl shadow-2xl w-full ${maxWidth} my-8`}
+      <div className={`modal-animate bg-white rounded-2xl shadow-2xl shadow-gray-900/20 w-full ${maxWidth} my-8 border border-gray-100`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

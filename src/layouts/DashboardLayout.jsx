@@ -32,7 +32,7 @@ const DashboardLayout = ({ children, title, subtitle, actions }) => {
         `}
       >
         {/* Page header strip */}
-        <div className="bg-white border-b border-gray-200/80 px-6 lg:px-8 xl:px-10 py-5 lg:py-6">
+        <div className="bg-linear-to-r from-white via-white to-violet-50/40 border-b border-gray-200/80 px-6 lg:px-8 xl:px-10 py-5 lg:py-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">

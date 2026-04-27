@@ -150,10 +150,14 @@ const TeamPage = () => {
 
   if (loading || tasksLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-700">
-        {" "}
-        Loading...
-      </div>
+      <DashboardLayout title="Team Overview">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-gray-400 font-medium">Memuat teams...</p>
+          </div>
+        </div>
+      </DashboardLayout>
     );
   }
 
@@ -165,9 +169,9 @@ const TeamPage = () => {
         canCreateTeam && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-violet-200"
           >
-            <Users size={20} />
+            <Users size={16} />
             Create Team
           </button>
         )
@@ -345,7 +349,7 @@ const TeamPage = () => {
             <Card key={i} className="p-4 lg:p-6">
               <div className="flex items-center gap-4">
                 <div
-                  className={`w-12 h-12 ${gradient} rounded-lg flex items-center justify-center`}
+                  className={`w-12 h-12 ${gradient} rounded-xl flex items-center justify-center`}
                 >
                   <Icon size={24} className="text-white" />
                 </div>
@@ -395,7 +399,7 @@ const TeamPage = () => {
                   <Card key={`${memberTeam?.id}-${member.uid}`} className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="w-12 h-12 bg-linear-to-br from-violet-500 to-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-sm shadow-sm">
                           {member.displayName?.substring(0, 2).toUpperCase() ||
                             "U"}
                         </div>
@@ -497,10 +501,10 @@ const TeamPage = () => {
               setTeamName(e.target.value);
               if (teamNameError) setTeamNameError("");
             }}
-            className={`w-full px-4 py-3 border rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all ${
+            className={`w-full px-4 py-3 border rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all text-sm ${
               teamNameError
                 ? "bg-red-50 border-red-400 focus:ring-red-100"
-                : "bg-white border-gray-200 focus:ring-violet-400"
+                : "bg-gray-50 border-gray-200 focus:ring-violet-200 focus:border-violet-400 focus:bg-white"
             }`}
             autoFocus
           />
@@ -531,7 +535,7 @@ const TeamPage = () => {
             }
           }}
           disabled={actionLoading}
-          className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-violet-200"
         >
           {actionLoading ? "Creating..." : "Create Team"}
         </button>
@@ -562,24 +566,24 @@ const TeamPage = () => {
           />
         </div>
         <div
-          className="space-y-2 mb-6 overflow-y-auto pr-2 max-h-60 min-h-60
-    [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/50
-    [&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-lg
-    [&::-webkit-scrollbar-thumb]:hover:bg-slate-500"
+          className="space-y-2 mb-6 overflow-y-auto pr-1 max-h-60 min-h-60
+    [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-gray-100
+    [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full
+    [&::-webkit-scrollbar-thumb:hover]:bg-gray-400"
         >
           {filteredUsers.length > 0 ? (
             filteredUsers.map((user) => (
               <div
                 key={user.uid}
                 onClick={() => toggleMemberSelection(user.uid)}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                   selectedMembers.includes(user.uid)
-                    ? "bg-emerald-500/20 border-emerald-500"
-                    : "bg-white border-gray-200 hover:border-gray-300"
+                    ? "bg-violet-50 border-violet-400"
+                    : "bg-white border-gray-200 hover:border-violet-200 hover:bg-violet-50/30"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-9 h-9 bg-linear-to-br from-violet-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm">
                     {user.displayName?.substring(0, 2).toUpperCase() || "U"}
                   </div>
                   <div className="flex-1">
@@ -589,7 +593,7 @@ const TeamPage = () => {
                     <div className="text-gray-500 text-sm">{user.email}</div>
                   </div>
                   {selectedMembers.includes(user.uid) && (
-                    <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                    <div className="w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center shrink-0">
                       <svg
                         className="w-3 h-3 text-white"
                         fill="none"
@@ -633,7 +637,7 @@ const TeamPage = () => {
             }
           }}
           disabled={selectedMembers.length === 0 || actionLoading}
-          className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-violet-200"
         >
           {actionLoading
             ? "Adding..."

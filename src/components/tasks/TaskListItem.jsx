@@ -34,6 +34,16 @@ const TaskListItem = ({
     }
   };
 
+  const getAccentBar = (status) => {
+    switch (status) {
+      case "todo":       return "bg-violet-400";
+      case "inprogress": return "bg-blue-400";
+      case "inreview":   return "bg-amber-400";
+      case "done":       return "bg-emerald-400";
+      default:           return "bg-slate-300";
+    }
+  };
+
   const getDeadlineBadge = () => {
     if (!task.deadline || task.status === "done") return null;
     const deadline = task.deadline?.toDate
@@ -41,7 +51,7 @@ const TaskListItem = ({
       : new Date(task.deadline);
     const diffDays = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
     const threshold = task.deadlineReminder ?? 3;
-    if (diffDays > threshold) return null; // Masih jauh, tidak perlu badge
+    if (diffDays > threshold) return null;
 
     if (diffDays < 0)
       return {
@@ -65,16 +75,11 @@ const TaskListItem = ({
 
   const getStatusLabel = (status) => {
     switch (status) {
-      case "todo":
-        return "To Do";
-      case "inprogress":
-        return "In Progress";
-      case "inreview":
-        return "In Review";
-      case "done":
-        return "Done";
-      default:
-        return status;
+      case "todo":       return "To Do";
+      case "inprogress": return "In Progress";
+      case "inreview":   return "In Review";
+      case "done":       return "Done";
+      default:           return status;
     }
   };
 
@@ -95,7 +100,6 @@ const TaskListItem = ({
     const currentIndex = statuses.indexOf(task.status);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
 
-    // Prevent users from directly changing to "done"
     if (nextStatus === "done" && isUser && !canEdit) {
       alert(
         "You cannot directly mark a task as Done. Please move it to 'In Review' for approval.",
@@ -103,7 +107,6 @@ const TaskListItem = ({
       return;
     }
 
-    // Show confirmation when submitting for review
     if (nextStatus === "inreview" && isUser) {
       if (
         !window.confirm(
@@ -114,7 +117,6 @@ const TaskListItem = ({
       }
     }
 
-    // Prevent changing status of tasks in review (only admin can)
     if (task.status === "inreview" && isUser) {
       alert("This task is awaiting approval and cannot be changed.");
       return;
@@ -126,32 +128,22 @@ const TaskListItem = ({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-xl border border-slate-200 hover:border-violet-300 hover:shadow-md hover:shadow-violet-50 cursor-pointer transition-all group ${
-        compact ? "p-3" : "p-4"
-      }`}
+      className="bg-white rounded-xl border border-slate-200 hover:border-violet-300 hover:shadow-md hover:shadow-violet-50/60 cursor-pointer transition-all duration-200 group flex overflow-hidden"
     >
-      {/* Violet accent bar */}
-      <div
-        className={`w-1 shrink-0 rounded-l-xl ${
-          task.status === "todo"
-            ? "bg-slate-300"
-            : task.status === "inprogress"
-              ? "bg-blue-400"
-              : task.status === "inreview"
-                ? "bg-amber-400"
-                : "bg-emerald-400"
-        }`}
-      />
-      <div className={`flex-1 ${compact ? "p-3" : "p-4"}`}>
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
+      {/* Left accent bar */}
+      <div className={`w-1 shrink-0 self-stretch ${getAccentBar(task.status)}`} />
+
+      {/* Main content */}
+      <div className={`flex-1 min-w-0 ${compact ? "px-3 py-2.5" : "px-4 py-3.5"}`}>
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="flex-1 min-w-0">
             <h4
-              className={`font-semibold text-slate-800 mb-1 ${compact ? "text-sm" : ""}`}
+              className={`font-semibold text-slate-800 leading-snug ${compact ? "text-sm" : "text-sm lg:text-base"}`}
             >
               {task.title}
             </h4>
             {!compact && (
-              <p className="text-sm text-slate-500 line-clamp-2 mb-2">
+              <p className="text-sm text-slate-400 line-clamp-1 mt-0.5">
                 {task.description}
               </p>
             )}
@@ -159,7 +151,7 @@ const TaskListItem = ({
           {(isUser || canEdit) && onStatusChange && (
             <button
               onClick={handleStatusClick}
-              className={`ml-3 px-3 py-1 rounded-full text-xs font-medium transition-all hover:scale-105 ${getStatusColor(
+              className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all hover:scale-105 ${getStatusColor(
                 task.status,
               )}`}
             >
@@ -168,7 +160,7 @@ const TaskListItem = ({
           )}
           {!onStatusChange && (
             <span
-              className={`ml-3 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+              className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
                 task.status,
               )}`}
             >
@@ -176,51 +168,48 @@ const TaskListItem = ({
             </span>
           )}
         </div>
-      </div>
 
-      <div className="flex items-center gap-4 text-xs text-slate-400 mt-3 pt-3 border-t border-violet-50">
-        {" "}
-        {!compact && (
-          <>
-            <div className="flex items-center gap-1">
-              <Tag size={14} />
-              <span>{task.teamName || "Unknown Team"}</span>
-            </div>
+        {/* Footer metadata */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 pt-2.5 border-t border-slate-100">
+          {!compact && (
+            <>
+              <div className="flex items-center gap-1">
+                <Tag size={12} />
+                <span>{task.teamName || "Unknown Team"}</span>
+              </div>
 
-            <div className="flex items-center gap-1">
-              <User size={14} />
-              <span>
-                {assignedMembers && assignedMembers.length > 0
-                  ? assignedMembers.length === 1
-                    ? assignedMembers[0].displayName
-                    : `${assignedMembers.length} assigned`
-                  : "Unassigned"}
-              </span>
-            </div>
+              <div className="flex items-center gap-1">
+                <User size={12} />
+                <span>
+                  {assignedMembers && assignedMembers.length > 0
+                    ? assignedMembers.length === 1
+                      ? assignedMembers[0].displayName
+                      : `${assignedMembers.length} assigned`
+                    : "Unassigned"}
+                </span>
+              </div>
 
+              <div className="flex items-center gap-1">
+                <Calendar size={12} />
+                <span>{formatDate(task.createdAt)}</span>
+              </div>
+
+              {deadlineBadge && (
+                <span
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium border ${deadlineBadge.color}`}
+                >
+                  {deadlineBadge.icon} {deadlineBadge.label}
+                </span>
+              )}
+            </>
+          )}
+          {compact && (
             <div className="flex items-center gap-1">
-              <Calendar size={14} />
-              <span>{formatDate(task.createdAt)}</span>
+              <User size={12} />
+              <span>{assignedMembers?.length ?? 0}</span>
             </div>
-            {deadlineBadge && (
-              <span
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${deadlineBadge.color}`}
-              >
-                {deadlineBadge.icon} {deadlineBadge.label}
-              </span>
-            )}
-          </>
-        )}
-        {compact && (
-          <div className="flex items-center gap-1">
-            <User size={14} />
-            <span>
-              {assignedMembers && assignedMembers.length > 0
-                ? assignedMembers.length
-                : 0}
-            </span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
